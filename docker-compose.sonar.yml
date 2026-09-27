@@ -1,0 +1,21 @@
+# SonarQube local para la puerta de calidad del arnés (ver AGENTS.md).
+#   docker compose -f docker-compose.sonar.yml up -d
+# Después: http://localhost:9000 (admin / admin) → cambia la contraseña y crea un token.
+services:
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: jtm-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      # Sin checks de arranque de Elasticsearch (levanta más rápido en desarrollo).
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

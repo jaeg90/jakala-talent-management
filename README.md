@@ -31,6 +31,7 @@ npm run typecheck   # TypeScript en server y web
 npm run lint        # ESLint (typescript-eslint, config plana)
 npm test            # Vitest: unitarios e integración (SQLite temporal)
 npm run test:e2e    # Playwright: construye, arranca el servidor y recorre la UI
+npm run quality     # Arnés de calidad: Stryker + SonarQube + trazas + Sentry (resumen final)
 ```
 
 Los E2E recorren: login → vista de equipo → logout, el ciclo completo de un 1-to-1 (registro con notas y acuerdos, marcar cumplido), los temas propios de una mentee y el ciclo de un objetivo anual (alta y marcarlo cumplido).

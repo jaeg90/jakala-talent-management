@@ -12,6 +12,10 @@ reports/
 test-results/
 playwright-report/
 
+# Salidas del scanner de Sonar
+.scannerwork/
+.sonar/
+
 # Logs
 *.log
 

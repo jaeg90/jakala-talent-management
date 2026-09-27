@@ -99,6 +99,12 @@ export function createApp(deps: AppDeps): express.Express {
     res.status(204).end();
   });
 
+  // Ruta de depuración del arnés de calidad: simula un error de servidor para
+  // verificar que Sentry lo captura (el manejador se registra en main.ts). Ver AGENTS.md.
+  app.get('/api/debug/sentry-error', () => {
+    throw new Error('Error simulado para Sentry');
+  });
+
   app.get('/api/session', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ manager });
   }));

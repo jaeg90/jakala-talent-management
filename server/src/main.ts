@@ -19,10 +19,19 @@ import { SqliteIncidenciaRepository } from './infrastructure/db/sqlite-incidenci
 import { SqliteProyectoRepository } from './infrastructure/db/sqlite-proyecto-repository.js';
 import { SqliteTraspasoRepository } from './infrastructure/db/sqlite-traspaso-repository.js';
 import { createApp } from './infrastructure/http/app.js';
+import { startTelemetry } from './infrastructure/observability/telemetry.js';
+import { initSentry, setupSentryErrorHandler } from './infrastructure/observability/sentry.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
 const DB_PATH = process.env.JTM_DB ?? 'jtm.db';
 const WEB_DIST = process.env.WEB_DIST ?? '../web/dist';
+
+// Observabilidad (ARNÉS de calidad): trazas OpenTelemetry y errores de Sentry.
+// Sin red externa las trazas salen por consola; con OTEL_EXPORTER_OTLP_ENDPOINT se
+// exportan a un colector. Sentry solo se activa si hay SENTRY_DSN (ver AGENTS.md).
+const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+const telemetry = startTelemetry({ otlpEndpoint });
+initSentry();
 
 // Composición de adaptadores (hexagonal): dominio y aplicación no conocen Express ni SQLite.
 const db: Database = openDatabase(DB_PATH);
@@ -48,6 +57,17 @@ app.get(/^(?!\/api).*/, (_req, res) => {
   res.sendFile('index.html', { root: WEB_DIST });
 });
 
-app.listen(PORT, () => {
+// Captura en Sentry los errores de servidor que lleguen hasta Express (registrado al final).
+setupSentryErrorHandler(app);
+
+const server = app.listen(PORT, () => {
   console.log(`JTM escuchando en http://localhost:${PORT}`);
 });
+
+// Cierre ordenado: drena las trazas y los eventos de Sentry antes de salir.
+async function apagar(): Promise<void> {
+  server.close();
+  await telemetry.shutdown();
+}
+process.on('SIGINT', () => void apagar());
+process.on('SIGTERM', () => void apagar());

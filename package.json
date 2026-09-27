@@ -13,11 +13,17 @@
     "test": "npm test --workspace server && npm test --workspace piloto",
     "start": "npm run start --workspace server",
     "test:e2e": "playwright test",
-    "piloto": "npm run build --workspace piloto && node piloto/dist/main.js"
+    "piloto": "npm run build --workspace piloto && node piloto/dist/main.js",
+    "test:mutation": "npm run test:mutation --workspace server",
+    "sonar": "node scripts/sonar-scan.mjs",
+    "test:otel": "npm run test:otel --workspace server",
+    "test:sentry": "npm run test:sentry --workspace server",
+    "quality": "node scripts/quality.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@playwright/test": "^1.55.1",
+    "@sonar/scan": "^5.0.1",
     "eslint": "^9.36.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.44.0"
