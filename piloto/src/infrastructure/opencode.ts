@@ -13,9 +13,11 @@ import { ejecutar, recortar } from './procesos.js';
  * «provider/model», --title nombra la sesión (evidencia) y --auto aprueba los
  * permisos no denegados explícitamente. La revisora va SIN --auto: su bash
  * está permitido (ve el diff), pero cualquier edición necesita un permiso
- * que en sesión no interactiva nadie le dará. Los «deny» de opencode.json
- * (force-push, merge de PR) se mantienen siempre: lo irreversible lo hace
- * el coordinador, nunca una sesión.
+ * que en sesión no interactiva nadie le dará. Las reglas de opencode.json
+ * deniegan external_directory y todo git push/commit/merge en sesiones: un
+ * «ask» imprevisto mata una sesión no interactiva (auto-rechazo), pero un
+ * «deny» configurado solo bloquea la operación y la sesión continúa. Lo
+ * irreversible lo hace el coordinador, nunca una sesión.
  */
 
 export interface ConfigSesiones {
@@ -64,6 +66,8 @@ const promptRevisora = (ticket: Ticket): string =>
     `Revisa el diff pendiente del ticket #${ticket.numero} — ${ticket.titulo}:`,
     'ejecuta «git diff» para los cambios y «git status» para los archivos nuevos,',
     'que también son parte del diff.',
+    'No salgas del directorio del repo: cada comando bash arranca en la raíz del proyecto',
+    'y el cwd no persiste entre llamadas.',
     '',
     'La spec del ticket:',
     ticket.cuerpo.trim(),
