@@ -84,7 +84,7 @@ export function createApp(deps: AppDeps): express.Express {
   }));
 
   app.get('/api/team', requireSession(deps.sessions, async (_req, res, manager) => {
-    res.json({ mentees: await deps.team.menteesOf(manager) });
+    res.json({ mentees: await deps.team.teamOf(manager) });
   }));
 
   return app;

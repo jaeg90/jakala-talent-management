@@ -1,4 +1,4 @@
-import type { Manager, Mentee } from '../domain/model.js';
+import type { Manager, MenteeConProyecto } from '../domain/model.js';
 import type { Authenticator, SessionStore, TeamRepository } from '../domain/ports.js';
 
 /** Caso de uso: iniciar sesión con email y contraseña. */
@@ -17,11 +17,11 @@ export class LoginService {
   }
 }
 
-/** Caso de uso: el equipo de un manager (vacío en el esqueleto). */
+/** Caso de uso: el equipo de un manager, con el proyecto actual de cada mentee. */
 export class TeamService {
   constructor(private readonly teamRepository: TeamRepository) {}
 
-  menteesOf(manager: Manager): Promise<Mentee[]> {
-    return this.teamRepository.menteesOf(manager.id);
+  teamOf(manager: Manager): Promise<MenteeConProyecto[]> {
+    return this.teamRepository.teamOf(manager.id);
   }
 }

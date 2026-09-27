@@ -16,7 +16,13 @@ npm run build
 npm start          # http://localhost:3001
 ```
 
-Manager semilla (ficticio): `manager@jakala.example` / `secreta123`.
+Managers semilla (ficticios, misma contraseña `secreta123`):
+
+| Email | Nombre | Equipo |
+|---|---|---|
+| `manager@jakala.example` | Marta Manager | Ana, Beatriz, Carla |
+| `diego@jakala.example` | Diego Domínguez | David, Elena, Fernando |
+| `lucia@jakala.example` | Lucía López | Gabriela, Hugo (sin proyecto) |
 
 ## Arnés (todos deterministas, sin red externa)
 

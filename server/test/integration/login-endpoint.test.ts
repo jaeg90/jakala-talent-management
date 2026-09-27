@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
 import { openDatabase } from '../../src/infrastructure/db/sqlite.js';
-import { seed } from '../../src/infrastructure/db/seed.js';
+import { seed, SEED_MANAGERS } from '../../src/infrastructure/db/seed.js';
 import { SeedAuthenticator } from '../../src/infrastructure/auth/seed-authenticator.js';
 import { SqliteTeamRepository } from '../../src/infrastructure/db/sqlite-team-repository.js';
 import { MemorySessionStore } from '../../src/infrastructure/sessions/memory-session-store.js';
@@ -72,28 +72,64 @@ describe('acceso sin sesión', () => {
 });
 
 describe('con sesión', () => {
-  async function login(): Promise<string> {
+  async function login(email: string): Promise<string> {
     const res = await fetch(`${baseUrl}/api/login`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: 'manager@jakala.example', password: 'secreta123' }),
+      body: JSON.stringify({ email, password: 'secreta123' }),
     });
     return res.headers.get('set-cookie')!.split(';')[0]!;
   }
 
+  const MARTA = SEED_MANAGERS[0]!.email;
+  const DIEGO = SEED_MANAGERS[1]!.email;
+
+  interface MenteeApi {
+    id: string;
+    name: string;
+    project: { id: string; name: string } | null;
+  }
+
+  async function teamOf(email: string): Promise<MenteeApi[]> {
+    const res = await fetch(`${baseUrl}/api/team`, { headers: { cookie: await login(email) } });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { mentees: MenteeApi[] };
+    return body.mentees;
+  }
+
   it('GET /api/session devuelve al manager', async () => {
-    const res = await fetch(`${baseUrl}/api/session`, { headers: { cookie: await login() } });
+    const res = await fetch(`${baseUrl}/api/session`, { headers: { cookie: await login(MARTA) } });
     expect(res.status).toBe(200);
   });
 
-  it('GET /api/team devuelve el equipo (vacío en el esqueleto)', async () => {
-    const res = await fetch(`${baseUrl}/api/team`, { headers: { cookie: await login() } });
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ mentees: [] });
+  it('GET /api/team lista los mentees del manager con su proyecto actual', async () => {
+    const mentees = await teamOf(MARTA);
+
+    expect(mentees).toEqual([
+      { id: 'me-ana', name: 'Ana Alonso', project: { id: 'pr-atlas', name: 'Atlas Bank' } },
+      { id: 'me-bea', name: 'Beatriz Blanco', project: { id: 'pr-nova', name: 'Retail Nova' } },
+      { id: 'me-carla', name: 'Carla Cano', project: { id: 'pr-aurora', name: 'Aurora Health' } },
+    ]);
+  });
+
+  it('aislamiento: Marta no ve mentees de otros managers', async () => {
+    const marta = await teamOf(MARTA);
+    const otros = (await teamOf(DIEGO)).concat(await teamOf('lucia@jakala.example'));
+
+    for (const mentee of otros) {
+      expect(marta.map((m) => m.id)).not.toContain(mentee.id);
+    }
+    expect(marta.length).toBe(3);
+  });
+
+  it('la mentee sin proyecto de Lucía aparece con project null', async () => {
+    const lucia = await teamOf('lucia@jakala.example');
+    const hugo = lucia.find((m) => m.id === 'me-hugo');
+    expect(hugo?.project).toBeNull();
   });
 
   it('POST /api/logout revoca la sesión', async () => {
-    const cookie = await login();
+    const cookie = await login(MARTA);
     const logout = await fetch(`${baseUrl}/api/logout`, { method: 'POST', headers: { cookie } });
     expect(logout.status).toBe(204);
     const after = await fetch(`${baseUrl}/api/team`, { headers: { cookie } });

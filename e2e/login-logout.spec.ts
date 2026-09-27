@@ -12,9 +12,14 @@ test('login → vista de equipo → logout', async ({ page }) => {
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-  // Vista de equipo (vacía en el esqueleto)
+  // Vista de equipo con los proyectos correctos
   await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeVisible();
-  await expect(page.getByText('Todavía no hay mentees en tu equipo.')).toBeVisible();
+  await expect(page.locator('.mentee-list li', { hasText: 'Ana Alonso' })).toContainText('Atlas Bank');
+  await expect(page.locator('.mentee-list li', { hasText: 'Beatriz Blanco' })).toContainText('Retail Nova');
+  await expect(page.locator('.mentee-list li', { hasText: 'Carla Cano' })).toContainText('Aurora Health');
+
+  // Aislamiento: no ve mentees de otros managers
+  await expect(page.locator('.mentee-list li', { hasText: 'David Duarte' })).toHaveCount(0);
 
   // Logout: vuelve al login y la vista queda bloqueada
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();

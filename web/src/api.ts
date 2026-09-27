@@ -18,9 +18,15 @@ export interface Manager {
   name: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+}
+
 export interface Mentee {
   id: string;
   name: string;
+  project: Project | null;
 }
 
 export const api = {

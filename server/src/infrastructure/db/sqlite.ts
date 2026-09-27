@@ -12,10 +12,15 @@ export function openDatabase(path: string): Database.Database {
       name TEXT NOT NULL,
       password_hash TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE
+    );
     CREATE TABLE IF NOT EXISTS mentees (
       id TEXT PRIMARY KEY,
       manager_id TEXT NOT NULL REFERENCES managers(id),
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      project_id TEXT REFERENCES projects(id)
     );
   `);
   return db;

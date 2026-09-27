@@ -31,9 +31,12 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
       ) : mentees.length === 0 ? (
         <p className="empty">Todavía no hay mentees en tu equipo.</p>
       ) : (
-        <ul>
+        <ul className="mentee-list">
           {mentees.map((m) => (
-            <li key={m.id}>{m.name}</li>
+            <li key={m.id}>
+              <span className="mentee-name">{m.name}</span>
+              <span className="mentee-project">{m.project?.name ?? 'Sin proyecto'}</span>
+            </li>
           ))}
         </ul>
       )}

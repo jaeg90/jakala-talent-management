@@ -13,3 +13,16 @@ export interface Mentee {
   managerId: ManagerId;
   name: string;
 }
+
+/** Proyecto de cliente en el que trabaja una mentee. Catálogo compartido. */
+export interface Project {
+  id: string;
+  name: string;
+}
+
+/** Mentee tal y como la ve su manager en "Mi equipo": con su proyecto actual o ninguno. */
+export interface MenteeConProyecto {
+  id: string;
+  name: string;
+  project: Project | null;
+}

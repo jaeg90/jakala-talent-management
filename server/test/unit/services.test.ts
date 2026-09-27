@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LoginService, TeamService } from '../../src/application/services.js';
 import type { Authenticator, SessionStore, TeamRepository } from '../../src/domain/ports.js';
-import type { Manager, Mentee } from '../../src/domain/model.js';
+import type { Manager, MenteeConProyecto } from '../../src/domain/model.js';
 
 const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
 
@@ -50,14 +50,19 @@ describe('LoginService', () => {
 });
 
 describe('TeamService', () => {
-  it('devuelve los mentees del manager', async () => {
-    const mentees: Mentee[] = [];
-    const repo: TeamRepository = { async menteesOf(managerId) {
-      expect(managerId).toBe('m-1');
-      return mentees;
-    } };
+  it('devuelve el equipo del manager con su proyecto actual', async () => {
+    const equipo: MenteeConProyecto[] = [
+      { id: 'me-1', name: 'Ana Alonso', project: { id: 'pr-1', name: 'Atlas Bank' } },
+      { id: 'me-2', name: 'Beatriz Blanco', project: null },
+    ];
+    const repo: TeamRepository = {
+      async teamOf(managerId) {
+        expect(managerId).toBe('m-1');
+        return equipo;
+      },
+    };
     const service = new TeamService(repo);
 
-    expect(await service.menteesOf(manager)).toEqual([]);
+    expect(await service.teamOf(manager)).toEqual(equipo);
   });
 });

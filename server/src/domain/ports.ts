@@ -1,4 +1,4 @@
-import type { Manager, Mentee, ManagerId } from './model.js';
+import type { Manager, ManagerId, MenteeConProyecto } from './model.js';
 
 /**
  * Puerto de autenticación (ADR-0002): comprobar credenciales de manager.
@@ -9,9 +9,9 @@ export interface Authenticator {
   authenticate(email: string, password: string): Promise<Manager | null>;
 }
 
-/** Puerto de equipo: los mentees que gestiona un manager. */
+/** Puerto de equipo: los mentees de un manager, con su proyecto actual. */
 export interface TeamRepository {
-  menteesOf(managerId: ManagerId): Promise<Mentee[]>;
+  teamOf(managerId: ManagerId): Promise<MenteeConProyecto[]>;
 }
 
 /** Puerto de sesiones: crear/consultar/cerrar sesiones por token. */
