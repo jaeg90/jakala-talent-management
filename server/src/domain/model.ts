@@ -22,6 +22,23 @@ export interface Mentee {
 }
 
 /**
+ * Traspaso: paso de una mentee de un manager a otro por reorganización.
+ * El historial pertenece a la mentee y el manager de destino lo hereda completo.
+ * Ver "Traspaso" en CONTEXT.md.
+ */
+export interface Traspaso {
+  id: string;
+  menteeId: string;
+  /** Manager del que sale la mentee. */
+  origenId: ManagerId;
+  /** Manager al que pasa la mentee. */
+  destinoId: ManagerId;
+  /** Fecha ISO (YYYY-MM-DD) del traspaso. */
+  fecha: string;
+  motivo: string;
+}
+
+/**
  * Tema propio añadido por un manager a una mentee. Persiste entre 1-to-1s hasta
  * que se retira (la baja no borra los temas ya tratados en 1-to-1s registrados).
  * Ver "Tema" en CONTEXT.md.

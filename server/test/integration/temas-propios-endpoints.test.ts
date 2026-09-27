@@ -16,6 +16,8 @@ import { ProyectoService } from '../../src/application/proyecto_service.js';
 import { SqliteObjetivoRepository } from '../../src/infrastructure/db/sqlite-objetivo-repository.js';
 import { SqliteIncidenciaRepository } from '../../src/infrastructure/db/sqlite-incidencia-repository.js';
 import { SqliteProyectoRepository } from '../../src/infrastructure/db/sqlite-proyecto-repository.js';
+import { TraspasoService } from '../../src/application/traspaso_service.js';
+import { SqliteTraspasoRepository } from '../../src/infrastructure/db/sqlite-traspaso-repository.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
@@ -35,6 +37,7 @@ beforeAll(async () => {
     objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
+    traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
     sessions,
   });
   server = app.listen(0);

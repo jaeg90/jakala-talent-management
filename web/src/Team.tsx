@@ -11,11 +11,15 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
   const [viendoIncidencias, setViendoIncidencias] = useState(false);
   const [viendoProyectos, setViendoProyectos] = useState(false);
 
-  useEffect(() => {
+  function reloadTeam() {
     api
       .team()
       .then(({ mentees }) => setMentees(mentees))
       .catch(() => setMentees([]));
+  }
+
+  useEffect(() => {
+    reloadTeam();
   }, []);
 
   async function handleLogout() {
@@ -24,7 +28,17 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
   }
 
   if (abierta !== null) {
-    return <MenteeDetail menteeId={abierta.id} menteeName={abierta.name} onBack={() => setAbierta(null)} />;
+    return (
+      <MenteeDetail
+        menteeId={abierta.id}
+        menteeName={abierta.name}
+        manager={manager}
+        onBack={() => {
+          setAbierta(null);
+          reloadTeam();
+        }}
+      />
+    );
   }
 
   if (viendoIncidencias) {

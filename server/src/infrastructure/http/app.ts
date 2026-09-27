@@ -6,6 +6,7 @@ import { TemaPropioService } from '../../application/tema_propio_service.js';
 import { ObjetivoService } from '../../application/objetivo_service.js';
 import { IncidenciaService } from '../../application/incidencia_service.js';
 import { ProyectoService } from '../../application/proyecto_service.js';
+import { TraspasoService } from '../../application/traspaso_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -20,6 +21,7 @@ export interface AppDeps {
   objetivos: ObjetivoService;
   incidencias: IncidenciaService;
   proyectos: ProyectoService;
+  traspasos: TraspasoService;
   sessions: SessionStore;
 }
 
@@ -334,6 +336,39 @@ export function createApp(deps: AppDeps): express.Express {
     }
   }));
 
+  // Catálogo de managers (para elegir el destino de un traspaso).
+  app.get('/api/managers', requireSession(deps.sessions, async (_req, res) => {
+    res.json({ managers: await deps.traspasos.managers() });
+  }));
+
+  // Historial de traspasos de una mentee.
+  app.get('/api/mentees/:menteeId/traspasos', requireSession(deps.sessions, async (req, res, manager) => {
+    res.json({ traspasos: await deps.traspasos.historialDe(manager, param(req, 'menteeId')) });
+  }));
+
+  // Traspaso de una mentee a otro manager (el origen se deriva del manager actual).
+  app.post('/api/mentees/:menteeId/traspasos', requireSession(deps.sessions, async (req, res, manager) => {
+    const body = (req.body ?? {}) as { fecha?: unknown; destinoId?: unknown; motivo?: unknown };
+    if (
+      typeof body.fecha !== 'string' ||
+      typeof body.destinoId !== 'string' ||
+      typeof body.motivo !== 'string'
+    ) {
+      res.status(400).json({ error: 'Estructura de traspaso inválida' });
+      return;
+    }
+    try {
+      const traspaso = await deps.traspasos.traspasar(manager, param(req, 'menteeId'), {
+        fecha: body.fecha,
+        destinoId: body.destinoId,
+        motivo: body.motivo,
+      });
+      res.status(201).json(traspaso);
+    } catch (err) {
+      responderTraspasoError(res, err, 'Error al registrar el traspaso');
+    }
+  }));
+
   return app;
 }
 
@@ -378,6 +413,16 @@ function responderProyectoError(res: Response, err: unknown, fallback: string): 
   const status =
     msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
     : msg.includes('Ya existe') || msg.includes('distinto') ? 409
+    : 400;
+  res.status(status).json({ error: msg === '' ? fallback : msg });
+}
+
+/** Mapea errores del dominio/adaptador de traspasos a su estado HTTP. */
+function responderTraspasoError(res: Response, err: unknown, fallback: string): void {
+  const msg = err instanceof Error ? err.message : '';
+  const status =
+    msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
+    : msg.includes('distinto') ? 409
     : 400;
   res.status(status).json({ error: msg === '' ? fallback : msg });
 }

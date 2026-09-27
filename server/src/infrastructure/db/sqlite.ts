@@ -72,6 +72,14 @@ export function openDatabase(path: string): Database.Database {
       destino_id TEXT REFERENCES projects(id),
       motivo TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS traspasos (
+      id TEXT PRIMARY KEY,
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      origen_id TEXT NOT NULL REFERENCES managers(id),
+      destino_id TEXT NOT NULL REFERENCES managers(id),
+      fecha TEXT NOT NULL,
+      motivo TEXT NOT NULL
+    );
   `);
   return db;
 }

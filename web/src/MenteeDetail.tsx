@@ -4,17 +4,20 @@ import {
   TEMAS_GENERICOS,
   type AcuerdoView,
   type Incidencia,
+  type Manager,
   type Objetivo,
   type ObjetivoFields,
   type OneToOne,
   type Project,
   type SituacionProyecto,
   type TemaPropio,
+  type Traspaso,
 } from './api';
 
 interface Props {
   menteeId: string;
   menteeName: string;
+  manager: Manager;
   onBack: () => void;
 }
 
@@ -24,7 +27,7 @@ interface Ficha {
 }
 
 /** Ficha de una mentee: historial de 1-to-1s, acuerdos pendientes y registro de 1-to-1s. */
-export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
+export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
   const [temas, setTemas] = useState<TemaPropio[]>([]);
   const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
@@ -127,6 +130,8 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
           <Incidencias incidencias={incidencias} onAdd={altaIncidencia} />
 
           <CambiosProyecto menteeId={menteeId} />
+
+          <Traspasos menteeId={menteeId} manager={manager} onTraspasado={onBack} />
 
           <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
 
@@ -663,6 +668,121 @@ function NuevoCambioProyectoForm({
       </label>
       {error !== null && <p className="error">{error}</p>}
       <button type="submit">Registrar cambio</button>
+    </form>
+  );
+}
+
+/** Traspaso de una mentee a otro manager: historial y alta con fecha, destino y motivo. */
+function Traspasos({
+  menteeId,
+  manager,
+  onTraspasado,
+}: {
+  menteeId: string;
+  manager: Manager;
+  onTraspasado: () => void;
+}) {
+  const [historial, setHistorial] = useState<Traspaso[] | null>(null);
+  const [managers, setManagers] = useState<Manager[]>([]);
+
+  function reload() {
+    api.traspasosDe(menteeId).then(({ traspasos }) => setHistorial(traspasos));
+  }
+
+  useEffect(() => {
+    reload();
+    api.managers().then(({ managers: list }) => setManagers(list));
+  }, [menteeId]);
+
+  async function traspasar(destinoId: string, fecha: string, motivo: string) {
+    await api.traspasar(menteeId, { fecha, destinoId, motivo });
+    onTraspasado();
+  }
+
+  const nombre = (id: string) => managers.find((m) => m.id === id)?.name ?? id;
+
+  return (
+    <section aria-label="Traspaso">
+      <h2>Traspaso</h2>
+      {historial === null ? (
+        <p className="status">Cargando…</p>
+      ) : (
+        <>
+          {historial.length === 0 ? (
+            <p className="empty">Sin traspasos registrados.</p>
+          ) : (
+            <ol className="historial">
+              {historial.map((t) => (
+                <li key={t.id}>
+                  <p className="objetivo-meta">
+                    {t.fecha} · {nombre(t.origenId)} → {nombre(t.destinoId)}
+                  </p>
+                  <strong>{t.motivo}</strong>
+                </li>
+              ))}
+            </ol>
+          )}
+          <NuevoTraspasoForm
+            managers={managers.filter((m) => m.id !== manager.id)}
+            onTraspasar={traspasar}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
+/** Formulario de traspaso: fecha, manager de destino y motivo. */
+function NuevoTraspasoForm({
+  managers,
+  onTraspasar,
+}: {
+  managers: Manager[];
+  onTraspasar: (destinoId: string, fecha: string, motivo: string) => Promise<void>;
+}) {
+  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
+  const [destino, setDestino] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onTraspasar(destino, fecha, motivo);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="Registrar traspaso">
+      <label>
+        Fecha del traspaso
+        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+      </label>
+      <label>
+        Manager de destino
+        <select value={destino} onChange={(e) => setDestino(e.target.value)} required>
+          <option value="" disabled>
+            Selecciona manager
+          </option>
+          {managers.map((m) => (
+            <option key={m.id} value={m.id}>{m.name}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Motivo
+        <input
+          type="text"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          required
+        />
+      </label>
+      {error !== null && <p className="error">{error}</p>}
+      <button type="submit">Traspasar</button>
     </form>
   );
 }

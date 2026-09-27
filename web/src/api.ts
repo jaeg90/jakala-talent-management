@@ -93,6 +93,15 @@ export interface SituacionProyecto {
   cambios: CambioProyecto[];
 }
 
+export interface Traspaso {
+  id: string;
+  menteeId: string;
+  origenId: string;
+  destinoId: string;
+  fecha: string;
+  motivo: string;
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -189,6 +198,18 @@ export const api = {
     body: { fecha: string; destinoId: string | null; motivo: string },
   ): Promise<CambioProyecto> {
     return request(`/api/mentees/${menteeId}/cambios-proyecto`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+  managers(): Promise<{ managers: Manager[] }> {
+    return request('/api/managers');
+  },
+  traspasosDe(menteeId: string): Promise<{ traspasos: Traspaso[] }> {
+    return request(`/api/mentees/${menteeId}/traspasos`);
+  },
+  traspasar(menteeId: string, body: { fecha: string; destinoId: string; motivo: string }): Promise<Traspaso> {
+    return request(`/api/mentees/${menteeId}/traspasos`, {
       method: 'POST',
       body: JSON.stringify(body),
     });

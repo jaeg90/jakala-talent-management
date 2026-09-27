@@ -11,6 +11,7 @@ import type {
   Incidencia,
   Project,
   CambioProyecto,
+  Traspaso,
 } from './model.js';
 
 /**
@@ -158,4 +159,27 @@ export interface IncidenciaRepository {
   addIncidencia(managerId: ManagerId, menteeId: string, descripcion: string): Promise<Incidencia>;
   /** Resuelve una incidencia con nota; lanza si no existe, no es del manager o ya está resuelta. */
   resolverIncidencia(managerId: ManagerId, incidenciaId: string, nota: string): Promise<Incidencia>;
+}
+
+/** Datos para registrar un traspaso de mentee. El origen se deriva del manager actual. */
+export interface NuevoTraspaso {
+  fecha: string;
+  destinoId: ManagerId;
+  motivo: string;
+}
+
+/**
+ * Puerto de traspasos: catálogo de managers, historial de traspasos de una
+ * mentee y el propio traspaso entre managers. El traspaso actualiza la asignación
+ * de la mentee manteniendo "un manager por mentee a la vez"; el historial
+ * (1-to-1s, acuerdos, objetivos, incidencias, cambios de proyecto) permanece
+ * ligado a la mentee y lo hereda completo el manager de destino.
+ */
+export interface TraspasoRepository {
+  /** Catálogo de managers (para elegir el destino de un traspaso). */
+  managers(): Promise<Manager[]>;
+  /** Historial de traspasos de una mentee, solo si es del manager. */
+  historialDe(managerId: ManagerId, menteeId: string): Promise<Traspaso[]>;
+  /** Traspasa una mentee a otro manager; lanza si no es del manager, el destino no existe o es el mismo. */
+  traspasar(managerId: ManagerId, menteeId: string, traspaso: NuevoTraspaso): Promise<Traspaso>;
 }
