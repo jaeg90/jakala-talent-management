@@ -9,8 +9,13 @@ import { ejecutar, recortar } from './procesos.js';
  * y de contexto fresco (ADR-0003); la configuración del proyecto (AGENTS.md,
  * skills, docs) la carga opencode por directorio.
  *
- * El formato de invocación vive solo en argsSesion: verificarlo contra
- * `opencode run --help` en el primer arranque real (paso 4 del plan).
+ * Flags verificados contra `opencode run --help` (v2.0.18): --model admite
+ * «provider/model», --title nombra la sesión (evidencia) y --auto aprueba los
+ * permisos no denegados explícitamente. La revisora va SIN --auto: su bash
+ * está permitido (ve el diff), pero cualquier edición necesita un permiso
+ * que en sesión no interactiva nadie le dará. Los «deny» de opencode.json
+ * (force-push, merge de PR) se mantienen siempre: lo irreversible lo hace
+ * el coordinador, nunca una sesión.
  */
 
 export interface ConfigSesiones {
@@ -24,7 +29,22 @@ export interface Modelos {
   revisora: string;
 }
 
-const argsSesion = (modelo: string, prompt: string): string[] => ['run', '--model', modelo, prompt];
+interface LlamadaSesion {
+  modelo: string;
+  prompt: string;
+  titulo: string;
+  auto: boolean;
+}
+
+const argsSesion = (llamada: LlamadaSesion): string[] => [
+  'run',
+  ...(llamada.auto ? ['--auto'] : []),
+  '--model',
+  llamada.modelo,
+  '--title',
+  llamada.titulo,
+  llamada.prompt,
+];
 
 const promptImplementadora = (ticket: Ticket): string =>
   [
@@ -83,7 +103,12 @@ export function crearSesiones(modelos: Modelos, config: ConfigSesiones): PuertoS
     async implementar(ticket: Ticket): Promise<string> {
       const salida = await ejecutar(
         config.comando,
-        argsSesion(modelos.implementadora, promptImplementadora(ticket)),
+        argsSesion({
+          modelo: modelos.implementadora,
+          prompt: promptImplementadora(ticket),
+          titulo: `Piloto · implementadora · #${ticket.numero}`,
+          auto: true,
+        }),
         { minutos: config.tiempoMaxMinutos },
       );
       return extraerResumen(salida);
@@ -91,15 +116,27 @@ export function crearSesiones(modelos: Modelos, config: ConfigSesiones): PuertoS
     async revisar(ticket: Ticket): Promise<string | null> {
       const salida = await ejecutar(
         config.comando,
-        argsSesion(modelos.revisora, promptRevisora(ticket)),
+        argsSesion({
+          modelo: modelos.revisora,
+          prompt: promptRevisora(ticket),
+          titulo: `Piloto · revisora · #${ticket.numero}`,
+          auto: false,
+        }),
         { minutos: config.tiempoMaxMinutos },
       );
       return extraerHallazgo(salida);
     },
-    async reparar(error: ErrorEnMano, _reintento: number): Promise<void> {
-      await ejecutar(config.comando, argsSesion(modelos.reparadora, promptReparadora(error)), {
-        minutos: config.tiempoMaxMinutos,
-      });
+    async reparar(error: ErrorEnMano, reintento: number): Promise<void> {
+      await ejecutar(
+        config.comando,
+        argsSesion({
+          modelo: modelos.reparadora,
+          prompt: promptReparadora(error),
+          titulo: `Piloto · reparadora · reintento ${reintento}`,
+          auto: true,
+        }),
+        { minutos: config.tiempoMaxMinutos },
+      );
     },
   };
 }
