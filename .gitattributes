@@ -1,0 +1,8 @@
+# Forzar saltos de línea LF en todo el repositorio
+* text=auto eol=lf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+
+# Directorios de salida de builds
+dist/
+build/
+
+# Cobertura y reportes de tests
+coverage/
+reports/
+.stryker-tmp/
+test-results/
+playwright-report/
+
+# Logs
+*.log
+
+# Archivos del sistema
+Thumbs.db
+.DS_Store
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
