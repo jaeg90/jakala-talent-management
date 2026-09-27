@@ -22,6 +22,25 @@ export function openDatabase(path: string): Database.Database {
       name TEXT NOT NULL,
       project_id TEXT REFERENCES projects(id)
     );
+    CREATE TABLE IF NOT EXISTS onetoones (
+      id TEXT PRIMARY KEY,
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      date TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS notas_por_tema (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      onetoone_id TEXT NOT NULL REFERENCES onetoones(id),
+      tema TEXT NOT NULL,
+      nota TEXT NOT NULL,
+      UNIQUE (onetoone_id, tema)
+    );
+    CREATE TABLE IF NOT EXISTS acuerdos (
+      id TEXT PRIMARY KEY,
+      onetoone_id TEXT NOT NULL REFERENCES onetoones(id),
+      text TEXT NOT NULL,
+      date TEXT NOT NULL,
+      done INTEGER NOT NULL DEFAULT 0
+    );
   `);
   return db;
 }

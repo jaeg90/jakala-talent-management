@@ -93,3 +93,60 @@ button:hover {
 .mentee-project {
   color: #666;
 }
+
+/* Ficha de mentee */
+.detail header {
+  display: block;
+}
+
+.detail h2 {
+  margin-top: 2rem;
+}
+
+.link {
+  background: none;
+  color: #4338ca;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.pendientes li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.historial {
+  list-style: none;
+  padding: 0;
+}
+
+.historial > li {
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.historial h3 {
+  margin: 0 0 0.5rem;
+}
+
+.notas, .acuerdos-historial, .acuerdos-nuevos {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+.cumplido {
+  color: #15803d;
+}
+
+.acuerdos-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.acuerdos-input label {
+  flex: 1;
+}

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { Manager, Mentee } from './api';
 import { api } from './api';
+import { MenteeDetail } from './MenteeDetail';
 
 export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => void }) {
   const [mentees, setMentees] = useState<Mentee[] | null>(null);
+  const [abierta, setAbierta] = useState<Mentee | null>(null);
 
   useEffect(() => {
     api
@@ -15,6 +17,10 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
   async function handleLogout() {
     await api.logout();
     onLogout();
+  }
+
+  if (abierta !== null) {
+    return <MenteeDetail menteeId={abierta.id} menteeName={abierta.name} onBack={() => setAbierta(null)} />;
   }
 
   return (
@@ -34,7 +40,7 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
         <ul className="mentee-list">
           {mentees.map((m) => (
             <li key={m.id}>
-              <span className="mentee-name">{m.name}</span>
+              <button className="link mentee-name" onClick={() => setAbierta(m)}>{m.name}</button>
               <span className="mentee-project">{m.project?.name ?? 'Sin proyecto'}</span>
             </li>
           ))}

@@ -1,7 +1,9 @@
 import express, { type Request, type Response } from 'express';
 import type { Manager } from '../../domain/model.js';
 import { LoginService, TeamService } from '../../application/services.js';
+import { OneToOneService } from '../../application/onetoone_service.js';
 import type { SessionStore } from '../../domain/ports.js';
+import type { NuevoOneToOne } from '../../domain/ports.js';
 
 export const SESSION_COOKIE = 'jtm_session';
 
@@ -9,6 +11,7 @@ export const SESSION_COOKIE = 'jtm_session';
 export interface AppDeps {
   login: LoginService;
   team: TeamService;
+  onetoones: OneToOneService;
   sessions: SessionStore;
 }
 
@@ -22,6 +25,13 @@ declare global {
 }
 
 type Handler = (req: Request, res: Response, manager: Manager) => Promise<void>;
+
+/** Parámetro de ruta :id como string (Express 5 tipa params como string | string[] | undefined). */
+function param(req: Request, name: string): string {
+  const value = req.params[name];
+  if (typeof value !== 'string') throw new Error(`Parámetro ${name} ausente`);
+  return value;
+}
 
 /** Cookie de sesión httpOnly; con token vacío expira (logout). */
 function sessionCookie(token: string): string {
@@ -85,6 +95,53 @@ export function createApp(deps: AppDeps): express.Express {
 
   app.get('/api/team', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ mentees: await deps.team.teamOf(manager) });
+  }));
+
+  // Ficha de una mentee: historial de 1-to-1s y acuerdos pendientes.
+  app.get('/api/mentees/:menteeId/onetoones', requireSession(deps.sessions, async (req, res, manager) => {
+    const [history, pending] = await Promise.all([
+      deps.onetoones.historyOf(manager, param(req, 'menteeId')),
+      deps.onetoones.pendingAgreementsOf(manager, param(req, 'menteeId')),
+    ]);
+    res.json({ history, pending });
+  }));
+
+  // Registrar un 1-to-1 con notas por tema y acuerdos que nacen pendientes.
+  app.post('/api/mentees/:menteeId/onetoones', requireSession(deps.sessions, async (req, res, manager) => {
+    const body = (req.body ?? {}) as Partial<NuevoOneToOne>;
+    if (
+      typeof body.date !== 'string' ||
+      !Array.isArray(body.notas) ||
+      body.notas.some((n) => typeof n?.tema !== 'string' || typeof n?.nota !== 'string') ||
+      !Array.isArray(body.acuerdos) ||
+      body.acuerdos.some((a) => typeof a?.text !== 'string')
+    ) {
+      res.status(400).json({ error: 'Estructura de 1-to-1 inválida' });
+      return;
+    }
+    try {
+      const saved = await deps.onetoones.save(manager, {
+        menteeId: param(req, 'menteeId'),
+        date: body.date,
+        notas: body.notas,
+        acuerdos: body.acuerdos,
+      });
+      res.status(201).json(saved);
+    } catch (err) {
+      res.status(err instanceof Error && err.message.includes('no pertenece') ? 404 : 400).json({
+        error: err instanceof Error ? err.message : 'Error al registrar el 1-to-1',
+      });
+    }
+  }));
+
+  // Marcar un acuerdo cumplido.
+  app.post('/api/acuerdos/:acuerdoId/complete', requireSession(deps.sessions, async (req, res, manager) => {
+    const ok = await deps.onetoones.completeAgreement(manager, param(req, 'acuerdoId'));
+    if (!ok) {
+      res.status(404).json({ error: 'Acuerdo no encontrado' });
+      return;
+    }
+    res.status(204).end();
   }));
 
   return app;

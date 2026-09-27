@@ -42,4 +42,40 @@ export const api = {
   team(): Promise<{ mentees: Mentee[] }> {
     return request('/api/team');
   },
+  ficha(menteeId: string): Promise<{ history: OneToOne[]; pending: AcuerdoView[] }> {
+    return request(`/api/mentees/${menteeId}/onetoones`);
+  },
+  saveOneToOne(
+    menteeId: string,
+    body: { date: string; notas: { tema: string; nota: string }[]; acuerdos: { text: string }[] },
+  ): Promise<OneToOne> {
+    return request(`/api/mentees/${menteeId}/onetoones`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+  completeAgreement(acuerdoId: string): Promise<void> {
+    return request(`/api/acuerdos/${acuerdoId}/complete`, { method: 'POST' });
+  },
 };
+
+/** Temas genéricos de plantilla (espejo del dominio). */
+export const TEMAS_GENERICOS = ['¿Cómo estás?', '¿Qué tal el proyecto?', '¿Qué tal los objetivos?'];
+
+export interface NotaPorTema {
+  tema: string;
+  nota: string;
+}
+
+export interface AcuerdoView {
+  id: string;
+  text: string;
+  date: string;
+}
+
+export interface OneToOne {
+  id: string;
+  date: string;
+  notas: NotaPorTema[];
+  acuerdos: (AcuerdoView & { done: boolean })[];
+}

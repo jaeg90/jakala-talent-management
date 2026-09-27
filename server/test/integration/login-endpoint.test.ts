@@ -4,8 +4,10 @@ import { openDatabase } from '../../src/infrastructure/db/sqlite.js';
 import { seed, SEED_MANAGERS } from '../../src/infrastructure/db/seed.js';
 import { SeedAuthenticator } from '../../src/infrastructure/auth/seed-authenticator.js';
 import { SqliteTeamRepository } from '../../src/infrastructure/db/sqlite-team-repository.js';
+import { SqliteOneToOneRepository } from '../../src/infrastructure/db/sqlite-onetoone-repository.js';
 import { MemorySessionStore } from '../../src/infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from '../../src/application/services.js';
+import { OneToOneService } from '../../src/application/onetoone_service.js';
 import { createApp, SESSION_COOKIE } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
@@ -20,6 +22,7 @@ beforeAll(async () => {
   const app = createApp({
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
+    onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
     sessions,
   });
   server = app.listen(0);

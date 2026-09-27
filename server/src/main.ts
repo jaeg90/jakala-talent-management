@@ -6,6 +6,8 @@ import { SeedAuthenticator } from './infrastructure/auth/seed-authenticator.js';
 import { SqliteTeamRepository } from './infrastructure/db/sqlite-team-repository.js';
 import { MemorySessionStore } from './infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from './application/services.js';
+import { OneToOneService } from './application/onetoone_service.js';
+import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
 import { createApp } from './infrastructure/http/app.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
@@ -21,6 +23,7 @@ const sessions = new MemorySessionStore();
 const app = createApp({
   login: new LoginService(new SeedAuthenticator(db), sessions),
   team: new TeamService(new SqliteTeamRepository(db)),
+  onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
   sessions,
 });
 
