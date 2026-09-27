@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express';
 import type { Manager } from '../../domain/model.js';
 import { LoginService, TeamService } from '../../application/services.js';
 import { OneToOneService } from '../../application/onetoone_service.js';
+import { TemaPropioService } from '../../application/tema_propio_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -12,6 +13,7 @@ export interface AppDeps {
   login: LoginService;
   team: TeamService;
   onetoones: OneToOneService;
+  temasPropios: TemaPropioService;
   sessions: SessionStore;
 }
 
@@ -104,6 +106,39 @@ export function createApp(deps: AppDeps): express.Express {
       deps.onetoones.pendingAgreementsOf(manager, param(req, 'menteeId')),
     ]);
     res.json({ history, pending });
+  }));
+
+  // Temas propios vigentes de una mentee.
+  app.get('/api/mentees/:menteeId/temas', requireSession(deps.sessions, async (req, res, manager) => {
+    const temas = await deps.temasPropios.temasPropiosOf(manager, param(req, 'menteeId'));
+    res.json({ temas });
+  }));
+
+  // Alta de un tema propio para una mentee.
+  app.post('/api/mentees/:menteeId/temas', requireSession(deps.sessions, async (req, res, manager) => {
+    const body = (req.body ?? {}) as { tema?: unknown };
+    if (typeof body.tema !== 'string') {
+      res.status(400).json({ error: 'Nombre del tema requerido' });
+      return;
+    }
+    try {
+      const tema = await deps.temasPropios.addTemaPropio(manager, param(req, 'menteeId'), body.tema);
+      res.status(201).json(tema);
+    } catch (err) {
+      res.status(err instanceof Error && err.message.includes('no pertenece') ? 404 : 400).json({
+        error: err instanceof Error ? err.message : 'Error al dar de alta el tema',
+      });
+    }
+  }));
+
+  // Baja de un tema propio (no borra los temas tratados en 1-to-1s ya registrados).
+  app.delete('/api/mentees/:menteeId/temas/:temaPropioId', requireSession(deps.sessions, async (req, res, manager) => {
+    const ok = await deps.temasPropios.removeTemaPropio(manager, param(req, 'temaPropioId'));
+    if (!ok) {
+      res.status(404).json({ error: 'Tema propio no encontrado' });
+      return;
+    }
+    res.status(204).end();
   }));
 
   // Registrar un 1-to-1 con notas por tema y acuerdos que nacen pendientes.

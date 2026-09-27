@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, TEMAS_GENERICOS, type AcuerdoView, type OneToOne } from './api';
+import { api, TEMAS_GENERICOS, type AcuerdoView, type OneToOne, type TemaPropio } from './api';
 
 interface Props {
   menteeId: string;
@@ -15,16 +15,34 @@ interface Ficha {
 /** Ficha de una mentee: historial de 1-to-1s, acuerdos pendientes y registro de 1-to-1s. */
 export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
+  const [temas, setTemas] = useState<TemaPropio[]>([]);
 
   function reload() {
     api.ficha(menteeId).then(setFicha);
   }
 
-  useEffect(reload, [menteeId]);
+  function reloadTemas() {
+    api.temasPropios(menteeId).then(({ temas }) => setTemas(temas));
+  }
+
+  useEffect(() => {
+    reload();
+    reloadTemas();
+  }, [menteeId]);
 
   async function marcarCumplido(acuerdoId: string) {
     await api.completeAgreement(acuerdoId);
     reload();
+  }
+
+  async function altaTema(nombre: string) {
+    await api.addTemaPropio(menteeId, nombre);
+    reloadTemas();
+  }
+
+  async function bajaTema(temaPropioId: string) {
+    await api.removeTemaPropio(menteeId, temaPropioId);
+    reloadTemas();
   }
 
   return (
@@ -54,7 +72,9 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
             )}
           </section>
 
-          <NuevoOneToOneForm menteeId={menteeId} onSaved={reload} />
+          <TemasPropios temas={temas} onAlta={altaTema} onBaja={bajaTema} />
+
+          <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
 
           <section aria-label="Historial de 1-to-1s">
             <h2>Historial de 1-to-1s</h2>
@@ -92,8 +112,73 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   );
 }
 
-/** Formulario de registro de un 1-to-1: temas genéricos con nota por tema + acuerdos. */
-function NuevoOneToOneForm({ menteeId, onSaved }: { menteeId: string; onSaved: () => void }) {
+/** Alta y baja de temas propios de una mentee. */
+function TemasPropios({
+  temas,
+  onAlta,
+  onBaja,
+}: {
+  temas: TemaPropio[];
+  onAlta: (nombre: string) => Promise<void>;
+  onBaja: (temaPropioId: string) => Promise<void>;
+}) {
+  const [nombre, setNombre] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleAlta(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onAlta(nombre);
+      setNombre('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <section aria-label="Temas propios">
+      <h2>Temas propios</h2>
+      {temas.length === 0 ? (
+        <p className="empty">Sin temas propios.</p>
+      ) : (
+        <ul className="pendientes">
+          {temas.map((t) => (
+            <li key={t.id}>
+              <span>{t.tema}</span>
+              <button onClick={() => void onBaja(t.id)}>Retirar</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form onSubmit={handleAlta}>
+        <label>
+          Nuevo tema propio
+          <input
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="p. ej. formación en curso"
+          />
+        </label>
+        {error !== null && <p className="error">{error}</p>}
+        <button type="submit">Añadir tema</button>
+      </form>
+    </section>
+  );
+}
+
+/** Formulario de registro de un 1-to-1: temas genéricos + propios con nota por tema + acuerdos. */
+function NuevoOneToOneForm({
+  menteeId,
+  temasPropios,
+  onSaved,
+}: {
+  menteeId: string;
+  temasPropios: TemaPropio[];
+  onSaved: () => void;
+}) {
+  const temas = [...TEMAS_GENERICOS, ...temasPropios.map((t) => t.tema)];
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notas, setNotas] = useState<Record<string, string>>({});
   const [acuerdoTexto, setAcuerdoTexto] = useState('');
@@ -113,7 +198,7 @@ function NuevoOneToOneForm({ menteeId, onSaved }: { menteeId: string; onSaved: (
     try {
       await api.saveOneToOne(menteeId, {
         date,
-        notas: TEMAS_GENERICOS.filter((t) => notas[t]?.trim() !== '').map((t) => ({
+        notas: temas.filter((t) => notas[t]?.trim() !== '').map((t) => ({
           tema: t,
           nota: notas[t] ?? '',
         })),
@@ -135,7 +220,7 @@ function NuevoOneToOneForm({ menteeId, onSaved }: { menteeId: string; onSaved: (
           Fecha
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </label>
-        {TEMAS_GENERICOS.map((tema) => (
+        {temas.map((tema) => (
           <label key={tema}>
             {tema}
             <input

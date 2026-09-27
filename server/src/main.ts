@@ -7,7 +7,9 @@ import { SqliteTeamRepository } from './infrastructure/db/sqlite-team-repository
 import { MemorySessionStore } from './infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from './application/services.js';
 import { OneToOneService } from './application/onetoone_service.js';
+import { TemaPropioService } from './application/tema_propio_service.js';
 import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
+import { SqliteTemaPropioRepository } from './infrastructure/db/sqlite-tema-propio-repository.js';
 import { createApp } from './infrastructure/http/app.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
@@ -24,6 +26,7 @@ const app = createApp({
   login: new LoginService(new SeedAuthenticator(db), sessions),
   team: new TeamService(new SqliteTeamRepository(db)),
   onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
+  temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
   sessions,
 });
 

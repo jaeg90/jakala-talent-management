@@ -18,6 +18,17 @@ export interface Mentee {
   name: string;
 }
 
+/**
+ * Tema propio añadido por un manager a una mentee. Persiste entre 1-to-1s hasta
+ * que se retira (la baja no borra los temas ya tratados en 1-to-1s registrados).
+ * Ver "Tema" en CONTEXT.md.
+ */
+export interface TemaPropio {
+  id: string;
+  menteeId: string;
+  tema: string;
+}
+
 /** Proyecto de cliente en el que trabaja una mentee. Catálogo compartido. */
 export interface Project {
   id: string;

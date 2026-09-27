@@ -29,6 +29,12 @@ export interface Mentee {
   project: Project | null;
 }
 
+export interface TemaPropio {
+  id: string;
+  menteeId: string;
+  tema: string;
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -56,6 +62,18 @@ export const api = {
   },
   completeAgreement(acuerdoId: string): Promise<void> {
     return request(`/api/acuerdos/${acuerdoId}/complete`, { method: 'POST' });
+  },
+  temasPropios(menteeId: string): Promise<{ temas: TemaPropio[] }> {
+    return request(`/api/mentees/${menteeId}/temas`);
+  },
+  addTemaPropio(menteeId: string, tema: string): Promise<TemaPropio> {
+    return request(`/api/mentees/${menteeId}/temas`, {
+      method: 'POST',
+      body: JSON.stringify({ tema }),
+    });
+  },
+  removeTemaPropio(menteeId: string, temaPropioId: string): Promise<void> {
+    return request(`/api/mentees/${menteeId}/temas/${temaPropioId}`, { method: 'DELETE' });
   },
 };
 
