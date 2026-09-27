@@ -1,15 +1,15 @@
-# Triage Labels
+# Etiquetas de triage
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
+Las skills hablan en términos de cinco roles de triage canónicos. Este archivo mapea esos roles a las cadenas de etiqueta reales que se usan en el issue tracker de este repo.
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+| Rol en mattpocock/skills | Etiqueta en nuestro tracker | Significado                                   |
+| ------------------------ | ---------------------------- | --------------------------------------------- |
+| `needs-triage`           | `needs-triage`               | Falta evaluar este issue                      |
+| `needs-info`            | `needs-info`                 | Esperando más información de quien lo reportó |
+| `ready-for-agent`       | `ready-for-agent`            | Especificado por completo, listo para un agente autónomo |
+| `ready-for-human`       | `ready-for-human`            | Requiere implementación humana               |
+| `wontfix`               | `wontfix`                   | No se va a abordar                           |
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
+Cuando una skill mencione un rol (p. ej. "apply the AFK-ready triage label"), usa la cadena de etiqueta correspondiente de esta tabla.
 
-Edit the right-hand column to match whatever vocabulary you actually use.
+Edita la columna derecha para adaptarla al vocabulario que realmente uses.
