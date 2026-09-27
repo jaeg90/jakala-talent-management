@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Prototipo · El loop del Piloto (ADR-0003)</title>
+<style>
+  :root { --tinta:#1e293b; --acento:#0f766e; --fondo:#f8fafc; --borde:#e2e8f0; --apagado:#64748b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.55 system-ui, "Segoe UI", sans-serif; color:var(--tinta); background:var(--fondo); }
+  header, main, footer { max-width:960px; margin:0 auto; padding:0 20px; }
+  header { padding-top:30px; }
+  h1 { font-size:1.45rem; margin:0 0 10px; }
+  .pregunta { margin:0 0 6px; font-size:1.02rem; }
+  .nota { margin:0 0 26px; color:var(--apagado); font-size:.9rem; }
+  section { background:#fff; border:1px solid var(--borde); border-radius:10px; padding:18px 20px; margin-bottom:18px; }
+  h2 { font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--apagado); margin:0 0 12px; }
+  .fila { display:flex; gap:10px; padding:4px 0; align-items:baseline; }
+  .clave { width:170px; flex:none; color:var(--apagado); font-size:.9rem; }
+  .valor { flex:1; }
+  .chip { display:inline-block; padding:2px 12px; border-radius:999px; font-size:.92rem; font-weight:600; }
+  .chip-verde  { background:#dcfce7; color:#14532d; }
+  .chip-rojo   { background:#fee2e2; color:#7f1d1d; }
+  .chip-amber  { background:#fef3c7; color:#78350f; }
+  .chip-espera { background:#e0f2fe; color:#075985; }
+  .chip-fin    { background:#e2e8f0; color:#334155; }
+  .chip-t { display:inline-block; min-width:2.4em; text-align:center; background:#f1f5f9; border:1px solid var(--borde); border-radius:6px; padding:1px 6px; font-weight:600; margin-right:2px; }
+  .detalle { color:var(--apagado); font-size:.88rem; }
+  .vacio { color:#94a3b8; font-style:italic; }
+  .linea { padding:5px 10px; border-left:3px solid var(--borde); margin-bottom:6px; }
+  .linea .num { display:inline-block; min-width:2em; color:#94a3b8; font-variant-numeric:tabular-nums; }
+  #narracion { max-height:280px; overflow:auto; }
+  button { font:inherit; border:1px solid var(--borde); background:#fff; border-radius:8px; padding:7px 14px; cursor:pointer; }
+  button:hover { border-color:var(--acento); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primario { background:var(--acento); border-color:var(--acento); color:#fff; font-weight:600; padding:10px 18px; }
+  .grupo { margin-top:16px; }
+  .grupo h3 { font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--apagado); margin:0 0 8px; font-weight:600; }
+  .grupo button { margin:0 6px 6px 0; }
+  #input-hallazgo { font:inherit; border:1px solid var(--borde); border-radius:8px; padding:7px 10px; width:100%; margin:4px 0 8px; }
+  .pestanas { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .pestana.activa { background:var(--acento); color:#fff; border-color:var(--acento); }
+  ol.pasos { list-style:none; padding:0; margin:12px 0 0; }
+  ol.pasos button { display:block; width:100%; text-align:left; margin-bottom:6px; }
+  ol.pasos button.hecho { opacity:.45; }
+  ol.pasos button.siguiente { border-color:var(--acento); box-shadow:0 0 0 1px var(--acento); font-weight:600; }
+  .aviso-fin { margin-top:10px; color:var(--acento); font-weight:600; font-size:.92rem; }
+  .intro-esc { margin:0; color:var(--tinta); }
+  footer { color:var(--apagado); font-size:.85rem; padding-bottom:40px; }
+  .leyenda { color:var(--apagado); font-size:.85rem; margin-top:6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>El Piloto — prototipo del loop de estados</h1>
+  <p class="pregunta"><strong>Pregunta que responde este prototipo:</strong> ¿la máquina de estados del ADR-0003 — verde / rojo / reintentos / ready-for-human, coordinada sin LLM — se siente bien cuando la empujas por los casos incómodos? Construir el orquestador es caro; pulsa primero.</p>
+  <p class="nota">Los tickets son los reales del repo con sus bloqueos reales, rebobinados a esta mañana: #3 ya cerrado, #4 abierto. (#9 y #10 omitidos por brevedad.) Nada toca GitHub: los resultados de las sesiones y de las puertas los traes tú con los botones.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>El mapa del loop — dónde encaja cada botón</h2>
+    <p class="detalle">Cada caja es una fase del panel de estado. Las flechas con «PASO» se recorren con el botón <strong>Paso del Piloto</strong>; el resto de flechas se disparan con los botones de resultados (la revisora, las puertas, el parche). Si no tienes conexión, el grafo no se dibuja — también está en el issue #11.</p>
+    <pre class="mermaid">
+stateDiagram-v2
+    direction TB
+    Frontera: En la frontera · sin ticket en mano
+    Rev: En revisión · la revisora mira el diff
+    Puertas: Puertas corriendo · typecheck, lint, tests, E2E
+    Verde: Verde · listo para empujar
+    Rojo: Rojo · error en mano
+    Rep: En reparación · la reparadora recibe el error
+    Esc: Escalado · ready-for-human
+    Fin: Fin de la pasada · frontera vacía o escalado
+
+    [*] --> Frontera
+    Frontera --> Rev: PASO · elige ticket (menor número) · la implementadora escribe el diff
+    Rev --> Puertas: sin hallazgos
+    Rev --> Rojo: hallazgo — la revisión solo puede forzar rojo
+    Puertas --> Verde: todas en verde
+    Puertas --> Rojo: una puerta en rojo — inapelable
+    Rojo --> Rep: PASO · quedan reintentos · lanza reparadora
+    Rojo --> Esc: PASO · reintentos agotados · etiqueta, comenta y avisa
+    Rep --> Rev: parche listo — vuelve SIEMPRE a revisión
+    Verde --> Frontera: PASO · push y cierre con resumen
+    Esc --> Fin: PASO · la pasada se detiene — el humano manda
+    Frontera --> Fin: frontera vacía
+    Fin --> [*]
+    </pre>
+  </section>
+
+  <section>
+    <h2>El estado ahora mismo</h2>
+    <div class="fila"><span class="clave">Fase</span><span class="valor" id="fase"></span></div>
+    <div class="fila"><span class="clave">Ticket en mano</span><span class="valor" id="ticket"></span></div>
+    <div class="fila"><span class="clave">Reintentos</span><span class="valor" id="reintentos"></span></div>
+    <div class="fila"><span class="clave">Error en mano</span><span class="valor" id="error"></span></div>
+    <div class="fila"><span class="clave">Frontera (desbloqueados)</span><span class="valor" id="desbloqueados"></span></div>
+    <div class="fila"><span class="clave">Bloqueados</span><span class="valor" id="bloqueados"></span></div>
+    <div class="fila"><span class="clave">Cerrados por el Piloto</span><span class="valor" id="cerrados"></span></div>
+    <div class="fila"><span class="clave">Escalados al humano</span><span class="valor" id="escalados"></span></div>
+  </section>
+
+  <section>
+    <h2>Narración — cada paso del Piloto</h2>
+    <div id="narracion"></div>
+  </section>
+
+  <section>
+    <h2>Mando libre</h2>
+    <button class="primario" id="btn-paso" title="El coordinador hace su único movimiento posible: elegir ticket, lanzar sesión, decidir reparación, empujar, escalar…">Paso del Piloto</button>
+
+    <div class="grupo">
+      <h3>La revisora responde</h3>
+      <input type="text" id="input-hallazgo">
+      <button id="btn-revision-hallazgo">Con hallazgo</button>
+      <button id="btn-revision-ok">Sin hallazgos</button>
+    </div>
+
+    <div class="grupo">
+      <h3>Las puertas responden</h3>
+      <button id="btn-puertas-verde">Todas en verde</button>
+      <button data-puerta="typecheck">Typecheck ✗</button>
+      <button data-puerta="lint">Lint ✗</button>
+      <button data-puerta="tests">Tests ✗</button>
+      <button data-puerta="e2e">E2E ✗</button>
+    </div>
+
+    <div class="grupo">
+      <h3>La reparadora responde</h3>
+      <button id="btn-parche">Parche listo</button>
+    </div>
+
+    <div class="grupo">
+      <h3>Configuración</h3>
+      <label class="detalle">N reintentos (reparadoras por ticket antes de escalar):
+        <select id="sel-n">
+          <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+          <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+        </select>
+      </label>
+      <button id="btn-reiniciar">Reiniciar demo</button>
+    </div>
+    <p class="leyenda">Los botones están siempre a mano; si algo no toca en la fase actual, el Piloto lo ignora y lo narra. Eso también es parte del modelo.</p>
+  </section>
+
+  <section>
+    <h2>Recorridos guiados</h2>
+    <div class="pestanas" id="pestanas"></div>
+    <div id="escenario-cuerpo"></div>
+  </section>
+
+</main>
+
+<footer>
+  Prototipo desechable — no se conecta a GitHub ni ejecuta puertas reales. La máquina de estados (bloque «módulo puro» del código fuente de este archivo) es la que emigrará al orquestador. Ver ADR-0003.
+</footer>
+
+<script>
+/* MÓDULO PURO — INICIO */
+// (estado, evento) => estado nuevo. Sin DOM, sin I/O: solo decisiones del coordinador.
+// Este bloque está pensado para levantarse tal cual al orquestador real (ADR-0003).
+
+const Piloto = (() => {
+  const con = (estado, cambios, linea) =>
+    ({ ...estado, ...cambios, narracion: [...estado.narracion, linea] });
+
+  const ticket = (estado, numero) =>
+    estado.tickets.find(t => t.numero === numero);
+
+  const frontera = (estado) =>
+    estado.tickets
+      .filter(t => t.estado === 'lista')
+      .filter(t => t.bloqueadoPor.every(n => ticket(estado, n).estado === 'cerrado'))
+      .sort((a, b) => a.numero - b.numero);
+
+  function crearEstadoInicial({ reintentos = 3 } = {}) {
+    return {
+      fase: 'frontera',
+      reintentosConfigurados: reintentos,
+      tickets: [
+        { numero: 3, titulo: 'Ticket 2: Mi equipo — semilla del dominio y vista del equipo', estado: 'cerrado', bloqueadoPor: [] },
+        { numero: 4, titulo: 'Ticket 3: Ficha de mentee y 1-to-1s con temas genéricos y acuerdos', estado: 'lista', bloqueadoPor: [] },
+        { numero: 5, titulo: 'Ticket 4: Temas propios de mentee persistentes', estado: 'lista', bloqueadoPor: [4] },
+        { numero: 6, titulo: 'Ticket 5: Objetivos anuales', estado: 'lista', bloqueadoPor: [4] },
+        { numero: 7, titulo: 'Ticket 6: Incidencias con ciclo abierto→resuelta', estado: 'lista', bloqueadoPor: [4] },
+        { numero: 8, titulo: 'Ticket 7: Catálogo de proyectos y cambios de proyecto', estado: 'lista', bloqueadoPor: [3] },
+      ],
+      ticketActual: null,
+      reintentosUsados: 0,
+      error: null,
+      narracion: [
+        'El Piloto arranca. Sin ticket en mano, consulto la frontera: tickets desbloqueados y ready-for-agent.',
+      ],
+    };
+  }
+
+  // El único movimiento autónomo del coordinador: un paso determinista.
+  function paso(estado) {
+    switch (estado.fase) {
+      case 'frontera': {
+        const f = frontera(estado);
+        if (f.length === 0) {
+          const abiertos = estado.tickets.filter(t => t.estado !== 'cerrado').map(t => '#' + t.numero);
+          return con(estado, { fase: 'fin' },
+            'Frontera vacía: nada desbloqueado y ready-for-agent. Termino la pasada.' +
+            (abiertos.length ? ' Quedan abiertos: ' + abiertos.join(', ') + ' — ya no son cosa del Piloto.' : ' Todo cerrado.'));
+        }
+        const elegido = f[0];
+        return con(estado, { fase: 'revision', ticketActual: elegido.numero, reintentosUsados: 0, error: null },
+          'Frontera: ' + f.map(t => '#' + t.numero).join(', ') + '. Elijo #' + elegido.numero + ' (el de menor número). ' +
+          'Lanzo la implementadora: sesión nueva, no interactiva, recibe solo el ticket. Diff listo. Lanzo la revisora.');
+      }
+      case 'revision':
+        return con(estado, {}, 'Nada que decidir: espero el resultado de la revisora. El coordinador no improvisa.');
+      case 'puertas':
+        return con(estado, {}, 'Las puertas corren: espero su veredicto. Es inapelable; no hay nada que razonar.');
+      case 'reparacion':
+        return con(estado, {}, 'Espero el parche de la reparadora.');
+      case 'rojo': {
+        if (estado.reintentosUsados >= estado.reintentosConfigurados) {
+          const t = ticket(estado, estado.ticketActual);
+          const tickets = estado.tickets.map(x => x.numero === t.numero ? { ...x, estado: 'escalado' } : x);
+          return con(estado, { fase: 'escalado', tickets },
+            'Reintentos agotados (' + estado.reintentosUsados + ' de ' + estado.reintentosConfigurados + '). ' +
+            'Etiqueto #' + t.numero + ' como ready-for-human, comento el último error («' + estado.error.texto + '») y aviso al humano. ' +
+            'Me detengo: no paso al siguiente ticket. Escalado no es cerrado: #' + t.numero + ' queda abierto, en manos del humano.');
+        }
+        const usados = estado.reintentosUsados + 1;
+        return con(estado, { fase: 'reparacion', reintentosUsados: usados },
+          'Rojo con ' + estado.reintentosUsados + ' de ' + estado.reintentosConfigurados + ' reintentos usados. ' +
+          'Lanzo una reparadora nueva (reintento ' + usados + ' de ' + estado.reintentosConfigurados + '): contexto fresco, recibe solo el error en mano.');
+      }
+      case 'verde': {
+        const t = ticket(estado, estado.ticketActual);
+        const tickets = estado.tickets.map(x => x.numero === t.numero ? { ...x, estado: 'cerrado' } : x);
+        return con(estado, { fase: 'frontera', tickets, ticketActual: null, error: null },
+          'Verde: empujo el cambio y cierro #' + t.numero + ' con un comentario resumen. Vuelvo a la frontera.');
+      }
+      case 'escalado': {
+        const n = estado.ticketActual;
+        return con(estado, { fase: 'fin' },
+          'Cierro la pasada: #' + n + ' queda en manos del humano y no paso al siguiente ticket. Cuando esté resuelto, se arranca otra pasada.');
+      }
+      case 'fin':
+        return con(estado, {}, 'La pasada terminó. Reinicia la demo para empezar otra.');
+    }
+  }
+
+  // Los resultados que el mundo trae: sesiones y puertas hablan; el Piloto escucha.
+  function resultado(estado, r) {
+    switch (r.tipo) {
+      case 'revision':
+        if (estado.fase !== 'revision')
+          return con(estado, {}, 'Resultado inesperado (revisión): en fase «' + estado.fase + '» no espero a la revisora. Lo ignoro.');
+        if (r.exito)
+          return con(estado, { fase: 'puertas' }, 'Revisora sin hallazgos. Abro las puertas: typecheck, lint, tests, E2E.');
+        return con(estado, { fase: 'rojo', error: { origen: 'revisión', texto: r.texto } },
+          'Hallazgo de la revisora: «' + r.texto + '». La revisión nunca declara verde: solo puede forzar rojo.');
+      case 'puertas':
+        if (estado.fase !== 'puertas')
+          return con(estado, {}, 'Resultado inesperado (puertas): en fase «' + estado.fase + '» no espero a las puertas. Lo ignoro.');
+        if (r.exito)
+          return con(estado, { fase: 'verde' }, 'Todas las puertas en verde: su veredicto nadie lo refuta. Verde. (El Piloto real empujaría sin pausa; la pausa te deja mirar.)');
+        return con(estado, { fase: 'rojo', error: { origen: 'puerta', puerta: r.puerta, texto: r.texto } },
+          'La puerta ' + r.puerta + ' en rojo. Su veredicto no se discute: rojo, con su salida como error.');
+      case 'reparacion':
+        if (estado.fase !== 'reparacion')
+          return con(estado, {}, 'Resultado inesperado (reparación): en fase «' + estado.fase + '» no espero a la reparadora. Lo ignoro.');
+        return con(estado, { fase: 'revision' },
+          'Parche listo (reintento ' + estado.reintentosUsados + ' de ' + estado.reintentosConfigurados + '). El parche vuelve a la revisión: nadie se autoevalúa.');
+    }
+  }
+
+  function cambiarReintentos(estado, n) {
+    return con(estado, { reintentosConfigurados: n },
+      'Configuración: N = ' + n + ' reintentos' + (n === 0 ? ' (ninguna reparadora: el primer rojo escala).' : '.'));
+  }
+
+  return { crearEstadoInicial, frontera, paso, resultado, cambiarReintentos };
+})();
+/* MÓDULO PURO — FIN */
+</script>
+
+<script>
+/* ——— Capa de página: desechable; llama al módulo puro, nunca al revés ——— */
+
+const HALLAZGO_PREDEFINIDO = 'La spec pide que los acuerdos queden pendientes hasta marcarse cumplidos; el diff los cierra sin más al guardar el 1-to-1.';
+const SALIDAS_PUERTA = {
+  typecheck: "error TS2345: 'string' no se puede asignar a 'Date' — src/acuerdos.ts:42",
+  lint: 'eslint: no-unused-vars — acuerdoDto no se usa — src/acuerdos.ts:17',
+  tests: 'vitest ✗ cumple-acuerdo.test.ts › marcar un acuerdo pendiente → expected true, received false',
+  e2e: "playwright ✗ timeout 30s esperando [data-testid='acuerdo-cumplido'] en /mentees/1",
+};
+
+const FASES = {
+  frontera:   ['En la frontera',            'chip-espera'],
+  revision:   ['Esperando la revisión',     'chip-espera'],
+  puertas:    ['Las puertas corren',        'chip-espera'],
+  reparacion: ['Esperando el parche',       'chip-espera'],
+  verde:      ['Verde: listo para empujar', 'chip-verde'],
+  rojo:       ['Rojo: error en la mano',    'chip-rojo'],
+  escalado:   ['Escalado al humano',        'chip-amber'],
+  fin:        ['Pasada terminada',          'chip-fin'],
+};
+
+let estado = Piloto.crearEstadoInicial({ reintentos: 3 });
+
+/* ——— acciones de bajo nivel ——— */
+const despacharPaso     = () => { estado = Piloto.paso(estado); };
+const despacharRevision = (exito, texto) => { estado = Piloto.resultado(estado, { tipo: 'revision', exito, texto }); };
+const despacharPuertas  = (exito, puerta, texto) => { estado = Piloto.resultado(estado, { tipo: 'puertas', exito, puerta, texto }); };
+const despacharParche   = () => { estado = Piloto.resultado(estado, { tipo: 'reparacion' }); };
+const anotar = (linea) => { estado = { ...estado, narracion: [...estado.narracion, linea] }; };
+
+/* ——— escenarios guiados ——— */
+const ESCENARIOS = [
+  {
+    id: 'feliz', titulo: 'Verde a la primera', reintentos: 3,
+    intro: 'La frontera de esta mañana: solo #4 y #8 desbloqueados. Vigila cómo, al cerrar #4, entran #5, #6 y #7 en la frontera, y cómo el Piloto elige siempre el de menor número.',
+    pasos: [
+      { etiqueta: 'Paso del Piloto',                    run: despacharPaso },
+      { etiqueta: 'Revisora: sin hallazgos',            run: () => despacharRevision(true) },
+      { etiqueta: 'Puertas: todas en verde',             run: () => despacharPuertas(true) },
+      { etiqueta: 'Paso del Piloto (empuja y cierra #4)', run: despacharPaso },
+      { etiqueta: 'Paso del Piloto (elige el siguiente)', run: despacharPaso },
+    ],
+  },
+  {
+    id: 'asimetria', titulo: 'La asimetría', reintentos: 3,
+    intro: 'Un hallazgo de la revisión y un tests en rojo son, para el Piloto, lo mismo: un rojo con un error en la mano. Fíjate en que el parche vuelve SIEMPRE a la revisión (nadie se autoevalúa) y en que la revisora que rechazó el diff no recuerda nada al verlo otra vez: cada sesión es contexto fresco.',
+    pasos: [
+      { etiqueta: 'Paso del Piloto',                       run: despacharPaso },
+      { etiqueta: 'Revisora: con hallazgo (usa el cuadro)', run: () => despacharRevision(false, document.getElementById('input-hallazgo').value || HALLAZGO_PREDEFINIDO) },
+      { etiqueta: 'Paso del Piloto (reparadora 1)',        run: despacharPaso },
+      { etiqueta: 'Reparadora: parche listo',             run: despacharParche },
+      { etiqueta: 'Revisora: sin hallazgos',              run: () => despacharRevision(true) },
+      { etiqueta: 'Puertas: tests en rojo',                run: () => despacharPuertas(false, 'tests', SALIDAS_PUERTA.tests) },
+      { etiqueta: 'Paso del Piloto (reparadora 2)',        run: despacharPaso },
+      { etiqueta: 'Reparadora: parche listo',             run: despacharParche },
+      { etiqueta: 'Revisora: sin hallazgos',              run: () => despacharRevision(true) },
+      { etiqueta: 'Puertas: todas en verde',              run: () => despacharPuertas(true) },
+      { etiqueta: 'Paso del Piloto (empuja y cierra)',     run: despacharPaso },
+    ],
+  },
+  {
+    id: 'escalado', titulo: 'Agotar los reintentos', reintentos: 2,
+    intro: 'N = 2: dos reparadoras y se acaba. Al agotarse: etiqueta ready-for-human, comentario con el error, aviso… y el Piloto se DETIENE — la pasada termina, no toca #8. Escalado no es cerrado: #5, #6 y #7 siguen bloqueados por un #4 abierto en manos del humano. Reanudar es decisión del humano.',
+    pasos: [
+      { etiqueta: 'Paso del Piloto',                    run: despacharPaso },
+      { etiqueta: 'Revisora: con hallazgo',             run: () => despacharRevision(false, HALLAZGO_PREDEFINIDO) },
+      { etiqueta: 'Paso del Piloto (reparadora 1)',      run: despacharPaso },
+      { etiqueta: 'Reparadora: parche listo',          run: despacharParche },
+      { etiqueta: 'Revisora: con hallazgo (otra vez)',  run: () => despacharRevision(false, 'Sigue igual: el diff no distingue pendiente de cumplido.') },
+      { etiqueta: 'Paso del Piloto (reparadora 2)',      run: despacharPaso },
+      { etiqueta: 'Reparadora: parche listo',          run: despacharParche },
+      { etiqueta: 'Revisora: con hallazgo (tercera)',   run: () => despacharRevision(false, 'El parche rompe la persistencia de los temas.') },
+      { etiqueta: 'Paso del Piloto (¡escala al humano!)', run: despacharPaso },
+      { etiqueta: 'Paso del Piloto (la pasada se detiene)', run: despacharPaso },
+    ],
+  },
+  {
+    id: 'ilegales', titulo: 'Resultados inesperados', reintentos: 3,
+    intro: 'Intenta colarle al Piloto resultados que no espera: el coordinador determinista solo escucha lo que su fase permite, y ningún resultado refuta un veredicto. Este es el corazón del ADR-0003.',
+    pasos: [
+      { etiqueta: 'Paso del Piloto',                        run: despacharPaso },
+      { etiqueta: 'Revisora: sin hallazgos',               run: () => despacharRevision(true) },
+      { etiqueta: 'Paso del Piloto (no-op: ya espera a las puertas)', run: despacharPaso },
+      { etiqueta: 'Revisora: sin hallazgos (otra vez: rechazado)',    run: () => despacharRevision(true) },
+      { etiqueta: 'Puertas: tests en rojo',                 run: () => despacharPuertas(false, 'tests', SALIDAS_PUERTA.tests) },
+      { etiqueta: 'Puertas: todas en verde (rechazado: nadie refuta un rojo)', run: () => despacharPuertas(true) },
+      { etiqueta: 'Reparadora: parche listo (rechazado: no la espero)',          run: despacharParche },
+      { etiqueta: 'Paso del Piloto (lanza la reparadora)',   run: despacharPaso },
+      { etiqueta: 'Reparadora: parche listo',              run: despacharParche },
+    ],
+  },
+];
+
+let escActivo = null, escPaso = 0;
+
+function elegirEscenario(esc) {
+  escActivo = esc; escPaso = 0;
+  estado = Piloto.crearEstadoInicial({ reintentos: esc.reintentos });
+  document.getElementById('sel-n').value = String(esc.reintentos);
+  anotar('— Recorrido: ' + esc.titulo + ' —');
+  render();
+}
+
+function darPasoEscenario(indice) {
+  if (!escActivo || indice !== escPaso || escPaso >= escActivo.pasos.length) return;
+  escActivo.pasos[escPaso].run();
+  escPaso++;
+  render();
+}
+
+function salirDelRecorrido() {
+  if (escActivo) { escActivo = null; anotar('— Saliste del recorrido: mando libre —'); }
+}
+
+/* ——— mando libre ——— */
+function act(fn) { salirDelRecorrido(); fn(); render(); }
+
+document.getElementById('btn-paso').addEventListener('click', () => act(despacharPaso));
+document.getElementById('btn-revision-ok').addEventListener('click', () => act(() => despacharRevision(true)));
+document.getElementById('btn-revision-hallazgo').addEventListener('click', () =>
+  act(() => despacharRevision(false, document.getElementById('input-hallazgo').value || HALLAZGO_PREDEFINIDO)));
+document.getElementById('btn-puertas-verde').addEventListener('click', () => act(() => despacharPuertas(true)));
+document.querySelectorAll('[data-puerta]').forEach(b =>
+  b.addEventListener('click', () => act(() => despacharPuertas(false, b.dataset.puerta, SALIDAS_PUERTA[b.dataset.puerta]))));
+document.getElementById('btn-parche').addEventListener('click', () => act(despacharParche));
+document.getElementById('sel-n').addEventListener('change', (e) => {
+  act(() => { estado = Piloto.cambiarReintentos(estado, Number(e.target.value)); });
+});
+document.getElementById('btn-reiniciar').addEventListener('click', () => {
+  act(() => { estado = Piloto.crearEstadoInicial({ reintentos: Number(document.getElementById('sel-n').value) }); });
+});
+
+/* ——— render ——— */
+const chipTicket = (n) => '<span class="chip-t">#' + n + '</span>';
+
+function render() {
+  renderEstado();
+  renderFrontera();
+  renderNarracion();
+  renderEscenario();
+}
+
+function renderEstado() {
+  const [etiqueta, clase] = FASES[estado.fase];
+  const t = estado.ticketActual ? estado.tickets.find(x => x.numero === estado.ticketActual) : null;
+  const N = estado.reintentosConfigurados;
+  const u = Math.min(estado.reintentosUsados, N);
+  const puntos = '●'.repeat(u) + '○'.repeat(Math.max(0, N - u));
+  const err = estado.error
+    ? (estado.error.origen === 'revisión' ? 'revisión' : 'puerta ' + estado.error.puerta) + ' — «' + estado.error.texto + '»'
+    : '—';
+  document.getElementById('fase').innerHTML = '<span class="chip ' + clase + '">' + etiqueta + '</span>';
+  document.getElementById('ticket').innerHTML = t ? chipTicket(t.numero) + ' ' + t.titulo : 'ninguno';
+  document.getElementById('reintentos').innerHTML = puntos + ' <span class="detalle">' + estado.reintentosUsados + ' de ' + N + ' usados</span>';
+  document.getElementById('error').innerHTML = err;
+}
+
+function renderFrontera() {
+  const f = Piloto.frontera(estado);
+  const bloqueados = estado.tickets.filter(t => t.estado === 'lista' && !f.some(x => x.numero === t.numero));
+  const cerrados = estado.tickets.filter(t => t.estado === 'cerrado').map(t => '#' + t.numero);
+  const escalados = estado.tickets.filter(t => t.estado === 'escalado').map(t => '#' + t.numero);
+  document.getElementById('desbloqueados').innerHTML =
+    f.length ? f.map(t => chipTicket(t.numero)).join(' ') : '<span class="vacio">vacía</span>';
+  document.getElementById('bloqueados').innerHTML = bloqueados.length
+    ? bloqueados.map(t => chipTicket(t.numero) + ' <span class="detalle">por ' + t.bloqueadoPor.map(n => '#' + n).join(', ') + '</span>').join(' ')
+    : '<span class="vacio">ninguno</span>';
+  document.getElementById('cerrados').textContent = cerrados.length ? cerrados.join(' · ') : '—';
+  document.getElementById('escalados').textContent = escalados.length ? escalados.join(' · ') : '—';
+}
+
+function renderNarracion() {
+  const lineas = estado.narracion.map((l, i) => ({ l, n: i + 1 })).reverse();
+  document.getElementById('narracion').innerHTML = lineas
+    .map(x => '<div class="linea"><span class="num">' + x.n + '</span>' + x.l + '</div>')
+    .join('');
+}
+
+function renderEscenario() {
+  const pestanas = document.getElementById('pestanas');
+  pestanas.innerHTML = '';
+  ESCENARIOS.forEach(esc => {
+    const b = document.createElement('button');
+    b.textContent = esc.titulo;
+    b.className = 'pestana' + (escActivo && escActivo.id === esc.id ? ' activa' : '');
+    b.addEventListener('click', () => elegirEscenario(esc));
+    pestanas.appendChild(b);
+  });
+
+  const cuerpo = document.getElementById('escenario-cuerpo');
+  if (!escActivo) {
+    cuerpo.innerHTML = '<p class="detalle">Elige un recorrido: cada uno arranca de un estado inicial conocido (con su N) y te guía pulsación a pulsación por un caso incómodo.</p>';
+    return;
+  }
+  const pasosHtml = escActivo.pasos.map((p, i) => {
+    let clase = i < escPaso ? 'hecho' : (i === escPaso ? 'siguiente' : '');
+    const texto = (i < escPaso ? '✓ ' : '') + p.etiqueta;
+    return '<li><button class="' + clase + '" data-paso="' + i + '">' + texto + '</button></li>';
+  }).join('');
+  const fin = escPaso >= escActivo.pasos.length
+    ? '<p class="aviso-fin">Recorrido completo. Sigue jugando con el mando libre, o elige otro recorrido.</p>'
+    : '';
+  cuerpo.innerHTML = '<p class="intro-esc">' + escActivo.intro + '</p><ol class="pasos">' + pasosHtml + '</ol>' + fin;
+  cuerpo.querySelectorAll('[data-paso]').forEach(b =>
+    b.addEventListener('click', () => darPasoEscenario(Number(b.dataset.paso))));
+}
+
+/* ——— arranque ——— */
+document.getElementById('input-hallazgo').value = HALLAZGO_PREDEFINIDO;
+render();
+</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', fontFamily: 'system-ui, sans-serif' });
+</script>
+
+</body>
+</html>
