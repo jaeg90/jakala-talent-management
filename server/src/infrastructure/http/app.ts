@@ -3,6 +3,7 @@ import type { Manager } from '../../domain/model.js';
 import { LoginService, TeamService } from '../../application/services.js';
 import { OneToOneService } from '../../application/onetoone_service.js';
 import { TemaPropioService } from '../../application/tema_propio_service.js';
+import { ObjetivoService } from '../../application/objetivo_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -14,6 +15,7 @@ export interface AppDeps {
   team: TeamService;
   onetoones: OneToOneService;
   temasPropios: TemaPropioService;
+  objetivos: ObjetivoService;
   sessions: SessionStore;
 }
 
@@ -141,6 +143,60 @@ export function createApp(deps: AppDeps): express.Express {
     res.status(204).end();
   }));
 
+  // Objetivos anuales de una mentee.
+  app.get('/api/mentees/:menteeId/objetivos', requireSession(deps.sessions, async (req, res, manager) => {
+    const objetivos = await deps.objetivos.objetivosOf(manager, param(req, 'menteeId'));
+    res.json({ objetivos });
+  }));
+
+  // Alta de un objetivo anual (nace en curso).
+  app.post('/api/mentees/:menteeId/objetivos', requireSession(deps.sessions, async (req, res, manager) => {
+    const fields = parseObjetivoFields((req.body ?? {}) as Record<string, unknown>);
+    if (fields === null) {
+      res.status(400).json({ error: 'Estructura de objetivo inválida' });
+      return;
+    }
+    try {
+      const objetivo = await deps.objetivos.addObjetivo(manager, {
+        menteeId: param(req, 'menteeId'),
+        ...fields,
+      });
+      res.status(201).json(objetivo);
+    } catch (err) {
+      responderObjetivoError(res, err, 'Error al dar de alta el objetivo');
+    }
+  }));
+
+  // Edición de un objetivo en curso.
+  app.patch('/api/objetivos/:objetivoId', requireSession(deps.sessions, async (req, res, manager) => {
+    const fields = parseObjetivoFields((req.body ?? {}) as Record<string, unknown>);
+    if (fields === null) {
+      res.status(400).json({ error: 'Estructura de objetivo inválida' });
+      return;
+    }
+    try {
+      const objetivo = await deps.objetivos.updateObjetivo(manager, param(req, 'objetivoId'), fields);
+      res.json(objetivo);
+    } catch (err) {
+      responderObjetivoError(res, err, 'Error al editar el objetivo');
+    }
+  }));
+
+  // Cambio de estado de un objetivo en curso (cumplido / no cumplido).
+  app.post('/api/objetivos/:objetivoId/estado', requireSession(deps.sessions, async (req, res, manager) => {
+    const { estado } = (req.body ?? {}) as { estado?: unknown };
+    if (estado !== 'cumplido' && estado !== 'no cumplido') {
+      res.status(400).json({ error: 'Estado no válido: debe ser "cumplido" o "no cumplido"' });
+      return;
+    }
+    try {
+      const objetivo = await deps.objetivos.cambiarEstado(manager, param(req, 'objetivoId'), estado);
+      res.json(objetivo);
+    } catch (err) {
+      responderObjetivoError(res, err, 'Error al cambiar el estado del objetivo');
+    }
+  }));
+
   // Registrar un 1-to-1 con notas por tema y acuerdos que nacen pendientes.
   app.post('/api/mentees/:menteeId/onetoones', requireSession(deps.sessions, async (req, res, manager) => {
     const body = (req.body ?? {}) as Partial<NuevoOneToOne>;
@@ -180,6 +236,31 @@ export function createApp(deps: AppDeps): express.Express {
   }));
 
   return app;
+}
+
+/**
+ * Extrae y valida los campos de un objetivo desde el body. Devuelve null si
+ * falta el título o la fecha límite; la descripción es opcional (por defecto '').
+ */
+function parseObjetivoFields(
+  body: Record<string, unknown>,
+): { titulo: string; descripcion: string; fechaLimite: string } | null {
+  if (typeof body.titulo !== 'string' || typeof body.fechaLimite !== 'string') return null;
+  return {
+    titulo: body.titulo,
+    descripcion: typeof body.descripcion === 'string' ? body.descripcion : '',
+    fechaLimite: body.fechaLimite,
+  };
+}
+
+/** Mapea errores del dominio/adaptador de objetivos a su estado HTTP. */
+function responderObjetivoError(res: Response, err: unknown, fallback: string): void {
+  const msg = err instanceof Error ? err.message : '';
+  const status =
+    msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
+    : msg.includes('no puede') ? 409
+    : 400;
+  res.status(status).json({ error: msg === '' ? fallback : msg });
 }
 
 function parseCookies(header: string): Record<string, string> {

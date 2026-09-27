@@ -1,5 +1,14 @@
 import type { Acuerdo } from './agreements.js';
-import type { Manager, ManagerId, MenteeConProyecto, NotaPorTema, OneToOne, TemaPropio } from './model.js';
+import type {
+  Manager,
+  ManagerId,
+  MenteeConProyecto,
+  NotaPorTema,
+  Objetivo,
+  EstadoObjetivo,
+  OneToOne,
+  TemaPropio,
+} from './model.js';
 
 /**
  * Puerto de autenticación (ADR-0002): comprobar credenciales de manager.
@@ -49,6 +58,36 @@ export interface TemaPropioRepository {
   addTemaPropio(managerId: ManagerId, menteeId: string, tema: string): Promise<TemaPropio>;
   /** Da de baja un tema propio; devuelve false si no existe o no pertenece al manager. */
   removeTemaPropio(managerId: ManagerId, temaPropioId: string): Promise<boolean>;
+}
+
+/** Datos para dar de alta un objetivo anual. */
+export interface NuevoObjetivo {
+  menteeId: string;
+  titulo: string;
+  descripcion: string;
+  fechaLimite: string;
+}
+
+/** Datos para editar un objetivo en curso. */
+export interface EditarObjetivo {
+  titulo: string;
+  descripcion: string;
+  fechaLimite: string;
+}
+
+/**
+ * Puerto de objetivos anuales de una mentee: alta, edición, consulta y cambio
+ * de estado. Las operaciones se acotan por manager (aislamiento).
+ */
+export interface ObjetivoRepository {
+  /** Los objetivos de una mentee (solo si es del manager). */
+  objetivosOf(managerId: ManagerId, menteeId: string): Promise<Objetivo[]>;
+  /** Da de alta un objetivo en curso; lanza si la mentee no es del manager. */
+  addObjetivo(managerId: ManagerId, nuevo: NuevoObjetivo): Promise<Objetivo>;
+  /** Edita un objetivo en curso; lanza si no existe, no es del manager o está cerrado. */
+  updateObjetivo(managerId: ManagerId, objetivoId: string, cambios: EditarObjetivo): Promise<Objetivo>;
+  /** Cambia el estado de un objetivo en curso; lanza si no existe, no es del manager o está cerrado. */
+  cambiarEstado(managerId: ManagerId, objetivoId: string, estado: EstadoObjetivo): Promise<Objetivo>;
 }
 
 /** Puerto de sesiones: crear/consultar/cerrar sesiones por token. */

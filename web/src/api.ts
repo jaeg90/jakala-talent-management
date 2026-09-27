@@ -35,6 +35,23 @@ export interface TemaPropio {
   tema: string;
 }
 
+export type EstadoObjetivo = 'en curso' | 'cumplido' | 'no cumplido';
+
+export interface Objetivo {
+  id: string;
+  menteeId: string;
+  titulo: string;
+  descripcion: string;
+  fechaLimite: string;
+  estado: EstadoObjetivo;
+}
+
+export interface ObjetivoFields {
+  titulo: string;
+  descripcion: string;
+  fechaLimite: string;
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -74,6 +91,27 @@ export const api = {
   },
   removeTemaPropio(menteeId: string, temaPropioId: string): Promise<void> {
     return request(`/api/mentees/${menteeId}/temas/${temaPropioId}`, { method: 'DELETE' });
+  },
+  objetivos(menteeId: string): Promise<{ objetivos: Objetivo[] }> {
+    return request(`/api/mentees/${menteeId}/objetivos`);
+  },
+  addObjetivo(menteeId: string, fields: ObjetivoFields): Promise<Objetivo> {
+    return request(`/api/mentees/${menteeId}/objetivos`, {
+      method: 'POST',
+      body: JSON.stringify(fields),
+    });
+  },
+  updateObjetivo(objetivoId: string, fields: ObjetivoFields): Promise<Objetivo> {
+    return request(`/api/objetivos/${objetivoId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(fields),
+    });
+  },
+  cambiarEstadoObjetivo(objetivoId: string, estado: 'cumplido' | 'no cumplido'): Promise<Objetivo> {
+    return request(`/api/objetivos/${objetivoId}/estado`, {
+      method: 'POST',
+      body: JSON.stringify({ estado }),
+    });
   },
 };
 

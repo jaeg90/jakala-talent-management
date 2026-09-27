@@ -47,6 +47,14 @@ export function openDatabase(path: string): Database.Database {
       tema TEXT NOT NULL,
       UNIQUE (mentee_id, tema)
     );
+    CREATE TABLE IF NOT EXISTS objetivos (
+      id TEXT PRIMARY KEY,
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      titulo TEXT NOT NULL,
+      descripcion TEXT NOT NULL,
+      fecha_limite TEXT NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'en curso'
+    );
   `);
   return db;
 }

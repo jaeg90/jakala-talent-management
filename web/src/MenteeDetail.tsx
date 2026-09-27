@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { api, TEMAS_GENERICOS, type AcuerdoView, type OneToOne, type TemaPropio } from './api';
+import {
+  api,
+  TEMAS_GENERICOS,
+  type AcuerdoView,
+  type Objetivo,
+  type ObjetivoFields,
+  type OneToOne,
+  type TemaPropio,
+} from './api';
 
 interface Props {
   menteeId: string;
@@ -16,6 +24,7 @@ interface Ficha {
 export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
   const [temas, setTemas] = useState<TemaPropio[]>([]);
+  const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
 
   function reload() {
     api.ficha(menteeId).then(setFicha);
@@ -25,9 +34,14 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
     api.temasPropios(menteeId).then(({ temas }) => setTemas(temas));
   }
 
+  function reloadObjetivos() {
+    api.objetivos(menteeId).then(({ objetivos: o }) => setObjetivos(o));
+  }
+
   useEffect(() => {
     reload();
     reloadTemas();
+    reloadObjetivos();
   }, [menteeId]);
 
   async function marcarCumplido(acuerdoId: string) {
@@ -43,6 +57,21 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   async function bajaTema(temaPropioId: string) {
     await api.removeTemaPropio(menteeId, temaPropioId);
     reloadTemas();
+  }
+
+  async function altaObjetivo(fields: ObjetivoFields) {
+    await api.addObjetivo(menteeId, fields);
+    reloadObjetivos();
+  }
+
+  async function cambiarEstadoObjetivo(objetivoId: string, estado: 'cumplido' | 'no cumplido') {
+    await api.cambiarEstadoObjetivo(objetivoId, estado);
+    reloadObjetivos();
+  }
+
+  async function editarObjetivo(objetivoId: string, fields: ObjetivoFields) {
+    await api.updateObjetivo(objetivoId, fields);
+    reloadObjetivos();
   }
 
   return (
@@ -73,6 +102,13 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
           </section>
 
           <TemasPropios temas={temas} onAlta={altaTema} onBaja={bajaTema} />
+
+          <Objetivos
+            objetivos={objetivos}
+            onAdd={altaObjetivo}
+            onCambiarEstado={cambiarEstadoObjetivo}
+            onUpdate={editarObjetivo}
+          />
 
           <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
 
@@ -254,5 +290,167 @@ function NuevoOneToOneForm({
         <button type="submit">Registrar 1-to-1</button>
       </form>
     </section>
+  );
+}
+
+/** Objetivos anuales SMART de una mentee: alta, edición en curso y cambio de estado. */
+function Objetivos({
+  objetivos,
+  onAdd,
+  onCambiarEstado,
+  onUpdate,
+}: {
+  objetivos: Objetivo[];
+  onAdd: (fields: ObjetivoFields) => Promise<void>;
+  onCambiarEstado: (objetivoId: string, estado: 'cumplido' | 'no cumplido') => Promise<void>;
+  onUpdate: (objetivoId: string, fields: ObjetivoFields) => Promise<void>;
+}) {
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+
+  async function handleUpdate(objetivoId: string, fields: ObjetivoFields) {
+    await onUpdate(objetivoId, fields);
+    setEditandoId(null);
+  }
+
+  return (
+    <section aria-label="Objetivos anuales">
+      <h2>Objetivos anuales</h2>
+      {objetivos.length === 0 ? (
+        <p className="empty">Sin objetivos.</p>
+      ) : (
+        <ul className="objetivos">
+          {objetivos.map((o) =>
+            editandoId === o.id ? (
+              <EditarObjetivoForm
+                key={o.id}
+                objetivo={o}
+                onCancel={() => setEditandoId(null)}
+                onSaved={(fields) => handleUpdate(o.id, fields)}
+              />
+            ) : (
+              <li key={o.id} className="objetivo">
+                <strong>{o.titulo}</strong>
+                {o.descripcion !== '' && <p className="objetivo-descripcion">{o.descripcion}</p>}
+                <p className="objetivo-meta">Fecha límite: {o.fechaLimite} · Estado: {o.estado}</p>
+                {o.estado === 'en curso' && (
+                  <div className="objetivo-acciones">
+                    <button onClick={() => void onCambiarEstado(o.id, 'cumplido')}>Cumplido</button>
+                    <button onClick={() => void onCambiarEstado(o.id, 'no cumplido')}>No cumplido</button>
+                    <button className="link" onClick={() => setEditandoId(o.id)}>Editar</button>
+                  </div>
+                )}
+              </li>
+            ),
+          )}
+        </ul>
+      )}
+      <NuevoObjetivoForm onAdd={onAdd} />
+    </section>
+  );
+}
+
+/** Formulario de alta de un objetivo anual. */
+function NuevoObjetivoForm({ onAdd }: { onAdd: (fields: ObjetivoFields) => Promise<void> }) {
+  const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [fechaLimite, setFechaLimite] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onAdd({ titulo, descripcion, fechaLimite });
+      setTitulo('');
+      setDescripcion('');
+      setFechaLimite('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="Nuevo objetivo">
+      <label>
+        Título
+        <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} required />
+      </label>
+      <label>
+        Descripción
+        <input
+          type="text"
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+        />
+      </label>
+      <label>
+        Fecha límite
+        <input
+          type="date"
+          value={fechaLimite}
+          onChange={(e) => setFechaLimite(e.target.value)}
+          required
+        />
+      </label>
+      {error !== null && <p className="error">{error}</p>}
+      <button type="submit">Añadir objetivo</button>
+    </form>
+  );
+}
+
+/** Formulario de edición de un objetivo en curso. */
+function EditarObjetivoForm({
+  objetivo,
+  onCancel,
+  onSaved,
+}: {
+  objetivo: Objetivo;
+  onCancel: () => void;
+  onSaved: (fields: ObjetivoFields) => Promise<void>;
+}) {
+  const [titulo, setTitulo] = useState(objetivo.titulo);
+  const [descripcion, setDescripcion] = useState(objetivo.descripcion);
+  const [fechaLimite, setFechaLimite] = useState(objetivo.fechaLimite);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onSaved({ titulo, descripcion, fechaLimite });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <li className="objetivo">
+      <form onSubmit={handleSubmit} aria-label="Editar objetivo">
+        <label>
+          Título
+          <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} required />
+        </label>
+        <label>
+          Descripción
+          <input
+            type="text"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
+        </label>
+        <label>
+          Fecha límite
+          <input
+            type="date"
+            value={fechaLimite}
+            onChange={(e) => setFechaLimite(e.target.value)}
+            required
+          />
+        </label>
+        {error !== null && <p className="error">{error}</p>}
+        <button type="submit">Guardar</button>
+        <button type="button" className="link" onClick={onCancel}>Cancelar</button>
+      </form>
+    </li>
   );
 }

@@ -43,7 +43,7 @@ test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) =>
   await expect(page.getByText('Todavía no hay 1-to-1s registrados.')).toBeVisible();
 
   // Registro un 1-to-1 con notas por tema y un acuerdo
-  await page.getByLabel('Fecha').fill('2026-09-27');
+  await page.getByLabel('Fecha', { exact: true }).fill('2026-09-27');
   await page.getByLabel('¿Cómo estás?').fill('Animada, con ganas');
   await page.getByLabel('¿Qué tal el proyecto?', { exact: true }).fill('Atlas Bank va bien');
   await page.getByLabel('Nuevo acuerdo').fill('Preparar dossier de Atlas Bank');
