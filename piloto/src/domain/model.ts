@@ -1,0 +1,74 @@
+/**
+ * Tipos del núcleo del Piloto (ADR-0003): fases, tickets, pasada, eventos y comandos.
+ * El núcleo es puro: no conoce GitHub, sesiones ni arnés; solo decide y narra.
+ */
+
+/** Fases de una pasada. Las de espera (implementacion, revision, puertas, reparacion) aguardan un evento del mundo. */
+export type Fase =
+  | 'frontera'
+  | 'implementacion'
+  | 'revision'
+  | 'puertas'
+  | 'reparacion'
+  | 'verde'
+  | 'rojo'
+  | 'escalado'
+  | 'fin';
+
+export type EstadoTicket = 'lista' | 'cerrado' | 'escalado';
+
+/** Un ticket del tracker: lo único que la implementadora recibe (contexto fresco, solo el ticket). */
+export interface Ticket {
+  numero: number;
+  titulo: string;
+  cuerpo: string;
+  estado: EstadoTicket;
+  bloqueadoPor: number[];
+}
+
+/** El error en mano que provoca un rojo y viaja a la reparadora. */
+export interface ErrorEnMano {
+  origen: 'revisión' | 'puerta';
+  /** Puerta que falló, cuando el origen es una puerta. */
+  puerta?: string;
+  texto: string;
+}
+
+/** Estado completo de una pasada: lo único que el Piloto recuerda. */
+export interface Pasada {
+  fase: Fase;
+  reintentosConfigurados: number;
+  tickets: Ticket[];
+  ticketActual: number | null;
+  reintentosUsados: number;
+  error: ErrorEnMano | null;
+  /** Resumen de la implementadora, para el comentario de cierre del issue. */
+  resumen: string | null;
+  /** La salida del Piloto narra cada paso (criterio del ticket #11). */
+  narracion: string[];
+}
+
+/** Resultados que el mundo trae: cada sesión y cada puerta responde con un evento. */
+export type Evento =
+  | { tipo: 'diffListo'; resumen: string }
+  | { tipo: 'revisiónSinHallazgos' }
+  | { tipo: 'revisiónConHallazgo'; texto: string }
+  | { tipo: 'puertasEnVerde' }
+  | { tipo: 'puertaEnRojo'; puerta: string; salida: string }
+  | { tipo: 'parcheListo' };
+
+/** Lo que el núcleo ordena ejecutar contra los puertos (ADR-0004). */
+export type Comando =
+  | { tipo: 'lanzarImplementadora'; ticket: Ticket }
+  | { tipo: 'lanzarRevisora'; ticket: Ticket }
+  | { tipo: 'abrirPuertas' }
+  | { tipo: 'lanzarReparadora'; reintento: number; de: number; error: ErrorEnMano }
+  | { tipo: 'empujarYCerrar'; ticket: Ticket; resumen: string | null }
+  | { tipo: 'escalar'; ticket: Ticket; error: ErrorEnMano }
+  | { tipo: 'terminar'; motivo: 'fronteraVacia' | 'escalado'; abiertos: number[] };
+
+/** Un movimiento del núcleo: la pasada resultante y los comandos que lo acompañan. */
+export interface Movimiento {
+  pasada: Pasada;
+  comandos: Comando[];
+}
