@@ -1,4 +1,4 @@
-import type { Ticket } from '../domain/model.js';
+import type { Etiquetas, Ticket } from '../domain/model.js';
 import type { PuertoFrontera } from '../domain/ports.js';
 import { ejecutar } from './procesos.js';
 
@@ -22,7 +22,7 @@ function bloqueadosDe(cuerpo: string | null): number[] {
   return [...seccion.matchAll(/#(\d+)/g)].map((m) => Number(m[1]));
 }
 
-function ticketsDesdeIssues(issues: IssueGh[], etiquetas: { lista: string; escalado: string }): Ticket[] {
+function ticketsDesdeIssues(issues: IssueGh[], etiquetas: Etiquetas): Ticket[] {
   const abiertos = issues.filter((i) => i.state === 'OPEN');
   const referenciadosComoBloqueo = new Set(abiertos.flatMap((i) => bloqueadosDe(i.body)));
 
@@ -54,7 +54,7 @@ function aTicket(issue: IssueGh, estado: Ticket['estado']): Ticket {
   };
 }
 
-export function crearFrontera(etiquetas: { lista: string; escalado: string }): PuertoFrontera {
+export function crearFrontera(etiquetas: Etiquetas): PuertoFrontera {
   return {
     async cargarTickets(): Promise<Ticket[]> {
       const salida = await ejecutar('gh', [

@@ -6,10 +6,10 @@
 /** Fases de una pasada. Las de espera (implementacion, revision, puertas, reparacion) aguardan un evento del mundo. */
 export type Fase =
   | 'frontera'
-  | 'implementacion'
-  | 'revision'
+  | 'implementación'
+  | 'revisión'
   | 'puertas'
-  | 'reparacion'
+  | 'reparación'
   | 'verde'
   | 'rojo'
   | 'escalado'
@@ -62,10 +62,29 @@ export type Comando =
   | { tipo: 'lanzarImplementadora'; ticket: Ticket }
   | { tipo: 'lanzarRevisora'; ticket: Ticket }
   | { tipo: 'abrirPuertas' }
-  | { tipo: 'lanzarReparadora'; reintento: number; de: number; error: ErrorEnMano }
+  | { tipo: 'lanzarReparadora'; reintento: number; reintentosConfigurados: number; error: ErrorEnMano }
   | { tipo: 'empujarYCerrar'; ticket: Ticket; resumen: string | null }
   | { tipo: 'escalar'; ticket: Ticket; error: ErrorEnMano }
   | { tipo: 'terminar'; motivo: 'fronteraVacia' | 'escalado'; abiertos: number[] };
+
+/** Etiquetas del tracker que marcan los tickets del Piloto (configuración). */
+export interface Etiquetas {
+  /** Tickets candidatos: desbloqueados y listos (ready-for-agent). */
+  lista: string;
+  /** Tickets devueltos al humano (ready-for-human). */
+  escalado: string;
+}
+
+/** Una puerta del arnés: nombre y el comando que la ejecuta (configuración). */
+export interface PuertaConfig {
+  nombre: string;
+  comando: string;
+}
+
+/** Describe el origen de un error para prompts y comentarios: «revisión» o «puerta X». */
+export function describirOrigen(error: ErrorEnMano): string {
+  return error.puerta === undefined ? 'revisión' : `puerta ${error.puerta}`;
+}
 
 /** Un movimiento del núcleo: la pasada resultante y los comandos que lo acompañan. */
 export interface Movimiento {

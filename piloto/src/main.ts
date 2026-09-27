@@ -55,11 +55,7 @@ async function main(): Promise<void> {
   }
   await correrPasada(
     puertos,
-    {
-      reintentos: config.reintentos,
-      etiquetaEscalado: config.etiquetas.escalado,
-      etiquetaLista: config.etiquetas.lista,
-    },
+    { reintentos: config.reintentos, etiquetas: config.etiquetas },
     (linea) => console.log(linea),
   );
 }

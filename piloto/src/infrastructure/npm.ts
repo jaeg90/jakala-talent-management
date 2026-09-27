@@ -1,3 +1,4 @@
+import type { PuertaConfig } from '../domain/model.js';
 import type { PuertoPuertas } from '../domain/ports.js';
 import { recortar, resultadoDeLinea } from './procesos.js';
 
@@ -9,10 +10,7 @@ import { recortar, resultadoDeLinea } from './procesos.js';
 
 const MINUTOS_MAX_PUERTA = 20;
 
-export function crearPuertas(
-  puertas: { nombre: string; comando: string }[],
-  raiz: string,
-): PuertoPuertas {
+export function crearPuertas(puertas: PuertaConfig[], raiz: string): PuertoPuertas {
   return {
     async ejecutar(): Promise<{ puerta: string; salida: string } | null> {
       for (const puerta of puertas) {

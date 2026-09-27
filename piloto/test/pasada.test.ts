@@ -4,7 +4,7 @@ import { crearPuertosSimulados } from '../src/infrastructure/simulacion.js';
 import type { Ticket } from '../src/domain/model.js';
 
 const ETIQUETA_ESCALADO = 'ready-for-human';
-const CONFIG = { reintentos: 3, etiquetaEscalado: ETIQUETA_ESCALADO, etiquetaLista: 'ready-for-agent' };
+const CONFIG = { reintentos: 3, etiquetas: { lista: 'ready-for-agent', escalado: 'ready-for-human' } };
 
 function ticket(numero: number, titulo: string, bloqueadoPor: number[] = []): Ticket {
   return { numero, titulo, cuerpo: `Spec de ${titulo}.`, estado: 'lista', bloqueadoPor };
@@ -47,7 +47,7 @@ describe('Pasada: el loop completo contra puertos simulados', () => {
 
     const pasada = await correrPasada(
       puertos,
-      { reintentos: 1, etiquetaEscalado: ETIQUETA_ESCALADO, etiquetaLista: 'ready-for-agent' },
+      { reintentos: 1, etiquetas: { lista: 'ready-for-agent', escalado: ETIQUETA_ESCALADO } },
       (linea) => narracion.push(linea),
     );
 

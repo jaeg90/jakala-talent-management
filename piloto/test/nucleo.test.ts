@@ -30,7 +30,7 @@ describe('Núcleo: la frontera', () => {
 
     const { pasada: siguiente, comandos } = paso(pasada);
 
-    expect(siguiente.fase).toBe('implementacion');
+    expect(siguiente.fase).toBe('implementación');
     expect(siguiente.ticketActual).toBe(4);
     expect(siguiente.reintentosUsados).toBe(0);
     expect(siguiente.error).toBeNull();
@@ -42,9 +42,9 @@ describe('Núcleo: la frontera', () => {
 });
 
 /** Lleva la pasada hasta la fase indicada con eventos de éxito. */
-function hasta(fase: 'revision' | 'puertas' | 'verde'): Pasada {
+function hasta(fase: 'revisión' | 'puertas' | 'verde'): Pasada {
   let pasada = paso(crearPasada({ reintentos: 3, tickets: ticketsDePrueba() })).pasada;
-  if (fase === 'revision') return resultado(pasada, { tipo: 'diffListo', resumen: 'Ficha con acuerdos.' }).pasada;
+  if (fase === 'revisión') return resultado(pasada, { tipo: 'diffListo', resumen: 'Ficha con acuerdos.' }).pasada;
   pasada = resultado(pasada, { tipo: 'diffListo', resumen: 'Ficha con acuerdos.' }).pasada;
   if (fase === 'puertas') return resultado(pasada, { tipo: 'revisiónSinHallazgos' }).pasada;
   pasada = resultado(pasada, { tipo: 'revisiónSinHallazgos' }).pasada;
@@ -57,7 +57,7 @@ describe('Núcleo: el ciclo de un ticket', () => {
 
     const mov = resultado(enImplementacion, { tipo: 'diffListo', resumen: 'Añadida la ficha con acuerdos.' });
 
-    expect(mov.pasada.fase).toBe('revision');
+    expect(mov.pasada.fase).toBe('revisión');
     expect(mov.pasada.resumen).toBe('Añadida la ficha con acuerdos.');
     expect(mov.comandos).toEqual([
       { tipo: 'lanzarRevisora', ticket: expect.objectContaining({ numero: 4 }) },
@@ -65,7 +65,7 @@ describe('Núcleo: el ciclo de un ticket', () => {
   });
 
   it('una revisión sin hallazgos abre las puertas', () => {
-    const mov = resultado(hasta('revision'), { tipo: 'revisiónSinHallazgos' });
+    const mov = resultado(hasta('revisión'), { tipo: 'revisiónSinHallazgos' });
 
     expect(mov.pasada.fase).toBe('puertas');
     expect(mov.comandos).toEqual([{ tipo: 'abrirPuertas' }]);
@@ -96,7 +96,7 @@ function enRojo(reintentos: number): Pasada {
 
 describe('Núcleo: rojo, reintentos y escalado', () => {
   it('un hallazgo de la revisión fuerza rojo con el hallazgo como error', () => {
-    const mov = resultado(hasta('revision'), {
+    const mov = resultado(hasta('revisión'), {
       tipo: 'revisiónConHallazgo',
       texto: 'Falta la persistencia de los temas.',
     });
@@ -120,13 +120,13 @@ describe('Núcleo: rojo, reintentos y escalado', () => {
   it('el paso en rojo lanza una reparadora nueva con el error (reintento 1 de 2)', () => {
     const mov = paso(enRojo(2));
 
-    expect(mov.pasada.fase).toBe('reparacion');
+    expect(mov.pasada.fase).toBe('reparación');
     expect(mov.pasada.reintentosUsados).toBe(1);
     expect(mov.comandos).toEqual([
       {
         tipo: 'lanzarReparadora',
         reintento: 1,
-        de: 2,
+        reintentosConfigurados: 2,
         error: { origen: 'revisión', texto: 'Falta la persistencia de los temas.' },
       },
     ]);
@@ -137,7 +137,7 @@ describe('Núcleo: rojo, reintentos y escalado', () => {
 
     const mov = resultado(enReparacion, { tipo: 'parcheListo' });
 
-    expect(mov.pasada.fase).toBe('revision');
+    expect(mov.pasada.fase).toBe('revisión');
     expect(mov.comandos).toEqual([
       { tipo: 'lanzarRevisora', ticket: expect.objectContaining({ numero: 4 }) },
     ]);
@@ -187,11 +187,11 @@ describe('Núcleo: rojo, reintentos y escalado', () => {
 
 describe('Núcleo: resultados inesperados y fin de pasada', () => {
   it('un evento que no corresponde a la fase se ignora: mismo estado, solo narración', () => {
-    const enRevision = hasta('revision');
+    const enRevision = hasta('revisión');
 
     const mov = resultado(enRevision, { tipo: 'puertasEnVerde' });
 
-    expect(mov.pasada.fase).toBe('revision');
+    expect(mov.pasada.fase).toBe('revisión');
     const { narracion: _antes, ...estadoAntes } = enRevision;
     const { narracion: _despues, ...estadoDespues } = mov.pasada;
     expect(estadoDespues).toEqual(estadoAntes);
@@ -209,10 +209,10 @@ describe('Núcleo: resultados inesperados y fin de pasada', () => {
   });
 
   it('un paso en fase de espera no decide nada', () => {
-    const mov = paso(hasta('revision'));
+    const mov = paso(hasta('revisión'));
 
     expect(mov.comandos).toEqual([]);
-    expect(mov.pasada.fase).toBe('revision');
+    expect(mov.pasada.fase).toBe('revisión');
   });
 
   it('la frontera vacía termina la pasada', () => {

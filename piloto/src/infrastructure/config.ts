@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import type { Etiquetas, PuertaConfig } from '../domain/model.js';
 import type { ConfigAviso } from './avisos.js';
 import type { ConfigSesiones, Modelos } from './opencode.js';
 
@@ -13,8 +14,8 @@ export interface ConfigPiloto {
   modoEntrega: 'main' | 'rama';
   modelos: Modelos;
   sesiones: ConfigSesiones;
-  puertas: { nombre: string; comando: string }[];
-  etiquetas: { lista: string; escalado: string };
+  puertas: PuertaConfig[];
+  etiquetas: Etiquetas;
   aviso: ConfigAviso;
 }
 
@@ -26,7 +27,13 @@ export async function cargarConfig(ruta: string): Promise<ConfigPiloto> {
   };
   return {
     reintentos: exigir(crudo.reintentos, 'reintentos'),
-    modoEntrega: exigir(crudo.modoEntrega, 'modoEntrega'),
+    modoEntrega: (() => {
+      const modo = exigir(crudo.modoEntrega, 'modoEntrega');
+      if (modo !== 'main' && modo !== 'rama') {
+        throw new Error(`«modoEntrega» debe ser «main» o «rama»; recibido: «${modo}».`);
+      }
+      return modo;
+    })(),
     modelos: exigir(crudo.modelos, 'modelos'),
     sesiones: {
       comando: crudo.sesiones?.comando ?? 'opencode',

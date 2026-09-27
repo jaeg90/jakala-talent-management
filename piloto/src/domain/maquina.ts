@@ -58,19 +58,19 @@ export function paso(pasada: Pasada): Movimiento {
       }
       const nueva = con(
         pasada,
-        { fase: 'implementacion', ticketActual: elegido.numero, reintentosUsados: 0, error: null, resumen: null },
+        { fase: 'implementación', ticketActual: elegido.numero, reintentosUsados: 0, error: null, resumen: null },
         `Frontera: ${numeros(fronteraDe(pasada).map((t) => t.numero))}. Elijo #${elegido.numero} (el de menor número). ` +
           'Lanzo la implementadora: sesión nueva, no interactiva, recibe solo el ticket.',
       );
       return { pasada: nueva, comandos: [{ tipo: 'lanzarImplementadora', ticket: elegido }] };
     }
-    case 'implementacion':
+    case 'implementación':
       return { pasada: con(pasada, {}, 'Nada que decidir: espero el diff de la implementadora.'), comandos: [] };
-    case 'revision':
+    case 'revisión':
       return { pasada: con(pasada, {}, 'Nada que decidir: espero el resultado de la revisora.'), comandos: [] };
     case 'puertas':
       return { pasada: con(pasada, {}, 'Las puertas corren: espero su veredicto.'), comandos: [] };
-    case 'reparacion':
+    case 'reparación':
       return { pasada: con(pasada, {}, 'Nada que decidir: espero el parche de la reparadora.'), comandos: [] };
     case 'verde': {
       const t = ticketDe(pasada, pasada.ticketActual);
@@ -100,13 +100,20 @@ export function paso(pasada: Pasada): Movimiento {
       const usados = pasada.reintentosUsados + 1;
       const nueva = con(
         pasada,
-        { fase: 'reparacion' as const, reintentosUsados: usados },
+        { fase: 'reparación' as const, reintentosUsados: usados },
         `Rojo con ${pasada.reintentosUsados} de ${pasada.reintentosConfigurados} reintentos usados. ` +
           `Lanzo una reparadora nueva (reintento ${usados} de ${pasada.reintentosConfigurados}): contexto fresco, recibe solo el error en mano.`,
       );
       return {
         pasada: nueva,
-        comandos: [{ tipo: 'lanzarReparadora', reintento: usados, de: pasada.reintentosConfigurados, error }],
+        comandos: [
+          {
+            tipo: 'lanzarReparadora',
+            reintento: usados,
+            reintentosConfigurados: pasada.reintentosConfigurados,
+            error,
+          },
+        ],
       };
     }
     case 'escalado': {
@@ -142,23 +149,23 @@ const ignorado = (pasada: Pasada, qué: string): Movimiento => ({
 export function resultado(pasada: Pasada, evento: Evento): Movimiento {
   switch (evento.tipo) {
     case 'diffListo':
-      if (pasada.fase !== 'implementacion') return ignorado(pasada, 'diff de la implementadora');
+      if (pasada.fase !== 'implementación') return ignorado(pasada, 'diff de la implementadora');
       return {
         pasada: con(
           pasada,
-          { fase: 'revision', resumen: evento.resumen },
+          { fase: 'revisión', resumen: evento.resumen },
           `Diff listo (${evento.resumen}). Lanzo la revisora: sesión nueva, ve el diff sin heredar nada de la implementadora.`,
         ),
         comandos: [{ tipo: 'lanzarRevisora', ticket: ticketDe(pasada, pasada.ticketActual) }],
       };
     case 'revisiónSinHallazgos':
-      if (pasada.fase !== 'revision') return ignorado(pasada, 'revisión sin hallazgos');
+      if (pasada.fase !== 'revisión') return ignorado(pasada, 'revisión sin hallazgos');
       return {
         pasada: con(pasada, { fase: 'puertas' }, 'Revisora sin hallazgos. Abro las puertas del arnés.'),
         comandos: [{ tipo: 'abrirPuertas' }],
       };
     case 'revisiónConHallazgo':
-      if (pasada.fase !== 'revision') return ignorado(pasada, 'hallazgo de la revisora');
+      if (pasada.fase !== 'revisión') return ignorado(pasada, 'hallazgo de la revisora');
       return {
         pasada: con(
           pasada,
@@ -184,11 +191,11 @@ export function resultado(pasada: Pasada, evento: Evento): Movimiento {
         comandos: [],
       };
     case 'parcheListo':
-      if (pasada.fase !== 'reparacion') return ignorado(pasada, 'parche de la reparadora');
+      if (pasada.fase !== 'reparación') return ignorado(pasada, 'parche de la reparadora');
       return {
         pasada: con(
           pasada,
-          { fase: 'revision' },
+          { fase: 'revisión' },
           `Parche listo (reintento ${pasada.reintentosUsados} de ${pasada.reintentosConfigurados}). ` +
             'El parche vuelve a la revisión: nadie se autoevalúa.',
         ),

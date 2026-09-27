@@ -1,5 +1,6 @@
 import { crearPasada, paso, resultado } from '../domain/maquina.js';
-import type { Comando, Evento, Pasada } from '../domain/model.js';
+import type { Comando, Evento, Etiquetas, Pasada } from '../domain/model.js';
+import { describirOrigen } from '../domain/model.js';
 import type { Puertos } from '../domain/ports.js';
 
 /**
@@ -14,10 +15,8 @@ export type Narrador = (linea: string) => void;
 /** Lo que el loop necesita saber de la configuración. */
 export interface ConfigPasada {
   reintentos: number;
-  /** Etiqueta del tracker para el escalado (ready-for-human). */
-  etiquetaEscalado: string;
-  /** Etiqueta del tracker que marca un ticket como candidato (ready-for-agent). */
-  etiquetaLista: string;
+  /** Etiquetas del tracker (ready-for-agent / ready-for-human). */
+  etiquetas: Etiquetas;
 }
 
 /** Corre una pasada completa hasta que la máquina termine: verde al fondo o escalado. */
@@ -91,9 +90,12 @@ async function ejecutarComando(
     case 'escalar': {
       const comentario =
         'Escalado por el Piloto: reintentos agotados. ' +
-        `Último error (${comando.error.puerta === undefined ? 'revisión' : `puerta ${comando.error.puerta}`}): ` +
-        `«${comando.error.texto}».`;
-      await puertos.frontera.etiquetar(comando.ticket.numero, config.etiquetaEscalado, config.etiquetaLista);
+        `Último error (${describirOrigen(comando.error)}): «${comando.error.texto}».`;
+      await puertos.frontera.etiquetar(
+        comando.ticket.numero,
+        config.etiquetas.escalado,
+        config.etiquetas.lista,
+      );
       await puertos.frontera.comentar(comando.ticket.numero, comentario);
       await puertos.avisos.avisar(
         `El Piloto escaló el ticket #${comando.ticket.numero} a un humano. La pasada se detiene. ${comentario}`,

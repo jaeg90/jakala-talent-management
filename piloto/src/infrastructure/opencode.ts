@@ -1,6 +1,7 @@
 import type { ErrorEnMano, Ticket } from '../domain/model.js';
+import { describirOrigen } from '../domain/model.js';
 import type { PuertoSesiones } from '../domain/ports.js';
-import { ejecutar } from './procesos.js';
+import { ejecutar, recortar } from './procesos.js';
 
 /**
  * Adaptador de sesiones: opencode run, un papel por llamada, un modelo por
@@ -40,7 +41,9 @@ const promptImplementadora = (ticket: Ticket): string =>
 const promptRevisora = (ticket: Ticket): string =>
   [
     'Eres la sesión revisora del Piloto: independiente; no sabes cómo se razonó el cambio.',
-    `Revisa el diff pendiente (git diff) del ticket #${ticket.numero} — ${ticket.titulo}.`,
+    `Revisa el diff pendiente del ticket #${ticket.numero} — ${ticket.titulo}:`,
+    'ejecuta «git diff» para los cambios y «git status» para los archivos nuevos,',
+    'que también son parte del diff.',
     '',
     'La spec del ticket:',
     ticket.cuerpo.trim(),
@@ -54,11 +57,12 @@ const promptRevisora = (ticket: Ticket): string =>
 const promptReparadora = (error: ErrorEnMano): string =>
   [
     'Eres la sesión reparadora del Piloto en este repo.',
-    `El último ciclo quedó en rojo con este error (${error.puerta === undefined ? 'revisión' : `puerta ${error.puerta}`}):`,
+    `El último ciclo quedó en rojo con este error (${describirOrigen(error)}):`,
     '',
     error.texto,
     '',
-    'Arregla el diff pendiente (git diff) para que lo resuelva, sin commitear y sin cambiar nada más.',
+    'Arregla el diff pendiente (git diff y los archivos nuevos de git status)',
+    'para que lo resuelva, sin commitear y sin cambiar nada más.',
   ].join('\n');
 
 function extraerResumen(salida: string): string {
@@ -70,12 +74,8 @@ function extraerHallazgo(salida: string): string | null {
   if (/SIN HALLAZGOS/.test(salida)) return null;
   const hallazgos = [...salida.matchAll(/HALLAZGO:\s*(.+)/g)].map((m) => m[1]?.trim() ?? '');
   // Sin formato claro tampoco se pasa: la ambigüedad nunca es verde (ADR-0003).
-  return hallazgos.at(-1) ?? recortar(salida);
-}
-
-function recortar(texto: string): string {
-  const limpio = texto.trim();
-  return limpio.length <= 500 ? limpio || 'La revisora respondió sin formato.' : `…${limpio.slice(-500)}`;
+  const cola = recortar(salida, 500);
+  return hallazgos.at(-1) ?? (cola === '' ? 'La revisora respondió sin formato.' : cola);
 }
 
 export function crearSesiones(modelos: Modelos, config: ConfigSesiones): PuertoSesiones {
