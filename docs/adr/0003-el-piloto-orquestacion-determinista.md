@@ -8,7 +8,7 @@ Las puertas deterministas del arnés son el único juez. **Verde** = todas las p
 
 ## Reintentos y escalado
 
-Cada rojo consume un reintento del contador del ticket (N configurable), sin distinguir su origen, de modo que el bucle siempre tiene una salida acotada. Agotados los N reintentos, el Piloto no inventa un estado nuevo: etiqueta el ticket `ready-for-human` — reutilizando la etiqueta de triage del repo —, deja un comentario con el último error y avisa al humano por el canal configurado. El Piloto nunca se queda girando: su única salida sin humano es verde.
+Cada rojo consume un reintento del contador del ticket (N configurable), sin distinguir su origen, de modo que el bucle siempre tiene una salida acotada. Agotados los N reintentos, el Piloto no inventa un estado nuevo: etiqueta el ticket `ready-for-human` — reutilizando la etiqueta de triage del repo —, deja un comentario con el último error, avisa al humano por el canal configurado **y detiene la pasada**: no pasa al siguiente ticket. Un escalado suele señalar algo sistémico (spec incompleta, arnés roto) que afectaría al resto de la frontera, y deja al humano un solo frente abierto; reanudar es decisión suya. La pasada solo avanza en verde. (Ajuste decidido al validar el prototipo del loop; ver #11.)
 
 Son configurables el modo de entrega (rama+PR o push directo a main), N y el canal de aviso. No son configurables el reparto de papeles ni quién juzga.
 
@@ -17,3 +17,4 @@ Son configurables el modo de entrega (rama+PR o push directo a main), N y el can
 - **LLM como coordinador**, la vía habitual en orquestadores multiagente: flexible, pero un loop autónomo que razona su propio próximo paso no es reproducible ni depurable, e inexplicable línea a línea en el TFM. Descartado.
 - **Revisor consultivo** (hallazgos solo en el resumen, sin poder de bloqueo): habría vaciado de sentido que el implementador nunca se autoevalúe; código que incumple la spec habría pasado si las puertas pasaban. Descartado.
 - **Sesión persistente que implementa, revisa y repara**: más barata en tokens, pero es justo la memoria compartida y la autoevaluación que hay que evitar. Descartado.
+- **Continuar con el siguiente ticket tras un escalado**: mantiene al Piloto siempre en movimiento, pero le deja al humano una cola de tickets rotos que triar en bloque y disimula la causa raíz cuando el fallo es sistémico. Descartado al validar el prototipo.

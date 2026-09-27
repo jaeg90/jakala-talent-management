@@ -81,5 +81,5 @@ Ciclo de reparación de un ticket tras un rojo, sea cual sea su origen; cada tic
 _Avoid_: intento, ciclo de reintento
 
 **Escalado**:
-Devolución de un ticket al humano tras agotar sus reintentos: etiqueta `ready-for-human`, comentario con el último error y aviso.
+Devolución de un ticket al humano tras agotar sus reintentos: etiqueta `ready-for-human`, comentario con el último error, aviso y fin de la pasada; el Piloto no pasa al siguiente ticket.
 _Avoid_: handoff, abandono, derivar
