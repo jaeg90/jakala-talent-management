@@ -10,10 +10,12 @@ import { OneToOneService } from './application/onetoone_service.js';
 import { TemaPropioService } from './application/tema_propio_service.js';
 import { ObjetivoService } from './application/objetivo_service.js';
 import { IncidenciaService } from './application/incidencia_service.js';
+import { ProyectoService } from './application/proyecto_service.js';
 import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
 import { SqliteTemaPropioRepository } from './infrastructure/db/sqlite-tema-propio-repository.js';
 import { SqliteObjetivoRepository } from './infrastructure/db/sqlite-objetivo-repository.js';
 import { SqliteIncidenciaRepository } from './infrastructure/db/sqlite-incidencia-repository.js';
+import { SqliteProyectoRepository } from './infrastructure/db/sqlite-proyecto-repository.js';
 import { createApp } from './infrastructure/http/app.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
@@ -33,6 +35,7 @@ const app = createApp({
   temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
   objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
   incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
+  proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
   sessions,
 });
 

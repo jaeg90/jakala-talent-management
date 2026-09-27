@@ -1,8 +1,9 @@
 import type { Acuerdo } from './agreements.js';
 import type { EstadoObjetivo, Objetivo } from './objetivos.js';
 import type { EstadoIncidencia, Incidencia } from './incidencias.js';
+import type { CambioProyecto } from './proyectos.js';
 
-export type { Acuerdo, EstadoObjetivo, Objetivo, EstadoIncidencia, Incidencia };
+export type { Acuerdo, EstadoObjetivo, Objetivo, EstadoIncidencia, Incidencia, CambioProyecto };
 
 export type ManagerId = string;
 

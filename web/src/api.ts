@@ -68,6 +68,31 @@ export interface IncidenciaConMentee extends Incidencia {
   menteeName: string;
 }
 
+export interface CambioProyecto {
+  id: string;
+  menteeId: string;
+  fecha: string;
+  origenId: string | null;
+  destinoId: string | null;
+  motivo: string;
+}
+
+export interface MiembroDeProyecto {
+  id: string;
+  name: string;
+}
+
+export interface MiembrosPorProyecto {
+  projectId: string | null;
+  projectName: string | null;
+  mentees: MiembroDeProyecto[];
+}
+
+export interface SituacionProyecto {
+  project: Project | null;
+  cambios: CambioProyecto[];
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -145,6 +170,27 @@ export const api = {
     return request(`/api/incidencias/${incidenciaId}/resolver`, {
       method: 'POST',
       body: JSON.stringify({ nota }),
+    });
+  },
+  proyectos(): Promise<{ proyectos: Project[] }> {
+    return request('/api/proyectos');
+  },
+  addProyecto(name: string): Promise<Project> {
+    return request('/api/proyectos', { method: 'POST', body: JSON.stringify({ name }) });
+  },
+  miembrosPorProyecto(): Promise<{ proyectos: MiembrosPorProyecto[] }> {
+    return request('/api/proyectos/miembros');
+  },
+  situacionProyecto(menteeId: string): Promise<SituacionProyecto> {
+    return request(`/api/mentees/${menteeId}/cambios-proyecto`);
+  },
+  registrarCambioProyecto(
+    menteeId: string,
+    body: { fecha: string; destinoId: string | null; motivo: string },
+  ): Promise<CambioProyecto> {
+    return request(`/api/mentees/${menteeId}/cambios-proyecto`, {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
   },
 };

@@ -9,6 +9,8 @@ import type {
   OneToOne,
   TemaPropio,
   Incidencia,
+  Project,
+  CambioProyecto,
 } from './model.js';
 
 /**
@@ -89,6 +91,49 @@ export interface ObjetivoRepository {
   updateObjetivo(managerId: ManagerId, objetivoId: string, cambios: EditarObjetivo): Promise<Objetivo>;
   /** Cambia el estado de un objetivo en curso; lanza si no existe, no es del manager o está cerrado. */
   cambiarEstado(managerId: ManagerId, objetivoId: string, estado: EstadoObjetivo): Promise<Objetivo>;
+}
+
+/** Datos para registrar un cambio de proyecto. El origen se deriva del proyecto actual. */
+export interface NuevoCambioProyecto {
+  fecha: string;
+  destinoId: string | null;
+  motivo: string;
+}
+
+/** Mentee tal y como aparece agrupada en la vista "quién está en cada proyecto". */
+export interface MiembroDeProyecto {
+  id: string;
+  name: string;
+}
+
+/** Proyecto (o el grupo "sin proyecto") con los mentees del manager que están hoy en él. */
+export interface MiembrosPorProyecto {
+  projectId: string | null;
+  projectName: string | null;
+  mentees: MiembroDeProyecto[];
+}
+
+/** Situación actual de una mentee: su proyecto actual y el historial de cambios. */
+export interface SituacionProyecto {
+  project: Project | null;
+  cambios: CambioProyecto[];
+}
+
+/**
+ * Puerto del catálogo de proyectos y de los cambios de proyecto de una mentee.
+ * Las operaciones sobre una mentee se acotan por manager (aislamiento).
+ */
+export interface ProyectoRepository {
+  /** Catálogo de proyectos (compartido). */
+  proyectos(): Promise<Project[]>;
+  /** Da de alta un proyecto; lanza si el nombre está vacío o repetido. */
+  addProyecto(name: string): Promise<Project>;
+  /** Proyecto actual e historial de cambios de una mentee, solo si es del manager. */
+  situacionDe(managerId: ManagerId, menteeId: string): Promise<SituacionProyecto>;
+  /** Registra un cambio (origen = proyecto actual) y actualiza el proyecto actual. */
+  registrarCambio(managerId: ManagerId, menteeId: string, cambio: NuevoCambioProyecto): Promise<CambioProyecto>;
+  /** Mentees del manager agrupados por su proyecto actual (incluye "sin proyecto"). */
+  miembrosPorProyecto(managerId: ManagerId): Promise<MiembrosPorProyecto[]>;
 }
 
 /** Puerto de sesiones: crear/consultar/cerrar sesiones por token. */

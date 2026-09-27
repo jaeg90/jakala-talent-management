@@ -3,11 +3,13 @@ import type { Manager, Mentee } from './api';
 import { api } from './api';
 import { MenteeDetail } from './MenteeDetail';
 import { IncidenciasView } from './IncidenciasView';
+import { ProyectosView } from './ProyectosView';
 
 export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => void }) {
   const [mentees, setMentees] = useState<Mentee[] | null>(null);
   const [abierta, setAbierta] = useState<Mentee | null>(null);
   const [viendoIncidencias, setViendoIncidencias] = useState(false);
+  const [viendoProyectos, setViendoProyectos] = useState(false);
 
   useEffect(() => {
     api
@@ -29,12 +31,17 @@ export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => 
     return <IncidenciasView onBack={() => setViendoIncidencias(false)} />;
   }
 
+  if (viendoProyectos) {
+    return <ProyectosView onBack={() => setViendoProyectos(false)} />;
+  }
+
   return (
     <main className="team">
       <header>
         <h1>Mi equipo</h1>
         <div>
           <button className="link" onClick={() => setViendoIncidencias(true)}>Incidencias</button>
+          <button className="link" onClick={() => setViendoProyectos(true)}>Proyectos</button>
           <span>{manager.name}</span>
           <button onClick={handleLogout}>Cerrar sesión</button>
         </div>

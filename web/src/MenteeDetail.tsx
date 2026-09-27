@@ -7,6 +7,8 @@ import {
   type Objetivo,
   type ObjetivoFields,
   type OneToOne,
+  type Project,
+  type SituacionProyecto,
   type TemaPropio,
 } from './api';
 
@@ -123,6 +125,8 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
           />
 
           <Incidencias incidencias={incidencias} onAdd={altaIncidencia} />
+
+          <CambiosProyecto menteeId={menteeId} />
 
           <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
 
@@ -530,6 +534,135 @@ function NuevaIncidenciaForm({ onAdd }: { onAdd: (descripcion: string) => Promis
       </label>
       {error !== null && <p className="error">{error}</p>}
       <button type="submit">Registrar incidencia</button>
+    </form>
+  );
+}
+
+/** Historial de cambios de proyecto de una mentee y registro de un cambio nuevo. */
+function CambiosProyecto({ menteeId }: { menteeId: string }) {
+  const [situacion, setSituacion] = useState<SituacionProyecto | null>(null);
+  const [catalogo, setCatalogo] = useState<Project[]>([]);
+
+  function reload() {
+    api.situacionProyecto(menteeId).then(setSituacion);
+  }
+
+  useEffect(() => {
+    reload();
+    api.proyectos().then(({ proyectos }) => setCatalogo(proyectos));
+  }, [menteeId]);
+
+  async function registrar(cambio: { fecha: string; destinoId: string | null; motivo: string }) {
+    await api.registrarCambioProyecto(menteeId, cambio);
+    reload();
+  }
+
+  return (
+    <section aria-label="Cambios de proyecto">
+      <h2>Cambios de proyecto</h2>
+      {situacion === null ? (
+        <p className="status">Cargando…</p>
+      ) : (
+        <>
+          <p className="objetivo-meta">
+            Proyecto actual: {situacion.project?.name ?? 'Sin proyecto'}
+          </p>
+          {situacion.cambios.length === 0 ? (
+            <p className="empty">Sin cambios de proyecto registrados.</p>
+          ) : (
+            <ol className="historial">
+              {situacion.cambios.map((c) => (
+                <li key={c.id}>
+                  <p className="objetivo-meta">
+                    {c.fecha} · {nombreProyecto(catalogo, c.origenId)} → {nombreProyecto(catalogo, c.destinoId)}
+                  </p>
+                  <strong>{c.motivo}</strong>
+                </li>
+              ))}
+            </ol>
+          )}
+          <NuevoCambioProyectoForm
+            proyectoActual={situacion.project}
+            catalogo={catalogo}
+            onRegistrar={registrar}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
+/** Resuelve el nombre legible de un proyecto a partir de su id (o "Sin proyecto"). */
+function nombreProyecto(catalogo: Project[], id: string | null): string {
+  if (id === null) return 'Sin proyecto';
+  return catalogo.find((p) => p.id === id)?.name ?? id;
+}
+
+const SIN_PROYECTO = '__sin_proyecto__';
+
+/** Formulario de registro de un cambio de proyecto: fecha, destino (origen derivado) y motivo. */
+function NuevoCambioProyectoForm({
+  proyectoActual,
+  catalogo,
+  onRegistrar,
+}: {
+  proyectoActual: Project | null;
+  catalogo: Project[];
+  onRegistrar: (cambio: { fecha: string; destinoId: string | null; motivo: string }) => Promise<void>;
+}) {
+  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
+  const [destino, setDestino] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onRegistrar({
+        fecha,
+        destinoId: destino === SIN_PROYECTO ? null : destino,
+        motivo,
+      });
+      setMotivo('');
+      setDestino('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="Registrar cambio de proyecto">
+      <label>
+        Fecha del cambio
+        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+      </label>
+      <p className="objetivo-meta">Origen: {proyectoActual?.name ?? 'Sin proyecto'}</p>
+      <label>
+        Destino
+        <select value={destino} onChange={(e) => setDestino(e.target.value)} required>
+          <option value="" disabled>
+            Selecciona destino
+          </option>
+          {proyectoActual !== null && <option value={SIN_PROYECTO}>Sin proyecto</option>}
+          {catalogo
+            .filter((p) => p.id !== proyectoActual?.id)
+            .map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+        </select>
+      </label>
+      <label>
+        Motivo
+        <input
+          type="text"
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          required
+        />
+      </label>
+      {error !== null && <p className="error">{error}</p>}
+      <button type="submit">Registrar cambio</button>
     </form>
   );
 }

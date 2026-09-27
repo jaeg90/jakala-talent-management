@@ -64,6 +64,14 @@ export function openDatabase(path: string): Database.Database {
       fecha_alta TEXT NOT NULL,
       fecha_resolucion TEXT
     );
+    CREATE TABLE IF NOT EXISTS cambios_proyecto (
+      id TEXT PRIMARY KEY,
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      fecha TEXT NOT NULL,
+      origen_id TEXT REFERENCES projects(id),
+      destino_id TEXT REFERENCES projects(id),
+      motivo TEXT NOT NULL
+    );
   `);
   return db;
 }

@@ -5,6 +5,7 @@ import { OneToOneService } from '../../application/onetoone_service.js';
 import { TemaPropioService } from '../../application/tema_propio_service.js';
 import { ObjetivoService } from '../../application/objetivo_service.js';
 import { IncidenciaService } from '../../application/incidencia_service.js';
+import { ProyectoService } from '../../application/proyecto_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -18,6 +19,7 @@ export interface AppDeps {
   temasPropios: TemaPropioService;
   objetivos: ObjetivoService;
   incidencias: IncidenciaService;
+  proyectos: ProyectoService;
   sessions: SessionStore;
 }
 
@@ -279,6 +281,59 @@ export function createApp(deps: AppDeps): express.Express {
     }
   }));
 
+  // Catálogo de proyectos (compartido).
+  app.get('/api/proyectos', requireSession(deps.sessions, async (_req, res) => {
+    res.json({ proyectos: await deps.proyectos.proyectos() });
+  }));
+
+  // Alta de un proyecto en el catálogo.
+  app.post('/api/proyectos', requireSession(deps.sessions, async (req, res) => {
+    const { name } = (req.body ?? {}) as { name?: unknown };
+    if (typeof name !== 'string') {
+      res.status(400).json({ error: 'Nombre del proyecto requerido' });
+      return;
+    }
+    try {
+      const proyecto = await deps.proyectos.addProyecto(name);
+      res.status(201).json(proyecto);
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al crear el proyecto');
+    }
+  }));
+
+  // Quién está hoy en cada proyecto (mentees del manager, agrupados por proyecto actual).
+  app.get('/api/proyectos/miembros', requireSession(deps.sessions, async (_req, res, manager) => {
+    res.json({ proyectos: await deps.proyectos.miembrosPorProyecto(manager) });
+  }));
+
+  // Situación de una mentee: proyecto actual e historial de cambios de proyecto.
+  app.get('/api/mentees/:menteeId/cambios-proyecto', requireSession(deps.sessions, async (req, res, manager) => {
+    res.json(await deps.proyectos.situacionDe(manager, param(req, 'menteeId')));
+  }));
+
+  // Registro de un cambio de proyecto (el origen se deriva del proyecto actual).
+  app.post('/api/mentees/:menteeId/cambios-proyecto', requireSession(deps.sessions, async (req, res, manager) => {
+    const body = (req.body ?? {}) as { fecha?: unknown; destinoId?: unknown; motivo?: unknown };
+    if (
+      typeof body.fecha !== 'string' ||
+      (body.destinoId !== null && typeof body.destinoId !== 'string') ||
+      typeof body.motivo !== 'string'
+    ) {
+      res.status(400).json({ error: 'Estructura de cambio de proyecto inválida' });
+      return;
+    }
+    try {
+      const cambio = await deps.proyectos.registrarCambio(manager, param(req, 'menteeId'), {
+        fecha: body.fecha,
+        destinoId: body.destinoId as string | null,
+        motivo: body.motivo,
+      });
+      res.status(201).json(cambio);
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al registrar el cambio de proyecto');
+    }
+  }));
+
   return app;
 }
 
@@ -313,6 +368,16 @@ function responderIncidenciaError(res: Response, err: unknown, fallback: string)
   const status =
     msg.includes('no encontrado') || msg.includes('no encontrada') || msg.includes('no pertenece') ? 404
     : msg.includes('no puede resolverse') ? 409
+    : 400;
+  res.status(status).json({ error: msg === '' ? fallback : msg });
+}
+
+/** Mapea errores del dominio/adaptador de proyectos a su estado HTTP. */
+function responderProyectoError(res: Response, err: unknown, fallback: string): void {
+  const msg = err instanceof Error ? err.message : '';
+  const status =
+    msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
+    : msg.includes('Ya existe') || msg.includes('distinto') ? 409
     : 400;
   res.status(status).json({ error: msg === '' ? fallback : msg });
 }
