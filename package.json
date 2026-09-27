@@ -8,7 +8,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint server/src web/src e2e",
+    "lint": "eslint server/src server/test web/src e2e",
     "test": "npm test --workspace server",
     "start": "npm run start --workspace server",
     "test:e2e": "playwright test"
