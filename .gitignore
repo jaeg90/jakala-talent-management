@@ -23,3 +23,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Base de datos local del servidor
+jtm.db
+jtm.db-*

@@ -1,0 +1,35 @@
+import express from 'express';
+import type { Database } from 'better-sqlite3';
+import { openDatabase } from './infrastructure/db/sqlite.js';
+import { seed } from './infrastructure/db/seed.js';
+import { SeedAuthenticator } from './infrastructure/auth/seed-authenticator.js';
+import { SqliteTeamRepository } from './infrastructure/db/sqlite-team-repository.js';
+import { MemorySessionStore } from './infrastructure/sessions/memory-session-store.js';
+import { LoginService, TeamService } from './application/services.js';
+import { createApp } from './infrastructure/http/app.js';
+
+const PORT = Number(process.env.PORT ?? 3001);
+const DB_PATH = process.env.JTM_DB ?? 'jtm.db';
+const WEB_DIST = process.env.WEB_DIST ?? '../web/dist';
+
+// Composición de adaptadores (hexagonal): dominio y aplicación no conocen Express ni SQLite.
+const db: Database = openDatabase(DB_PATH);
+seed(db);
+
+const sessions = new MemorySessionStore();
+
+const app = createApp({
+  login: new LoginService(new SeedAuthenticator(db), sessions),
+  team: new TeamService(new SqliteTeamRepository(db)),
+  sessions,
+});
+
+// Cliente construido (Vite) servido por el mismo puerto.
+app.use(express.static(WEB_DIST));
+app.get(/^(?!\/api).*/, (_req, res) => {
+  res.sendFile('index.html', { root: WEB_DIST });
+});
+
+app.listen(PORT, () => {
+  console.log(`JTM escuchando en http://localhost:${PORT}`);
+});
