@@ -47,3 +47,39 @@ _Avoid_: problema, issue, alerta
 **Objetivo**:
 Meta anual de tipo SMART pactada entre un manager y una mentee: título, descripción, fecha límite y estado (en curso, cumplido o no cumplido).
 _Avoid_: meta, KPI
+
+## Lenguaje del Piloto (orquestación del desarrollo)
+
+Vocabulario del orquestador que implementa tickets de forma autónoma. No es lenguaje de producto JTM: nombra las piezas del propio desarrollo.
+
+**Piloto**:
+Orquestador determinista que implementa tickets de forma autónoma coordinando sesiones de IA; no es él mismo una sesión de IA.
+_Avoid_: agente, bot, CI
+
+**Frontera**:
+Conjunto de tickets desbloqueados y `ready-for-agent` del que el Piloto elige su siguiente trabajo.
+_Avoid_: backlog, cola, sprint
+
+**Sesión de contexto fresco**:
+Sesión nueva y no interactiva que el Piloto arranca para un único papel — implementadora (recibe el ticket), revisora (recibe el diff) o reparadora (recibe el error del último ciclo) — sin heredar memoria de ninguna otra sesión.
+_Avoid_: subagente, worker, sesión persistente
+
+**Puerta**:
+Comprobación determinista del arnés cuyo veredicto nadie puede refutar: typecheck, lint, tests unitarios y de integración, E2E.
+_Avoid_: check, validación, control de calidad
+
+**Verde**:
+Estado de un ticket en que todas las puertas pasan y la revisión no tiene hallazgos: el Piloto empuja y cierra el issue.
+_Avoid_: aprobado, OK, success
+
+**Rojo**:
+Estado de un ticket en que algo ha fallado, una puerta o la revisión: nace una sesión reparadora.
+_Avoid_: fallo, error, broken
+
+**Reintento**:
+Ciclo de reparación de un ticket tras un rojo, sea cual sea su origen; cada ticket tiene N (configurable) antes del escalado.
+_Avoid_: intento, ciclo de reintento
+
+**Escalado**:
+Devolución de un ticket al humano tras agotar sus reintentos: etiqueta `ready-for-human`, comentario con el último error y aviso.
+_Avoid_: handoff, abandono, derivar
