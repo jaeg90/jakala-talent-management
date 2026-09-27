@@ -53,8 +53,8 @@ export function crearPuertosSimulados(guion: GuionSimulacion): { puertos: Puerto
   const puertos: Puertos = {
     frontera: {
       cargarTickets: async () => guion.tickets,
-      etiquetar: async (ticket, etiqueta) => {
-        registro.etiquetados.push({ ticket, etiqueta });
+      etiquetar: async (ticket, poner, _quitar) => {
+        registro.etiquetados.push({ ticket, etiqueta: poner });
       },
       comentar: async (ticket, texto) => {
         registro.comentarios.push({ ticket, texto });

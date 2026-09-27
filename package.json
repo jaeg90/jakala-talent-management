@@ -13,7 +13,7 @@
     "test": "npm test --workspace server && npm test --workspace piloto",
     "start": "npm run start --workspace server",
     "test:e2e": "playwright test",
-    "piloto": "npm run start --workspace piloto"
+    "piloto": "npm run build --workspace piloto && node piloto/dist/main.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -16,6 +16,8 @@ export interface ConfigPasada {
   reintentos: number;
   /** Etiqueta del tracker para el escalado (ready-for-human). */
   etiquetaEscalado: string;
+  /** Etiqueta del tracker que marca un ticket como candidato (ready-for-agent). */
+  etiquetaLista: string;
 }
 
 /** Corre una pasada completa hasta que la máquina termine: verde al fondo o escalado. */
@@ -91,7 +93,7 @@ async function ejecutarComando(
         'Escalado por el Piloto: reintentos agotados. ' +
         `Último error (${comando.error.puerta === undefined ? 'revisión' : `puerta ${comando.error.puerta}`}): ` +
         `«${comando.error.texto}».`;
-      await puertos.frontera.etiquetar(comando.ticket.numero, config.etiquetaEscalado);
+      await puertos.frontera.etiquetar(comando.ticket.numero, config.etiquetaEscalado, config.etiquetaLista);
       await puertos.frontera.comentar(comando.ticket.numero, comentario);
       await puertos.avisos.avisar(
         `El Piloto escaló el ticket #${comando.ticket.numero} a un humano. La pasada se detiene. ${comentario}`,

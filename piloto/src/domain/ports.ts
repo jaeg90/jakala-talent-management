@@ -14,8 +14,8 @@ import type { ErrorEnMano, Ticket } from './model.js';
 export interface PuertoFrontera {
   /** Los tickets abiertos y listos, con sus bloqueos; base del estado inicial. */
   cargarTickets(): Promise<Ticket[]>;
-  /** Cambia la etiqueta del ticket (p. ej. ready-for-agent → ready-for-human). */
-  etiquetar(ticket: number, etiqueta: string): Promise<void>;
+  /** Cambia la etiqueta del ticket: pone la nueva y (opcionalmente) quita la anterior. */
+  etiquetar(ticket: number, poner: string, quitar?: string): Promise<void>;
   /** Deja un comentario en el ticket. */
   comentar(ticket: number, comentario: string): Promise<void>;
   /** Cierra el ticket dejando un comentario resumen. */

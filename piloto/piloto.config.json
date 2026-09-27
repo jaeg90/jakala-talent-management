@@ -1,0 +1,25 @@
+{
+  "$comentario": "Configuración del Piloto (ADR-0004): lo que varía por proyecto. Modelos por papel (openrouter), N reintentos, puertas del arnés, etiquetas del tracker, modo de entrega y canal de aviso.",
+  "reintentos": 3,
+  "modoEntrega": "main",
+  "modelos": {
+    "implementadora": "openrouter/~deepseek/deepseek-pro-latest",
+    "reparadora": "openrouter/~deepseek/deepseek-pro-latest",
+    "revisora": "openrouter/anthropic/claude-sonnet-5"
+  },
+  "sesiones": {
+    "comando": "opencode",
+    "tiempoMaxMinutos": 30
+  },
+  "puertas": [
+    { "nombre": "typecheck", "comando": "npm run typecheck" },
+    { "nombre": "lint", "comando": "npm run lint" },
+    { "nombre": "tests", "comando": "npm test" },
+    { "nombre": "e2e", "comando": "npm run test:e2e" }
+  ],
+  "etiquetas": {
+    "lista": "ready-for-agent",
+    "escalado": "ready-for-human"
+  },
+  "aviso": { "tipo": "consola" }
+}
