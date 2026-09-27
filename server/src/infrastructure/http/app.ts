@@ -4,6 +4,7 @@ import { LoginService, TeamService } from '../../application/services.js';
 import { OneToOneService } from '../../application/onetoone_service.js';
 import { TemaPropioService } from '../../application/tema_propio_service.js';
 import { ObjetivoService } from '../../application/objetivo_service.js';
+import { IncidenciaService } from '../../application/incidencia_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -16,6 +17,7 @@ export interface AppDeps {
   onetoones: OneToOneService;
   temasPropios: TemaPropioService;
   objetivos: ObjetivoService;
+  incidencias: IncidenciaService;
   sessions: SessionStore;
 }
 
@@ -235,6 +237,48 @@ export function createApp(deps: AppDeps): express.Express {
     res.status(204).end();
   }));
 
+  // Incidencias abiertas de todo el equipo del manager.
+  app.get('/api/incidencias', requireSession(deps.sessions, async (_req, res, manager) => {
+    const incidencias = await deps.incidencias.abiertasDe(manager);
+    res.json({ incidencias });
+  }));
+
+  // Historial de incidencias de una mentee (abiertas y resueltas).
+  app.get('/api/mentees/:menteeId/incidencias', requireSession(deps.sessions, async (req, res, manager) => {
+    const incidencias = await deps.incidencias.historialDe(manager, param(req, 'menteeId'));
+    res.json({ incidencias });
+  }));
+
+  // Alta de una incidencia abierta en una mentee.
+  app.post('/api/mentees/:menteeId/incidencias', requireSession(deps.sessions, async (req, res, manager) => {
+    const { descripcion } = (req.body ?? {}) as { descripcion?: unknown };
+    if (typeof descripcion !== 'string') {
+      res.status(400).json({ error: 'Descripción de la incidencia requerida' });
+      return;
+    }
+    try {
+      const incidencia = await deps.incidencias.addIncidencia(manager, param(req, 'menteeId'), descripcion);
+      res.status(201).json(incidencia);
+    } catch (err) {
+      responderIncidenciaError(res, err, 'Error al dar de alta la incidencia');
+    }
+  }));
+
+  // Resolución de una incidencia abierta con nota de resolución.
+  app.post('/api/incidencias/:incidenciaId/resolver', requireSession(deps.sessions, async (req, res, manager) => {
+    const { nota } = (req.body ?? {}) as { nota?: unknown };
+    if (typeof nota !== 'string') {
+      res.status(400).json({ error: 'Nota de resolución requerida' });
+      return;
+    }
+    try {
+      const incidencia = await deps.incidencias.resolverIncidencia(manager, param(req, 'incidenciaId'), nota);
+      res.json(incidencia);
+    } catch (err) {
+      responderIncidenciaError(res, err, 'Error al resolver la incidencia');
+    }
+  }));
+
   return app;
 }
 
@@ -259,6 +303,16 @@ function responderObjetivoError(res: Response, err: unknown, fallback: string): 
   const status =
     msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
     : msg.includes('no puede') ? 409
+    : 400;
+  res.status(status).json({ error: msg === '' ? fallback : msg });
+}
+
+/** Mapea errores del dominio/adaptador de incidencias a su estado HTTP. */
+function responderIncidenciaError(res: Response, err: unknown, fallback: string): void {
+  const msg = err instanceof Error ? err.message : '';
+  const status =
+    msg.includes('no encontrado') || msg.includes('no encontrada') || msg.includes('no pertenece') ? 404
+    : msg.includes('no puede resolverse') ? 409
     : 400;
   res.status(status).json({ error: msg === '' ? fallback : msg });
 }

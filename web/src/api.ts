@@ -52,6 +52,22 @@ export interface ObjetivoFields {
   fechaLimite: string;
 }
 
+export type EstadoIncidencia = 'abierta' | 'resuelta';
+
+export interface Incidencia {
+  id: string;
+  menteeId: string;
+  descripcion: string;
+  estado: EstadoIncidencia;
+  notaResolucion: string;
+  fechaAlta: string;
+  fechaResolucion: string | null;
+}
+
+export interface IncidenciaConMentee extends Incidencia {
+  menteeName: string;
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -111,6 +127,24 @@ export const api = {
     return request(`/api/objetivos/${objetivoId}/estado`, {
       method: 'POST',
       body: JSON.stringify({ estado }),
+    });
+  },
+  incidenciasAbiertas(): Promise<{ incidencias: IncidenciaConMentee[] }> {
+    return request('/api/incidencias');
+  },
+  incidenciasDe(menteeId: string): Promise<{ incidencias: Incidencia[] }> {
+    return request(`/api/mentees/${menteeId}/incidencias`);
+  },
+  addIncidencia(menteeId: string, descripcion: string): Promise<Incidencia> {
+    return request(`/api/mentees/${menteeId}/incidencias`, {
+      method: 'POST',
+      body: JSON.stringify({ descripcion }),
+    });
+  },
+  resolverIncidencia(incidenciaId: string, nota: string): Promise<Incidencia> {
+    return request(`/api/incidencias/${incidenciaId}/resolver`, {
+      method: 'POST',
+      body: JSON.stringify({ nota }),
     });
   },
 };

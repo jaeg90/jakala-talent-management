@@ -55,6 +55,15 @@ export function openDatabase(path: string): Database.Database {
       fecha_limite TEXT NOT NULL,
       estado TEXT NOT NULL DEFAULT 'en curso'
     );
+    CREATE TABLE IF NOT EXISTS incidencias (
+      id TEXT PRIMARY KEY,
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      descripcion TEXT NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'abierta',
+      nota_resolucion TEXT NOT NULL DEFAULT '',
+      fecha_alta TEXT NOT NULL,
+      fecha_resolucion TEXT
+    );
   `);
   return db;
 }

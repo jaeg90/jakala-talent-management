@@ -7,11 +7,13 @@ import { SqliteTeamRepository } from '../../src/infrastructure/db/sqlite-team-re
 import { SqliteOneToOneRepository } from '../../src/infrastructure/db/sqlite-onetoone-repository.js';
 import { SqliteTemaPropioRepository } from '../../src/infrastructure/db/sqlite-tema-propio-repository.js';
 import { SqliteObjetivoRepository } from '../../src/infrastructure/db/sqlite-objetivo-repository.js';
+import { SqliteIncidenciaRepository } from '../../src/infrastructure/db/sqlite-incidencia-repository.js';
 import { MemorySessionStore } from '../../src/infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from '../../src/application/services.js';
 import { OneToOneService } from '../../src/application/onetoone_service.js';
 import { TemaPropioService } from '../../src/application/tema_propio_service.js';
 import { ObjetivoService } from '../../src/application/objetivo_service.js';
+import { IncidenciaService } from '../../src/application/incidencia_service.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
@@ -29,6 +31,7 @@ beforeAll(async () => {
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
     temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
     objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
+    incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     sessions,
   });
   server = app.listen(0);

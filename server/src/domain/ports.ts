@@ -8,6 +8,7 @@ import type {
   EstadoObjetivo,
   OneToOne,
   TemaPropio,
+  Incidencia,
 } from './model.js';
 
 /**
@@ -95,4 +96,21 @@ export interface SessionStore {
   create(manager: Manager): Promise<string>;
   find(token: string): Promise<Manager | null>;
   revoke(token: string): Promise<void>;
+}
+
+/** Incidencia tal y como la ve su manager en la vista de equipo: incluye el nombre de la mentee. */
+export interface IncidenciaConMentee extends Incidencia {
+  menteeName: string;
+}
+
+/** Puerto de incidencias: alta, consulta, listado de equipo y resolución. */
+export interface IncidenciaRepository {
+  /** Incidencias abiertas de todo el equipo del manager. */
+  abiertasDe(managerId: ManagerId): Promise<IncidenciaConMentee[]>;
+  /** Historial (abiertas y resueltas) de una mentee, solo si es del manager. */
+  historialDe(managerId: ManagerId, menteeId: string): Promise<Incidencia[]>;
+  /** Da de alta una incidencia abierta en una mentee; lanza si no es del manager. */
+  addIncidencia(managerId: ManagerId, menteeId: string, descripcion: string): Promise<Incidencia>;
+  /** Resuelve una incidencia con nota; lanza si no existe, no es del manager o ya está resuelta. */
+  resolverIncidencia(managerId: ManagerId, incidenciaId: string, nota: string): Promise<Incidencia>;
 }

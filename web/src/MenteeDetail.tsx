@@ -3,6 +3,7 @@ import {
   api,
   TEMAS_GENERICOS,
   type AcuerdoView,
+  type Incidencia,
   type Objetivo,
   type ObjetivoFields,
   type OneToOne,
@@ -25,6 +26,7 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
   const [temas, setTemas] = useState<TemaPropio[]>([]);
   const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
+  const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
 
   function reload() {
     api.ficha(menteeId).then(setFicha);
@@ -38,10 +40,15 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
     api.objetivos(menteeId).then(({ objetivos: o }) => setObjetivos(o));
   }
 
+  function reloadIncidencias() {
+    api.incidenciasDe(menteeId).then(({ incidencias: list }) => setIncidencias(list));
+  }
+
   useEffect(() => {
     reload();
     reloadTemas();
     reloadObjetivos();
+    reloadIncidencias();
   }, [menteeId]);
 
   async function marcarCumplido(acuerdoId: string) {
@@ -72,6 +79,11 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
   async function editarObjetivo(objetivoId: string, fields: ObjetivoFields) {
     await api.updateObjetivo(objetivoId, fields);
     reloadObjetivos();
+  }
+
+  async function altaIncidencia(descripcion: string) {
+    await api.addIncidencia(menteeId, descripcion);
+    reloadIncidencias();
   }
 
   return (
@@ -109,6 +121,8 @@ export function MenteeDetail({ menteeId, menteeName, onBack }: Props) {
             onCambiarEstado={cambiarEstadoObjetivo}
             onUpdate={editarObjetivo}
           />
+
+          <Incidencias incidencias={incidencias} onAdd={altaIncidencia} />
 
           <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
 
@@ -452,5 +466,70 @@ function EditarObjetivoForm({
         <button type="button" className="link" onClick={onCancel}>Cancelar</button>
       </form>
     </li>
+  );
+}
+
+/** Incidencias de una mentee: historial (abiertas y resueltas) y alta. */
+function Incidencias({
+  incidencias,
+  onAdd,
+}: {
+  incidencias: Incidencia[];
+  onAdd: (descripcion: string) => Promise<void>;
+}) {
+  return (
+    <section aria-label="Incidencias">
+      <h2>Incidencias</h2>
+      {incidencias.length === 0 ? (
+        <p className="empty">Sin incidencias.</p>
+      ) : (
+        <ol className="historial">
+          {incidencias.map((i) => (
+            <li key={i.id}>
+              <p className="objetivo-meta">
+                {i.fechaAlta} · {i.estado === 'abierta' ? 'abierta' : `resuelta el ${i.fechaResolucion ?? ''}`}
+              </p>
+              <strong>{i.descripcion}</strong>
+              {i.estado === 'resuelta' && <p className="objetivo-descripcion">{i.notaResolucion}</p>}
+            </li>
+          ))}
+        </ol>
+      )}
+      <NuevaIncidenciaForm onAdd={onAdd} />
+    </section>
+  );
+}
+
+/** Formulario de alta de una incidencia abierta. */
+function NuevaIncidenciaForm({ onAdd }: { onAdd: (descripcion: string) => Promise<void> }) {
+  const [descripcion, setDescripcion] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await onAdd(descripcion);
+      setDescripcion('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="Nueva incidencia">
+      <label>
+        Descripción
+        <input
+          type="text"
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="p. ej. baja médica, conflicto, retraso…"
+          required
+        />
+      </label>
+      {error !== null && <p className="error">{error}</p>}
+      <button type="submit">Registrar incidencia</button>
+    </form>
   );
 }
