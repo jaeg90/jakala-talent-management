@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><style>body{margin:0;background:#e9e9e9;font-family:Helvetica,Arial,sans-serif;color:#222}a{color:#222}a:hover{color:#000}</style></helmet>
+<section style="padding:48px;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:baseline;gap:14px"><span style="background:#222;color:#fff;padding:4px 10px;font-size:14px;font-weight:700">2a</span><span style="font-size:28px;font-weight:700">Varios proyectos a la vez · wireframe</span></div><span style="font-size:16px;color:#555;max-width:1000px">Caso de prueba: <b>Carla Cano</b> en tres proyectos (Aurora Health desde feb 2025 · Nexo Seguros desde jun 2026 · Portal Interno desde sept 2026), para forzar elipsis y saltos de línea. Ana y Beatriz, con un proyecto. Proyectos siempre en orden alfabético con « · ».</span></div>
+<div style="display:flex;gap:48px;align-items:flex-start;flex-wrap:wrap">
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">02 · MI EQUIPO · columna «Proyectos» en una línea con elipsis</span>
+<div data-screen-label="2a · Mi equipo" style="width:1280px;height:560px;background:#fafafa;border:1px solid #999;display:flex;flex-direction:column;overflow:hidden">
+<div style="height:56px;border-bottom:1px solid #ccc;display:flex;align-items:center;justify-content:space-between;padding:0 40px"><span style="font-weight:700;font-size:18px">JTM</span><div style="display:flex;gap:24px;font-size:14px;color:#555"><span>Ajustes</span><span>Marta Manager</span><span>Cerrar sesión</span></div></div>
+<div style="padding:32px 120px;display:flex;flex-direction:column;gap:20px">
+<span style="font-size:32px;font-weight:700">Mi equipo</span>
+<div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr 1.3fr;gap:12px;font-size:12px;font-family:monospace;color:#666;padding:0 16px;text-transform:uppercase"><span>Mentee</span><span>Proyectos</span><span>Acuerdos</span><span>Incidencias</span><span>Objetivos</span><span>Último 1-to-1</span></div>
+<div style="display:flex;flex-direction:column;border-top:1px solid #ccc">
+<div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr 1.3fr;gap:12px;align-items:center;padding:18px 16px;border-bottom:1px solid #ddd;font-size:15px;background:#efefef"><span style="font-weight:700">Beatriz Blanco</span><span>Retail Nova</span><span>1 pendiente</span><span><span style="border:1.5px solid #222;padding:2px 8px;font-size:13px;font-weight:700">1 abierta</span></span><span>1 en curso</span><span><span style="background:#222;color:#fff;padding:2px 8px;font-size:13px">hace 3 semanas</span></span></div>
+<div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr 1.3fr;gap:12px;align-items:center;padding:18px 16px;border-bottom:1px solid #ddd;font-size:15px"><span style="font-weight:700">Ana Alonso</span><span>Atlas Bank</span><span>2 pendientes</span><span style="color:#999">—</span><span>2 en curso</span><span>hace 9 días</span></div>
+<div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1fr 1fr 1.3fr;gap:12px;align-items:center;padding:18px 16px;border-bottom:1px solid #ddd;font-size:15px"><span style="font-weight:700">Carla Cano</span><ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;line-height:1.35"><li>Aurora Health</li><li>Nexo Seguros</li><li>Portal Interno</li></ul><span style="color:#999">—</span><span style="color:#999">—</span><span>3 en curso</span><span>hace 5 días</span></div>
+</div>
+<span style="font-size:13px;color:#555;font-family:monospace">NOTA · Uno debajo de otro (lista &lt;ul&gt;), alfabético. La fila de Carla crece de ~66px a ~84px; el resto de celdas se mantiene centrado verticalmente. Con 1 proyecto la fila no cambia. Sin proyecto → «Sin proyecto» en secundario.</span>
+</div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">03 · FICHA · sidebar solo con el nombre + tarjeta «Proyectos actuales»</span>
+<div data-screen-label="2a · Resumen" style="width:1280px;height:560px;background:#fafafa;border:1px solid #999;display:flex;overflow:hidden">
+<div style="width:232px;border-right:1px solid #ccc;display:flex;flex-direction:column;padding:24px 16px;gap:24px;flex-shrink:0">
+<span style="font-size:14px;text-decoration:underline">← Mi equipo</span>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="width:40px;height:40px;border-radius:50%;background:#ccc"></span><span style="font-weight:700;font-size:17px;margin-top:8px">Carla Cano</span></div>
+<div style="display:flex;flex-direction:column;gap:2px;font-size:15px"><span style="background:#222;color:#fff;padding:8px 10px">Resumen</span><span style="padding:8px 10px">1-to-1s</span><span style="padding:8px 10px">Objetivos</span><span style="padding:8px 10px">Incidencias</span><span style="padding:8px 10px">Historial</span><span style="padding:8px 10px;margin-top:8px;color:#666">Ajustes de la mentee</span></div>
+</div>
+<div style="flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:28px;font-weight:700">Resumen</span><span style="background:#222;color:#fff;padding:12px 20px;font-size:15px;font-weight:700">Registrar 1-to-1</span></div>
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px">
+<div style="border:1px solid #bbb;padding:20px;min-height:320px;display:flex;align-items:center;justify-content:center;color:#888;font-size:14px">Para vuestro siguiente 1-to-1 (sin cambios)</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="border:1.5px solid #222;padding:16px;display:flex;flex-direction:column;gap:10px"><span style="font-size:12px;font-family:monospace;color:#555">PROYECTOS ACTUALES · 3</span>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:16px">Aurora Health</span><span style="font-size:13px;color:#666">desde febrero 2025</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:16px">Nexo Seguros</span><span style="font-size:13px;color:#666">desde junio 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:16px">Portal Interno</span><span style="font-size:13px;color:#666">desde septiembre 2026</span></div>
+<span style="font-size:13px;color:#555">Sin proyecto: «Sin proyectos. Añádela a uno en Ajustes de la mentee.»</span>
+</div>
+<div style="border:1px solid #bbb;padding:16px;color:#888;font-size:14px">Objetivos en curso (sin cambios)</div>
+</div></div></div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">08 · AJUSTES DE LA MENTEE · tarjeta «Proyectos» sustituye a «Cambio de proyecto»</span>
+<div data-screen-label="2a · Ajustes de la mentee" style="width:1280px;height:800px;background:#fafafa;border:1px solid #999;display:flex;overflow:hidden">
+<div style="width:232px;border-right:1px solid #ccc;display:flex;flex-direction:column;padding:24px 16px;gap:24px;flex-shrink:0">
+<span style="font-size:14px;text-decoration:underline">← Mi equipo</span>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="width:40px;height:40px;border-radius:50%;background:#ccc"></span><span style="font-weight:700;font-size:17px;margin-top:8px">Carla Cano</span></div>
+<div style="display:flex;flex-direction:column;gap:2px;font-size:15px"><span style="padding:8px 10px">Resumen</span><span style="padding:8px 10px">1-to-1s</span><span style="padding:8px 10px">Objetivos</span><span style="padding:8px 10px">Incidencias</span><span style="padding:8px 10px">Historial</span><span style="background:#222;color:#fff;padding:8px 10px;margin-top:8px">Ajustes de la mentee</span></div>
+</div>
+<div style="flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:18px">
+<span style="font-size:28px;font-weight:700">Ajustes de la mentee</span>
+<div style="border:1px solid #bbb;padding:14px 20px;color:#888;font-size:14px">Temas propios (pantalla 14, sin cambios)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+<div style="border:1.5px solid #222;background:#fff;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-weight:700;font-size:18px">Proyectos</span><span style="font-size:14px;color:#555">Puede estar en varios a la vez. Cada entrada y salida queda en su historial.</span>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:center;gap:10px;background:#efefef;padding:10px 12px;font-size:15px"><span style="font-weight:700">Aurora Health</span><span style="font-size:13px;color:#666">desde feb 2025</span><span style="margin-left:auto;font-size:13px;text-decoration:underline">Sacar del proyecto…</span></div>
+<div style="display:flex;align-items:center;gap:10px;background:#efefef;padding:10px 12px;font-size:15px"><span style="font-weight:700">Nexo Seguros</span><span style="font-size:13px;color:#666">desde jun 2026</span><span style="margin-left:auto;font-size:13px;text-decoration:underline">Sacar del proyecto…</span></div>
+<div style="display:flex;align-items:center;gap:10px;background:#efefef;padding:10px 12px;font-size:15px"><span style="font-weight:700">Portal Interno</span><span style="font-size:13px;color:#666">desde sept 2026</span><span style="margin-left:auto;font-size:13px;text-decoration:underline">Sacar del proyecto…</span></div>
+</div>
+<div style="border-top:1px solid #ccc;padding-top:12px;display:flex;flex-direction:column;gap:10px"><span style="font-size:12px;font-family:monospace;color:#555">AÑADIR A UN PROYECTO</span>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Proyecto<span style="border:1.5px solid #999;padding:9px 12px;font-weight:400;display:flex;justify-content:space-between;color:#666">Selecciona… (vigentes en los que no está)<span>▾</span></span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Fecha<span style="border:1.5px solid #999;height:38px"></span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Motivo<span style="border:1.5px solid #999;height:56px"></span></div>
+<span style="align-self:flex-start;border:1.5px solid #222;padding:9px 14px;font-size:14px;font-weight:700">Añadir al proyecto…</span></div>
+</div>
+<div style="border:1px solid #bbb;padding:20px;color:#888;font-size:14px;min-height:200px">Traspaso (sin cambios)</div>
+</div></div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">08b · CONFIRMACIÓN «SACAR DEL PROYECTO» · fecha y motivo dentro</span>
+<div data-screen-label="2a · Sacar del proyecto" style="width:1280px;height:560px;background:#d6d6d6;border:1px solid #999;display:flex;align-items:center;justify-content:center;gap:32px">
+<div role="alertdialog" style="width:520px;background:#fff;border:1.5px solid #222;padding:24px;display:flex;flex-direction:column;gap:12px"><span style="font-size:20px;font-weight:700">¿Sacar a Carla Cano de Nexo Seguros?</span><span style="font-size:15px;color:#444;line-height:1.5">Seguirá en Aurora Health · Portal Interno. Quedará registrado en su historial con la fecha y el motivo.</span>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Fecha<span style="border:1.5px solid #999;padding:9px 12px;font-weight:400">29 sept 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Motivo<span style="border:1.5px solid #999;height:56px"></span></div>
+<div style="display:flex;justify-content:flex-end;gap:10px"><span style="border:1.5px solid #999;padding:9px 14px;font-size:14px">Cancelar</span><span style="background:#222;color:#fff;padding:9px 14px;font-size:14px;font-weight:700">Sacar de Nexo Seguros</span></div></div>
+<div style="width:380px;font-size:14px;color:#333;line-height:1.5;display:flex;flex-direction:column;gap:8px"><b>Variantes de copy</b><span>Último proyecto: «Carla quedará sin proyecto. Quedará registrado…»</span><span>Añadir: «¿Añadir a Carla Cano a Portal Interno?» / «Quedará registrado en su historial con la fecha y el motivo.» / «Añadir a Portal Interno». Fecha y motivo ya vienen de la tarjeta.</span><span>Ambos obligatorios. Botón deshabilitado mientras falte alguno.</span></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">07 · HISTORIAL · eventos «Entra en» / «Sale de»</span>
+<div data-screen-label="2a · Historial" style="width:620px;height:500px;background:#fafafa;border:1px solid #999;padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;gap:8px;font-size:13px"><span style="border:1.5px solid #999;padding:4px 10px">Todo</span><span style="border:1.5px solid #999;padding:4px 10px">1-to-1s</span><span style="background:#222;color:#fff;padding:4px 10px">Proyectos</span><span style="border:1.5px solid #999;padding:4px 10px">Traspasos</span></div>
+<div style="display:grid;grid-template-columns:90px 1fr;gap:14px;font-size:15px">
+<span style="font-size:12px;font-family:monospace;color:#555;grid-column:span 2">SEPTIEMBRE 2026</span>
+<span style="color:#666;font-size:14px">1 sept</span><div style="display:flex;flex-direction:column;gap:2px"><b>Entra en Portal Interno</b><span style="font-size:14px;color:#666">Motivo: refuerzo del equipo de intranet</span></div>
+<span style="font-size:12px;font-family:monospace;color:#555;grid-column:span 2">JUNIO 2026</span>
+<span style="color:#666;font-size:14px">16 jun</span><div style="display:flex;flex-direction:column;gap:2px"><b>Entra en Nexo Seguros</b><span style="font-size:14px;color:#666">Motivo: arranque del contrato de seguros</span></div>
+<span style="font-size:12px;font-family:monospace;color:#555;grid-column:span 2">MARZO 2026</span>
+<span style="color:#666;font-size:14px">31 mar</span><div style="display:flex;flex-direction:column;gap:2px"><b>Sale de Green Energy</b><span style="font-size:14px;color:#666">Motivo: fin del contrato con el cliente</span></div>
+<span style="font-size:12px;font-family:monospace;color:#555;grid-column:span 2">2025</span>
+<span style="color:#666;font-size:14px">3 feb 2025</span><div style="display:flex;flex-direction:column;gap:2px"><b>Entra en Aurora Health</b><span style="font-size:14px;color:#666">Motivo: incorporación a Jakala</span></div>
+</div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-family:monospace;color:#555">AJUSTES · MENTEES · alta con varios proyectos (o ninguno)</span>
+<div data-screen-label="2a · Añadir mentee" style="width:620px;height:420px;background:#fafafa;border:1px solid #999;padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<span style="font-weight:700;font-size:18px">Añadir mentee</span>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">Nombre y apellidos<span style="border:1.5px solid #999;padding:9px 12px;font-weight:400">Irene Iglesias</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700">Proyectos<div role="group" style="display:flex;flex-wrap:wrap;gap:8px;font-weight:400"><span style="background:#222;color:#fff;padding:5px 12px;font-size:14px">✓ Atlas Bank</span><span style="border:1.5px solid #999;padding:5px 12px;font-size:14px">Aurora Health</span><span style="border:1.5px solid #999;padding:5px 12px;font-size:14px">Nexo Seguros</span><span style="background:#222;color:#fff;padding:5px 12px;font-size:14px">✓ Portal Interno</span><span style="border:1.5px solid #999;padding:5px 12px;font-size:14px">Retail Nova</span></div><span style="font-size:13px;font-weight:400;color:#666">Ninguno marcado = «Sin proyecto». Casillas (checkbox) con aspecto de chip.</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700">En tu equipo desde<span style="border:1.5px solid #999;padding:9px 12px;font-weight:400;width:180px">29 sept 2026</span></div>
+<span style="align-self:flex-start;background:#222;color:#fff;padding:9px 14px;font-size:14px;font-weight:700">Añadir a mi equipo</span>
+</div></div>
+
+</div>
+<div style="font-size:14px;color:#444;max-width:1100px;line-height:1.5;border-top:1px solid #bbb;padding-top:14px"><b>También cambia (sin wireframe):</b> Ajustes → Proyectos cuenta asignaciones vigentes («2 mentees»); Registrar 1-to-1 · «Contexto» lista los proyectos con « · »; responsive: la columna «Proyectos» se sigue ocultando en 640–1023px y en tarjetas &lt; 640px se parte en líneas.</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>
