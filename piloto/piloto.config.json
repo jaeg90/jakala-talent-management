@@ -9,7 +9,7 @@
   },
   "sesiones": {
     "comando": "C:/Users/josea/AppData/Roaming/npm/node_modules/@opencode/cli/bin/opencode.exe",
-    "tiempoMaxMinutos": 30
+    "tiempoMaxMinutos": 45
   },
   "puertas": [
     { "nombre": "typecheck", "comando": "npm run typecheck" },

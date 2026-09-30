@@ -102,13 +102,14 @@ export function paso(pasada: Pasada): Movimiento {
         pasada,
         { fase: 'reparación' as const, reintentosUsados: usados },
         `Rojo con ${pasada.reintentosUsados} de ${pasada.reintentosConfigurados} reintentos usados. ` +
-          `Lanzo una reparadora nueva (reintento ${usados} de ${pasada.reintentosConfigurados}): contexto fresco, recibe solo el error en mano.`,
+          `Lanzo una reparadora nueva (reintento ${usados} de ${pasada.reintentosConfigurados}): contexto fresco, recibe el ticket y el error en mano.`,
       );
       return {
         pasada: nueva,
         comandos: [
           {
             tipo: 'lanzarReparadora',
+            ticket: ticketDe(pasada, pasada.ticketActual),
             reintento: usados,
             reintentosConfigurados: pasada.reintentosConfigurados,
             error,

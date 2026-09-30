@@ -125,6 +125,7 @@ describe('Núcleo: rojo, reintentos y escalado', () => {
     expect(mov.comandos).toEqual([
       {
         tipo: 'lanzarReparadora',
+        ticket: expect.objectContaining({ numero: 4 }),
         reintento: 1,
         reintentosConfigurados: 2,
         error: { origen: 'revisión', texto: 'Falta la persistencia de los temas.' },

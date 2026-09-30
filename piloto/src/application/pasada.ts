@@ -81,7 +81,7 @@ async function ejecutarComando(
         : { tipo: 'puertaEnRojo', puerta: rojo.puerta, salida: rojo.salida };
     }
     case 'lanzarReparadora':
-      await puertos.sesiones.reparar(comando.error, comando.reintento);
+      await puertos.sesiones.reparar(comando.ticket, comando.error, comando.reintento);
       return { tipo: 'parcheListo' };
     case 'empujarYCerrar':
       await puertos.entrega.empujar(comando.ticket);

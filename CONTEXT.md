@@ -89,7 +89,7 @@ Conjunto de tickets desbloqueados y `ready-for-agent` del que el Piloto elige su
 _Avoid_: backlog, cola, sprint
 
 **Sesión de contexto fresco**:
-Sesión nueva y no interactiva que el Piloto arranca para un único papel — implementadora (recibe el ticket), revisora (recibe el diff) o reparadora (recibe el error del último ciclo) — sin heredar memoria de ninguna otra sesión.
+Sesión nueva y no interactiva que el Piloto arranca para un único papel — implementadora (recibe el ticket), revisora (recibe el diff y enumera todos sus hallazgos) o reparadora (recibe el ticket y el error del último ciclo) — sin heredar memoria de ninguna otra sesión.
 _Avoid_: subagente, worker, sesión persistente
 
 **Puerta**:

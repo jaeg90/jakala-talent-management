@@ -33,8 +33,8 @@ export interface PuertoSesiones {
   implementar(ticket: Ticket): Promise<string>;
   /** Revisora: revisa el diff contra estándares y spec; null = sin hallazgos. */
   revisar(ticket: Ticket): Promise<string | null>;
-  /** Reparadora: recibe solo el error en mano. */
-  reparar(error: ErrorEnMano, reintento: number): Promise<void>;
+  /** Reparadora: recibe el ticket y el error en mano (ADR-0010). */
+  reparar(ticket: Ticket, error: ErrorEnMano, reintento: number): Promise<void>;
 }
 
 /**

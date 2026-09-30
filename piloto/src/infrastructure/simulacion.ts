@@ -66,7 +66,7 @@ export function crearPuertosSimulados(guion: GuionSimulacion): { puertos: Puerto
     sesiones: {
       implementar: async (ticket) => `Implementado: ${ticket.titulo}.`,
       revisar: async (_ticket) => siguienteHallazgo(),
-      reparar: async (_error: ErrorEnMano, reintento) => {
+      reparar: async (_ticket: Ticket, _error: ErrorEnMano, reintento) => {
         registro.reparaciones.push(reintento);
       },
     },

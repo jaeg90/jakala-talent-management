@@ -17,7 +17,7 @@ export type Fase =
 
 export type EstadoTicket = 'lista' | 'cerrado' | 'escalado';
 
-/** Un ticket del tracker: lo único que la implementadora recibe (contexto fresco, solo el ticket). */
+/** Un ticket del tracker: lo que reciben la implementadora y la reparadora (contexto fresco: datos del tracker, no conversación). */
 export interface Ticket {
   numero: number;
   titulo: string;
@@ -62,7 +62,7 @@ export type Comando =
   | { tipo: 'lanzarImplementadora'; ticket: Ticket }
   | { tipo: 'lanzarRevisora'; ticket: Ticket }
   | { tipo: 'abrirPuertas' }
-  | { tipo: 'lanzarReparadora'; reintento: number; reintentosConfigurados: number; error: ErrorEnMano }
+  | { tipo: 'lanzarReparadora'; ticket: Ticket; reintento: number; reintentosConfigurados: number; error: ErrorEnMano }
   | { tipo: 'empujarYCerrar'; ticket: Ticket; resumen: string | null }
   | { tipo: 'escalar'; ticket: Ticket; error: ErrorEnMano }
   | { tipo: 'terminar'; motivo: 'fronteraVacia' | 'escalado'; abiertos: number[] };

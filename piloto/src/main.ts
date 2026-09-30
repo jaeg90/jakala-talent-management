@@ -24,7 +24,7 @@ const RUTA_CONFIG = resolve(RAIZ, 'piloto', 'piloto.config.json');
 function puertosReales(config: ConfigPiloto): Puertos {
   return {
     frontera: crearFrontera(config.etiquetas),
-    sesiones: crearSesiones(config.modelos, config.sesiones),
+    sesiones: crearSesiones(config.modelos, config.sesiones, config.puertas),
     puertas: crearPuertas(config.puertas, RAIZ),
     avisos: crearAvisos(config.aviso),
     entrega: crearEntrega(config.modoEntrega, RAIZ),
