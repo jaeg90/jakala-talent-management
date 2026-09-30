@@ -5,6 +5,7 @@ Las tareas y especificaciones de este repo viven como issues de GitHub. Usa la C
 ## Convenciones
 
 - **Crear un issue**: `gh issue create --title "..." --body "..."`. Usa un heredoc para cuerpos multilínea.
+- **Dependencias entre issues**: la API de GitHub no expone relaciones `blocked-by` (no existe tal mutación en GraphQL); se declaran como texto enlazado en el cuerpo del ticket — sección «Bloqueado por» con `#N`, y «Bloquea a» en la issue que corta el trabajo de otras.
 - **Leer un issue**: `gh issue view <number> --comments`, filtrando los comentarios con `jq` y obteniendo también las etiquetas.
 - **Listar issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` con los filtros `--label` y `--state` adecuados.
 - **Comentar un issue**: `gh issue comment <number> --body "..."`
