@@ -5,7 +5,7 @@
   "modelos": {
     "implementadora": "openrouter/~deepseek/deepseek-pro-latest",
     "reparadora": "openrouter/~deepseek/deepseek-pro-latest",
-    "revisora": "openrouter/anthropic/claude-sonnet-5"
+    "revisora": "openrouter/openai/gpt-6-luna-pro"
   },
   "sesiones": {
     "comando": "C:/Users/josea/AppData/Roaming/npm/node_modules/@opencode/cli/bin/opencode.exe",
