@@ -8,6 +8,9 @@ build/
 # Archivos de trabajo temporales de agentes (scratch)
 .tmp/
 
+# Estado local de OpenCode
+.opencode/
+
 # Cobertura y reportes de tests
 coverage/
 reports/
