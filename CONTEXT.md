@@ -29,12 +29,20 @@ Paso de un mentee de un manager a otro por reorganización. El historial pertene
 _Avoid_: transferencia, reasignación
 
 **Historial**:
-Feed cronológico de una mentee que reúne sus 1-to-1s, incidencias, objetivos cerrados, cambios de proyecto y traspasos. Pertenece a la mentee: el nuevo manager lo hereda completo.
+Feed cronológico de una mentee que reúne sus 1-to-1s (y sus ediciones), incidencias, objetivos cerrados, entradas y salidas de proyecto, y traspasos. Pertenece a la mentee: el nuevo manager lo hereda completo.
 _Avoid_: registro, actividad, log
 
 **1-to-1**:
-Conversación registrada entre un manager y una mentee: fecha, notas por tema y acuerdos.
+Conversación registrada entre un manager y una mentee: fecha, notas por tema y acuerdos. La registra un manager concreto y se identifica por id, no por fecha. Puede haber varios el mismo día.
 _Avoid_: reunión individual, catch-up
+
+**Edición (de un 1-to-1)**:
+Cambio guardado sobre un 1-to-1 ya registrado —notas o acuerdos pendientes— durante su plazo de edición: 7 días naturales desde el registro y solo por el manager que lo registró. Marcar un acuerdo cumplido no es una edición.
+_Avoid_: versión, revisión, corrección
+
+**Cambios**:
+Constancia de las ediciones de un 1-to-1: fecha, autor y qué se tocó, con el texto anterior y el nuevo.
+_Avoid_: log, historial de versiones, diff
 
 **Tema**:
 Asunto que se trata en los 1-to-1s de una mentee. Genérico (viene de la plantilla de 1-to-1 del manager) o propio (añadido por el manager para esa mentee). Genéricos y propios pueden retirarse; los 1-to-1s ya registrados no cambian.
@@ -49,12 +57,16 @@ Compromiso que nace de un 1-to-1; queda pendiente hasta que se marca cumplido.
 _Avoid_: tarea, action item
 
 **Proyecto**:
-Proyecto de cliente en el que trabaja una mentee. Cada mentee tiene un proyecto actual o ninguno. Un proyecto está vigente o retirado: retirado deja de aparecer en los selectores, su historial se conserva y se puede volver a activar.
+Proyecto de cliente en el que trabaja una mentee. Una mentee puede estar en varios proyectos a la vez o en ninguno; entra y sale de cada uno con fecha y motivo. Un proyecto está vigente o retirado: retirado deja de aparecer en los selectores, su historial se conserva y se puede volver a activar.
 _Avoid_: cuenta, cliente
 
-**Cambio de proyecto**:
-Paso de una mentee de un proyecto a otro (o a ninguno), con fecha y motivo. El historial queda en la persona y en los proyectos implicados.
-_Avoid_: movimiento, rotación
+**Entrada en proyecto**:
+Paso de una mentee a formar parte de un proyecto, con fecha y motivo; genera el evento «Entra en {proyecto}» en su historial.
+_Avoid_: alta en proyecto, asignación, incorporación
+
+**Salida de proyecto**:
+Paso de una mentee a dejar de formar parte de un proyecto, con fecha y motivo; genera el evento «Sale de {proyecto}». Se puede salir del último: la mentee queda «Sin proyecto».
+_Avoid_: baja del proyecto, cambio de proyecto, remoción
 
 **Incidencia**:
 Suceso extraordinario que afecta al seguimiento de una mentee (baja, conflicto, retraso, situación personal con impacto). Nace abierta y se resuelve; la resuelta queda en el historial.
