@@ -62,7 +62,7 @@ export interface MenteeConProyecto {
   project: Project | null;
 }
 
-/** Nota tomada sobre un tema genérico en un 1-to-1. */
+/** Nota tomada sobre un tema en un 1-to-1. */
 export interface NotaPorTema {
   tema: string;
   nota: string;
@@ -78,9 +78,19 @@ export interface OneToOne {
   acuerdos: Acuerdo[];
 }
 
-/** Temas genéricos de plantilla común a todos los 1-to-1s. */
-export const TEMAS_GENERICOS = [
-  '¿Cómo estás?',
-  '¿Qué tal el proyecto?',
-  '¿Qué tal los objetivos?',
-] as const;
+/** Estado de un tema de la plantilla de 1-to-1 de un manager. */
+export type EstadoTemaPlantilla = 'vigente' | 'retirado';
+
+/**
+ * Tema genérico de la plantilla de 1-to-1 de un manager: texto, posición
+ * (`orden`) y estado vigente/retirado. Ver "Tema" y "Plantilla de 1-to-1" en
+ * CONTEXT.md.
+ */
+export interface TemaPlantilla {
+  id: string;
+  managerId: ManagerId;
+  tema: string;
+  /** Posición entre los temas vigentes (0 = primero). */
+  orden: number;
+  estado: EstadoTemaPlantilla;
+}

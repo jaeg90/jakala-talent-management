@@ -7,6 +7,7 @@ import { ObjetivoService } from '../../application/objetivo_service.js';
 import { IncidenciaService } from '../../application/incidencia_service.js';
 import { ProyectoService } from '../../application/proyecto_service.js';
 import { TraspasoService } from '../../application/traspaso_service.js';
+import { PlantillaService } from '../../application/plantilla_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -22,6 +23,7 @@ export interface AppDeps {
   incidencias: IncidenciaService;
   proyectos: ProyectoService;
   traspasos: TraspasoService;
+  plantilla: PlantillaService;
   sessions: SessionStore;
 }
 
@@ -153,6 +155,82 @@ export function createApp(deps: AppDeps): express.Express {
       return;
     }
     res.status(204).end();
+  }));
+
+  // Plantilla de 1-to-1 del manager autenticado: vigentes en orden y retirados.
+  app.get('/api/plantilla', requireSession(deps.sessions, async (_req, res, manager) => {
+    res.json({ temas: await deps.plantilla.plantillaOf(manager) });
+  }));
+
+  // Añade un tema genérico al final de la plantilla.
+  app.post('/api/plantilla/temas', requireSession(deps.sessions, async (req, res, manager) => {
+    const { tema } = (req.body ?? {}) as { tema?: unknown };
+    if (typeof tema !== 'string') {
+      res.status(400).json({ error: 'Texto del tema requerido' });
+      return;
+    }
+    try {
+      const creado = await deps.plantilla.addTema(manager, tema);
+      res.status(201).json(creado);
+    } catch (err) {
+      responderPlantillaError(res, err, 'Error al añadir el tema');
+    }
+  }));
+
+  // Edita el texto de un tema de la plantilla.
+  app.patch('/api/plantilla/temas/:temaId', requireSession(deps.sessions, async (req, res, manager) => {
+    const { tema } = (req.body ?? {}) as { tema?: unknown };
+    if (typeof tema !== 'string') {
+      res.status(400).json({ error: 'Texto del tema requerido' });
+      return;
+    }
+    try {
+      const editado = await deps.plantilla.editarTema(manager, param(req, 'temaId'), tema);
+      res.json(editado);
+    } catch (err) {
+      responderPlantillaError(res, err, 'Error al editar el tema');
+    }
+  }));
+
+  // Sube/baja un tema de la plantilla una posición (delta -1 sube, +1 baja).
+  app.post('/api/plantilla/temas/:temaId/mover', requireSession(deps.sessions, async (req, res, manager) => {
+    const { delta } = (req.body ?? {}) as { delta?: unknown };
+    if (delta !== -1 && delta !== 1) {
+      res.status(400).json({ error: 'Movimiento no válido: delta debe ser -1 (subir) o 1 (bajar)' });
+      return;
+    }
+    try {
+      const plantilla = await deps.plantilla.moverTema(manager, param(req, 'temaId'), delta);
+      res.json({ temas: plantilla });
+    } catch (err) {
+      responderPlantillaError(res, err, 'Error al reordenar la plantilla');
+    }
+  }));
+
+  // Retira un tema de la plantilla (no se puede retirar el último vigente).
+  app.post('/api/plantilla/temas/:temaId/retirar', requireSession(deps.sessions, async (req, res, manager) => {
+    try {
+      const retirado = await deps.plantilla.retirarTema(manager, param(req, 'temaId'));
+      res.json(retirado);
+    } catch (err) {
+      responderPlantillaError(res, err, 'Error al retirar el tema');
+    }
+  }));
+
+  // Vuelve a activar un tema retirado, al final de los vigentes.
+  app.post('/api/plantilla/temas/:temaId/reactivar', requireSession(deps.sessions, async (req, res, manager) => {
+    try {
+      const reactivado = await deps.plantilla.reactivarTema(manager, param(req, 'temaId'));
+      res.json(reactivado);
+    } catch (err) {
+      responderPlantillaError(res, err, 'Error al reactivar el tema');
+    }
+  }));
+
+  // Restablece la plantilla a sus temas iniciales.
+  app.post('/api/plantilla/restablecer', requireSession(deps.sessions, async (_req, res, manager) => {
+    const plantilla = await deps.plantilla.restablecerPlantilla(manager);
+    res.json({ temas: plantilla });
   }));
 
   // Objetivos anuales de una mentee.
@@ -429,6 +507,17 @@ function responderTraspasoError(res: Response, err: unknown, fallback: string): 
   const status =
     msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
     : msg.includes('distinto') ? 409
+    : 400;
+  res.status(status).json({ error: msg === '' ? fallback : msg });
+}
+
+/** Mapea errores del dominio/adaptador de la plantilla a su estado HTTP. */
+function responderPlantillaError(res: Response, err: unknown, fallback: string): void {
+  const msg = err instanceof Error ? err.message : '';
+  const status =
+    msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
+    : msg.includes('último') ? 409
+    : msg.includes('Ya existe') ? 409
     : 400;
   res.status(status).json({ error: msg === '' ? fallback : msg });
 }

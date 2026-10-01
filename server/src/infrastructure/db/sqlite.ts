@@ -47,6 +47,14 @@ export function openDatabase(path: string): Database.Database {
       tema TEXT NOT NULL,
       UNIQUE (mentee_id, tema)
     );
+    CREATE TABLE IF NOT EXISTS plantilla (
+      id TEXT PRIMARY KEY,
+      manager_id TEXT NOT NULL REFERENCES managers(id),
+      tema TEXT NOT NULL,
+      orden INTEGER NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'vigente',
+      UNIQUE (manager_id, tema)
+    );
     CREATE TABLE IF NOT EXISTS objetivos (
       id TEXT PRIMARY KEY,
       mentee_id TEXT NOT NULL REFERENCES mentees(id),

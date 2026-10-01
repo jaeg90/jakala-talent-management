@@ -16,6 +16,8 @@ import { ObjetivoService } from '../../src/application/objetivo_service.js';
 import { IncidenciaService } from '../../src/application/incidencia_service.js';
 import { ProyectoService } from '../../src/application/proyecto_service.js';
 import { TraspasoService } from '../../src/application/traspaso_service.js';
+import { PlantillaService } from '../../src/application/plantilla_service.js';
+import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-plantilla-repository.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { tempDbPath } from './tempdb.js';
 
@@ -33,6 +35,7 @@ export function buildApp() {
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
     traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
+    plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
     sessions,
   });
   return { app, db };

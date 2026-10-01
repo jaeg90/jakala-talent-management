@@ -12,6 +12,7 @@ import type {
   Project,
   CambioProyecto,
   Traspaso,
+  TemaPlantilla,
 } from './model.js';
 
 /**
@@ -62,6 +63,27 @@ export interface TemaPropioRepository {
   addTemaPropio(managerId: ManagerId, menteeId: string, tema: string): Promise<TemaPropio>;
   /** Da de baja un tema propio; devuelve false si no existe o no pertenece al manager. */
   removeTemaPropio(managerId: ManagerId, temaPropioId: string): Promise<boolean>;
+}
+
+/**
+ * Puerto de la plantilla de 1-to-1 de un manager (temas genéricos con orden y
+ * estado vigente/retirado). Las operaciones se acotan por manager (aislamiento).
+ */
+export interface PlantillaRepository {
+  /** Plantilla completa del manager: vigentes en orden y después los retirados. */
+  plantillaOf(managerId: ManagerId): Promise<TemaPlantilla[]>;
+  /** Añade un tema vigente al final de la plantilla; lanza si el texto está vacío o repetido. */
+  addTema(managerId: ManagerId, tema: string): Promise<TemaPlantilla>;
+  /** Edita el texto de un tema; lanza si no existe o no es del manager. */
+  editarTema(managerId: ManagerId, temaId: string, tema: string): Promise<TemaPlantilla>;
+  /** Mueve un tema vigente una posición (delta -1 sube, +1 baja); devuelve la plantilla. */
+  moverTema(managerId: ManagerId, temaId: string, delta: -1 | 1): Promise<TemaPlantilla[]>;
+  /** Retira un tema vigente (queda retirado); lanza si no existe o no es del manager. */
+  retirarTema(managerId: ManagerId, temaId: string): Promise<TemaPlantilla>;
+  /** Vuelve a activar un tema retirado, al final de los vigentes; lanza si no existe o no es del manager. */
+  reactivarTema(managerId: ManagerId, temaId: string): Promise<TemaPlantilla>;
+  /** Restablece la plantilla a sus temas iniciales; devuelve la plantilla resultante. */
+  restablecerPlantilla(managerId: ManagerId): Promise<TemaPlantilla[]>;
 }
 
 /** Datos para dar de alta un objetivo anual. */

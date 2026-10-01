@@ -102,6 +102,16 @@ export interface Traspaso {
   motivo: string;
 }
 
+export type EstadoTemaPlantilla = 'vigente' | 'retirado';
+
+export interface TemaPlantilla {
+  id: string;
+  managerId: string;
+  tema: string;
+  orden: number;
+  estado: EstadoTemaPlantilla;
+}
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: Manager }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -214,10 +224,10 @@ export const api = {
       body: JSON.stringify(body),
     });
   },
+  plantilla(): Promise<{ temas: TemaPlantilla[] }> {
+    return request('/api/plantilla');
+  },
 };
-
-/** Temas genéricos de plantilla (espejo del dominio). */
-export const TEMAS_GENERICOS = ['¿Cómo estás?', '¿Qué tal el proyecto?', '¿Qué tal los objetivos?'];
 
 export interface NotaPorTema {
   tema: string;

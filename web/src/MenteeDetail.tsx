@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   api,
-  TEMAS_GENERICOS,
   type AcuerdoView,
   type Incidencia,
   type Manager,
@@ -10,6 +9,7 @@ import {
   type OneToOne,
   type Project,
   type SituacionProyecto,
+  type TemaPlantilla,
   type TemaPropio,
   type Traspaso,
 } from './api';
@@ -30,6 +30,7 @@ interface Ficha {
 export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
   const [ficha, setFicha] = useState<Ficha | null>(null);
   const [temas, setTemas] = useState<TemaPropio[]>([]);
+  const [plantilla, setPlantilla] = useState<TemaPlantilla[]>([]);
   const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
 
@@ -39,6 +40,10 @@ export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
 
   function reloadTemas() {
     api.temasPropios(menteeId).then(({ temas }) => setTemas(temas));
+  }
+
+  function reloadPlantilla() {
+    api.plantilla().then(({ temas: t }) => setPlantilla(t));
   }
 
   function reloadObjetivos() {
@@ -52,6 +57,7 @@ export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
   useEffect(() => {
     reload();
     reloadTemas();
+    reloadPlantilla();
     reloadObjetivos();
     reloadIncidencias();
   }, [menteeId]);
@@ -133,7 +139,12 @@ export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
 
           <Traspasos menteeId={menteeId} manager={manager} onTraspasado={onBack} />
 
-          <NuevoOneToOneForm menteeId={menteeId} temasPropios={temas} onSaved={reload} />
+          <NuevoOneToOneForm
+            menteeId={menteeId}
+            temasGenericos={plantilla.filter((t) => t.estado === 'vigente').map((t) => t.tema)}
+            temasPropios={temas}
+            onSaved={reload}
+          />
 
           <section aria-label="Historial de 1-to-1s">
             <h2>Historial de 1-to-1s</h2>
@@ -227,17 +238,19 @@ function TemasPropios({
   );
 }
 
-/** Formulario de registro de un 1-to-1: temas genéricos + propios con nota por tema + acuerdos. */
+/** Formulario de registro de un 1-to-1: temas de la plantilla del manager + propios con nota por tema + acuerdos. */
 function NuevoOneToOneForm({
   menteeId,
+  temasGenericos,
   temasPropios,
   onSaved,
 }: {
   menteeId: string;
+  temasGenericos: string[];
   temasPropios: TemaPropio[];
   onSaved: () => void;
 }) {
-  const temas = [...TEMAS_GENERICOS, ...temasPropios.map((t) => t.tema)];
+  const temas = [...temasGenericos, ...temasPropios.map((t) => t.tema)];
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notas, setNotas] = useState<Record<string, string>>({});
   const [acuerdoTexto, setAcuerdoTexto] = useState('');

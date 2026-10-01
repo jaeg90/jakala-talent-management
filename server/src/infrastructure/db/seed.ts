@@ -1,6 +1,8 @@
 import type { Database } from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
 import { hashPassword } from '../auth/passwords.js';
 import { validarUnManagerPorMentee } from '../../domain/rules.js';
+import { TEMAS_INICIALES } from '../../domain/plantilla.js';
 import type { Mentee } from '../../domain/model.js';
 
 /** Contraseña ficticia común a todos los managers semilla (datos de TFM). */
@@ -37,8 +39,23 @@ export const SEED_MENTEES: MenteeSemilla[] = [
 ];
 
 /**
+ * Mecanismo que da la plantilla inicial de 1-to-1 a una cuenta de manager:
+ * inserta los temas iniciales (`TEMAS_INICIALES`) en orden, todos vigentes.
+ * Lo usa la semilla y lo disparará el alta de cuentas de manager (#25).
+ */
+export function insertarPlantillaInicial(db: Database, managerId: string): void {
+  const insert = db.prepare(
+    'INSERT INTO plantilla (id, manager_id, tema, orden, estado) VALUES (?, ?, ?, ?, ?)',
+  );
+  TEMAS_INICIALES.forEach((tema, orden) => {
+    insert.run(randomUUID(), managerId, tema, orden, 'vigente');
+  });
+}
+
+/**
  * Carga el dominio ficticio del TFM si la base de datos está vacía:
- * 3 managers, 8 mentees y 5 proyectos con asignaciones.
+ * 3 managers, 8 mentees y 5 proyectos con asignaciones, y la plantilla
+ * inicial de 1-to-1 de cada manager.
  */
 export function seed(db: Database): void {
   const count = db.prepare('SELECT COUNT(*) AS n FROM managers').get() as { n: number };
@@ -52,6 +69,7 @@ export function seed(db: Database): void {
   );
   for (const m of SEED_MANAGERS) {
     insertManager.run(m.id, m.email, m.name, hash);
+    insertarPlantillaInicial(db, m.id);
   }
 
   const insertProject = db.prepare('INSERT INTO projects (id, name) VALUES (?, ?)');

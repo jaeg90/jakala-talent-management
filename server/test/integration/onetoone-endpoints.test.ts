@@ -17,7 +17,9 @@ import { SqliteObjetivoRepository } from '../../src/infrastructure/db/sqlite-obj
 import { SqliteIncidenciaRepository } from '../../src/infrastructure/db/sqlite-incidencia-repository.js';
 import { SqliteProyectoRepository } from '../../src/infrastructure/db/sqlite-proyecto-repository.js';
 import { TraspasoService } from '../../src/application/traspaso_service.js';
+import { PlantillaService } from '../../src/application/plantilla_service.js';
 import { SqliteTraspasoRepository } from '../../src/infrastructure/db/sqlite-traspaso-repository.js';
+import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-plantilla-repository.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
@@ -38,6 +40,7 @@ beforeAll(async () => {
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
     traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
+    plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
     sessions,
   });
   server = app.listen(0);
