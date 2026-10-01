@@ -12,6 +12,22 @@ export interface Manager {
   id: ManagerId;
   email: string;
   name: string;
+  /**
+   * Si la cuenta usa contraseña temporal: tras entrar, el cliente redirige a
+   * Perfil y contraseña (ver "Contraseña temporal" en CONTEXT.md). Viaja con la
+   * sesión del manager autenticado, pero no se expone en el catálogo.
+   */
+  debeCambiarContraseña: boolean;
+}
+
+/**
+ * Proyección del catálogo de managers (para elegir el destino de un traspaso):
+ * solo id, email y name. No incluye el flag de contraseña temporal.
+ */
+export interface ManagerCatalogo {
+  id: ManagerId;
+  email: string;
+  name: string;
 }
 
 /** Mentee del equipo de un manager. Existe como dato; no inicia sesión. */

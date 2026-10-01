@@ -48,6 +48,20 @@ describe('SeedAuthenticator (puerto de autenticación)', () => {
     expect(manager?.name).toBe('Marta Manager');
   });
 
+  it('devuelve el flag de contraseña temporal según la semilla', async () => {
+    const authenticator = new SeedAuthenticator(seededDb());
+
+    const julia = await authenticator.authenticate('julia@jakala.example', 'secreta123');
+    const marta = await authenticator.authenticate('manager@jakala.example', 'secreta123');
+    const diego = await authenticator.authenticate('diego@jakala.example', 'secreta123');
+    const lucia = await authenticator.authenticate('lucia@jakala.example', 'secreta123');
+
+    expect(julia?.debeCambiarContraseña).toBe(true);
+    expect(marta?.debeCambiarContraseña).toBe(false);
+    expect(diego?.debeCambiarContraseña).toBe(false);
+    expect(lucia?.debeCambiarContraseña).toBe(false);
+  });
+
   it('rechaza la contraseña incorrecta', async () => {
     const authenticator = new SeedAuthenticator(seededDb());
 

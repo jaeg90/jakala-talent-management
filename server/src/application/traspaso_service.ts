@@ -1,4 +1,4 @@
-import type { Manager, Traspaso } from '../domain/model.js';
+import type { Manager, ManagerCatalogo, Traspaso } from '../domain/model.js';
 import type { NuevoTraspaso, TraspasoRepository } from '../domain/ports.js';
 import { validarFechaTraspaso, validarMotivoTraspaso } from '../domain/traspasos.js';
 
@@ -6,8 +6,8 @@ import { validarFechaTraspaso, validarMotivoTraspaso } from '../domain/traspasos
 export class TraspasoService {
   constructor(private readonly repository: TraspasoRepository) {}
 
-  /** Catálogo de managers (para elegir el destino). */
-  async managers(): Promise<Manager[]> {
+  /** Catálogo de managers (para elegir el destino). Sin el flag de contraseña. */
+  async managers(): Promise<ManagerCatalogo[]> {
     return this.repository.managers();
   }
 

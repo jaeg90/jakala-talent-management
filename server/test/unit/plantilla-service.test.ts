@@ -3,7 +3,7 @@ import { PlantillaService } from '../../src/application/plantilla_service.js';
 import type { PlantillaRepository } from '../../src/domain/ports.js';
 import type { Manager, TemaPlantilla } from '../../src/domain/model.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 function tema(id: string, orden: number, estado: 'vigente' | 'retirado' = 'vigente'): TemaPlantilla {
   return { id, managerId: 'm-1', tema: `Tema ${id}`, orden, estado };

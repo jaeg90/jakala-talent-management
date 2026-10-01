@@ -96,12 +96,26 @@ describe('GET /api/managers', () => {
     const res = await fetch(`${baseUrl}/api/managers`, { headers: { cookie: await login(MARTA) } });
 
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { managers: { id: string; name: string }[] };
+    const body = (await res.json()) as { managers: { id: string; email: string; name: string }[] };
     expect(body.managers.map((m) => m.name)).toEqual([
       'Diego Domínguez',
+      'Julia Jiménez',
       'Lucía López',
       'Marta Manager',
     ]);
+  });
+
+  it('no expone el flag de contraseña temporal en el catálogo', async () => {
+    const res = await fetch(`${baseUrl}/api/managers`, { headers: { cookie: await login(MARTA) } });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      managers: Array<Record<string, unknown>>;
+    };
+    for (const manager of body.managers) {
+      expect(Object.keys(manager).sort()).toEqual(['email', 'id', 'name']);
+      expect(manager).not.toHaveProperty('debeCambiarContraseña');
+    }
   });
 });
 

@@ -9,7 +9,7 @@ import { IncidenciaService } from '../../src/application/incidencia_service.js';
 import type { Incidencia, Manager } from '../../src/domain/model.js';
 import type { IncidenciaConMentee, IncidenciaRepository } from '../../src/domain/ports.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 function abierta(): Incidencia {
   return {

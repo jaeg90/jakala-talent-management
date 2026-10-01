@@ -4,7 +4,7 @@ import { TemaPropioService } from '../../src/application/tema_propio_service.js'
 import type { TemaPropioRepository } from '../../src/domain/ports.js';
 import type { Manager, TemaPropio } from '../../src/domain/model.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 describe('validarNombreTemaPropio', () => {
   it('devuelve el nombre recortado cuando no está vacío', () => {

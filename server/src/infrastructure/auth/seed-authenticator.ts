@@ -8,6 +8,7 @@ interface ManagerRow {
   email: string;
   name: string;
   password_hash: string;
+  debe_cambiar_contrasena: number;
 }
 
 /**
@@ -19,10 +20,17 @@ export class SeedAuthenticator implements Authenticator {
 
   async authenticate(email: string, password: string): Promise<Manager | null> {
     const row = this.db
-      .prepare('SELECT id, email, name, password_hash FROM managers WHERE email = ?')
+      .prepare(
+        'SELECT id, email, name, password_hash, debe_cambiar_contrasena FROM managers WHERE email = ?',
+      )
       .get(email) as ManagerRow | undefined;
     if (row === undefined) return null;
     if (!verifyPassword(password, row.password_hash)) return null;
-    return { id: row.id, email: row.email, name: row.name };
+    return {
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      debeCambiarContraseña: row.debe_cambiar_contrasena === 1,
+    };
   }
 }

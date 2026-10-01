@@ -18,6 +18,15 @@ export interface Manager {
   name: string;
 }
 
+/**
+ * Manager autenticado: el que devuelven `POST /api/login` y `GET /api/session`.
+ * Añade el flag de contraseña temporal (ver "Contraseña temporal" en CONTEXT.md),
+ * que viaja con la sesión pero no se expone en el catálogo (`api.managers()`).
+ */
+export interface ManagerAutenticado extends Manager {
+  debeCambiarContraseña: boolean;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -113,13 +122,13 @@ export interface TemaPlantilla {
 }
 
 export const api = {
-  login(email: string, password: string): Promise<{ manager: Manager }> {
+  login(email: string, password: string): Promise<{ manager: ManagerAutenticado }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
   },
   logout(): Promise<void> {
     return request('/api/logout', { method: 'POST' });
   },
-  session(): Promise<{ manager: Manager }> {
+  session(): Promise<{ manager: ManagerAutenticado }> {
     return request('/api/session');
   },
   team(): Promise<{ mentees: Mentee[] }> {

@@ -10,7 +10,8 @@ export function openDatabase(path: string): Database.Database {
       id TEXT PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
-      password_hash TEXT NOT NULL
+      password_hash TEXT NOT NULL,
+      debe_cambiar_contrasena INTEGER NOT NULL DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,

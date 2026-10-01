@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { Manager } from './api';
+import type { ManagerAutenticado } from './api';
 import { api } from './api';
 
-export function Login({ onSuccess }: { onSuccess: (manager: Manager) => void }) {
+export function Login({ onSuccess }: { onSuccess: (manager: ManagerAutenticado) => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

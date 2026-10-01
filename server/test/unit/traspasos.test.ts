@@ -8,7 +8,7 @@ import { TraspasoService } from '../../src/application/traspaso_service.js';
 import type { Manager, Traspaso } from '../../src/domain/model.js';
 import type { TraspasoRepository } from '../../src/domain/ports.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 describe('validación del traspaso', () => {
   it('recorta la fecha y el motivo', () => {

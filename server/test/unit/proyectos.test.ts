@@ -10,7 +10,7 @@ import { ProyectoService } from '../../src/application/proyecto_service.js';
 import type { CambioProyecto, Manager, Project } from '../../src/domain/model.js';
 import type { ProyectoRepository, SituacionProyecto } from '../../src/domain/ports.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 function cambio(destinoId: string | null): CambioProyecto {
   return {

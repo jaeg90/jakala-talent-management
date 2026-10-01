@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Database } from 'better-sqlite3';
-import type { Manager, ManagerId, Traspaso } from '../../domain/model.js';
+import type { ManagerCatalogo, ManagerId, Traspaso } from '../../domain/model.js';
 import type { NuevoTraspaso, TraspasoRepository } from '../../domain/ports.js';
 import { crearTraspaso } from '../../domain/traspasos.js';
 
@@ -27,7 +27,7 @@ interface TraspasoRow {
 export class SqliteTraspasoRepository implements TraspasoRepository {
   constructor(private readonly db: Database) {}
 
-  async managers(): Promise<Manager[]> {
+  async managers(): Promise<ManagerCatalogo[]> {
     const rows = this.db
       .prepare('SELECT id, email, name FROM managers ORDER BY name')
       .all() as ManagerRow[];

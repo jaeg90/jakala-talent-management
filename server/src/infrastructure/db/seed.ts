@@ -9,9 +9,10 @@ import type { Mentee } from '../../domain/model.js';
 export const SEED_PASSWORD = 'secreta123';
 
 export const SEED_MANAGERS = [
-  { id: 'seed-manager-1', email: 'manager@jakala.example', name: 'Marta Manager' },
-  { id: 'seed-manager-2', email: 'diego@jakala.example', name: 'Diego Domínguez' },
-  { id: 'seed-manager-3', email: 'lucia@jakala.example', name: 'Lucía López' },
+  { id: 'seed-manager-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false },
+  { id: 'seed-manager-2', email: 'diego@jakala.example', name: 'Diego Domínguez', debeCambiarContraseña: false },
+  { id: 'seed-manager-3', email: 'lucia@jakala.example', name: 'Lucía López', debeCambiarContraseña: false },
+  { id: 'seed-manager-4', email: 'julia@jakala.example', name: 'Julia Jiménez', debeCambiarContraseña: true },
 ];
 
 export const SEED_PROJECTS = [
@@ -54,7 +55,7 @@ export function insertarPlantillaInicial(db: Database, managerId: string): void 
 
 /**
  * Carga el dominio ficticio del TFM si la base de datos está vacía:
- * 3 managers, 8 mentees y 5 proyectos con asignaciones, y la plantilla
+ * 4 managers, 8 mentees y 5 proyectos con asignaciones, y la plantilla
  * inicial de 1-to-1 de cada manager.
  */
 export function seed(db: Database): void {
@@ -65,10 +66,10 @@ export function seed(db: Database): void {
 
   const hash = hashPassword(SEED_PASSWORD);
   const insertManager = db.prepare(
-    'INSERT INTO managers (id, email, name, password_hash) VALUES (?, ?, ?, ?)',
+    'INSERT INTO managers (id, email, name, password_hash, debe_cambiar_contrasena) VALUES (?, ?, ?, ?, ?)',
   );
   for (const m of SEED_MANAGERS) {
-    insertManager.run(m.id, m.email, m.name, hash);
+    insertManager.run(m.id, m.email, m.name, hash, m.debeCambiarContraseña ? 1 : 0);
     insertarPlantillaInicial(db, m.id);
   }
 

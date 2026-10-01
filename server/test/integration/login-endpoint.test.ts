@@ -64,9 +64,23 @@ describe('POST /api/login', () => {
     });
 
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { manager: { email: string } };
+    const body = (await res.json()) as { manager: { email: string; debeCambiarContraseña: boolean } };
     expect(body.manager.email).toBe('manager@jakala.example');
+    expect(body.manager.debeCambiarContraseña).toBe(false);
     expect(res.headers.get('set-cookie')).toContain(SESSION_COOKIE);
+  });
+
+  it('devuelve el flag de contraseña temporal de la manager nueva', async () => {
+    const res = await fetch(`${baseUrl}/api/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'julia@jakala.example', password: 'secreta123' }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { manager: { email: string; debeCambiarContraseña: boolean } };
+    expect(body.manager.email).toBe('julia@jakala.example');
+    expect(body.manager.debeCambiarContraseña).toBe(true);
   });
 
   it('rechaza credenciales incorrectas con 401', async () => {
@@ -121,6 +135,16 @@ describe('con sesión', () => {
   it('GET /api/session devuelve al manager', async () => {
     const res = await fetch(`${baseUrl}/api/session`, { headers: { cookie: await login(MARTA) } });
     expect(res.status).toBe(200);
+    const body = (await res.json()) as { manager: { email: string; debeCambiarContraseña: boolean } };
+    expect(body.manager.email).toBe(MARTA);
+  });
+
+  it('GET /api/session devuelve el flag de contraseña temporal del autenticado', async () => {
+    const res = await fetch(`${baseUrl}/api/session`, { headers: { cookie: await login('julia@jakala.example') } });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { manager: { email: string; debeCambiarContraseña: boolean } };
+    expect(body.manager.email).toBe('julia@jakala.example');
+    expect(body.manager.debeCambiarContraseña).toBe(true);
   });
 
   it('GET /api/team lista los mentees del manager con su proyecto actual', async () => {

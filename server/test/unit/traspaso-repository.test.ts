@@ -38,9 +38,20 @@ describe('catálogo de managers', () => {
 
     expect(managers.map((m) => m.name)).toEqual([
       'Diego Domínguez',
+      'Julia Jiménez',
       'Lucía López',
       'Marta Manager',
     ]);
+  });
+
+  it('no expone el flag de contraseña temporal en el catálogo', async () => {
+    const { traspaso } = repos();
+
+    const managers = await traspaso.managers();
+
+    for (const manager of managers) {
+      expect(Object.keys(manager).sort()).toEqual(['email', 'id', 'name']);
+    }
   });
 });
 

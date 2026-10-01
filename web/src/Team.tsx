@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { Manager, Mentee } from './api';
+import type { ManagerAutenticado, Mentee } from './api';
 import { api } from './api';
 import { MenteeDetail } from './MenteeDetail';
 import { IncidenciasView } from './IncidenciasView';
 import { ProyectosView } from './ProyectosView';
 
-export function Team({ manager, onLogout }: { manager: Manager; onLogout: () => void }) {
+export function Team({ manager, onLogout }: { manager: ManagerAutenticado; onLogout: () => void }) {
   const [mentees, setMentees] = useState<Mentee[] | null>(null);
   const [abierta, setAbierta] = useState<Mentee | null>(null);
   const [viendoIncidencias, setViendoIncidencias] = useState(false);

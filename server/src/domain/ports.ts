@@ -1,6 +1,7 @@
 import type { Acuerdo } from './agreements.js';
 import type {
   Manager,
+  ManagerCatalogo,
   ManagerId,
   MenteeConProyecto,
   NotaPorTema,
@@ -198,8 +199,8 @@ export interface NuevoTraspaso {
  * ligado a la mentee y lo hereda completo el manager de destino.
  */
 export interface TraspasoRepository {
-  /** Catálogo de managers (para elegir el destino de un traspaso). */
-  managers(): Promise<Manager[]>;
+  /** Catálogo de managers (para elegir el destino de un traspaso). Sin el flag de contraseña. */
+  managers(): Promise<ManagerCatalogo[]>;
   /** Historial de traspasos de una mentee, solo si es del manager. */
   historialDe(managerId: ManagerId, menteeId: string): Promise<Traspaso[]>;
   /** Traspasa una mentee a otro manager; lanza si no es del manager, el destino no existe o es el mismo. */

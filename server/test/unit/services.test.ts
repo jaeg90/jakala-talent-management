@@ -3,7 +3,7 @@ import { LoginService, TeamService } from '../../src/application/services.js';
 import type { Authenticator, SessionStore, TeamRepository } from '../../src/domain/ports.js';
 import type { Manager, MenteeConProyecto } from '../../src/domain/model.js';
 
-const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager' };
+const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
 function fakeAuthenticator(found: boolean): Authenticator {
   return {

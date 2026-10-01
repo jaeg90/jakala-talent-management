@@ -4,6 +4,7 @@ import {
   type AcuerdoView,
   type Incidencia,
   type Manager,
+  type ManagerAutenticado,
   type Objetivo,
   type ObjetivoFields,
   type OneToOne,
@@ -17,7 +18,7 @@ import {
 interface Props {
   menteeId: string;
   menteeName: string;
-  manager: Manager;
+  manager: ManagerAutenticado;
   onBack: () => void;
 }
 
@@ -692,7 +693,7 @@ function Traspasos({
   onTraspasado,
 }: {
   menteeId: string;
-  manager: Manager;
+  manager: ManagerAutenticado;
   onTraspasado: () => void;
 }) {
   const [historial, setHistorial] = useState<Traspaso[] | null>(null);
