@@ -20,6 +20,10 @@ Se usan tal cual las cinco etiquetas de triage por defecto. Ver `docs/agents/tri
 
 Single-context: `CONTEXT.md` en la raíz + `docs/adr/`. Ver `docs/agents/domain.md`.
 
+### Tickets
+
+Todo ticket lleva su sección «Alcance» (Aplica a / Fuera de alcance) y cita verbatim su porción de spec: las sesiones de contexto fresco del Piloto solo ven el cuerpo del issue (ADR-0011). Al crear, reescribir o partir tickets, ver `.agents/skills/writing-tickets`.
+
 ## Arnés de calidad
 
 Además de las puertas (typecheck, lint, tests, E2E), el repo tiene un arnés de calidad determinista (ADR-0005). El comando que lo ejecuta todo y resume el estado es:

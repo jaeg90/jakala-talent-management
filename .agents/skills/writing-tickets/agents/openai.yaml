@@ -1,0 +1,3 @@
+interface:
+  display_name: "Writing Tickets"
+  short_description: "Write scoped, self-contained GitHub tickets"

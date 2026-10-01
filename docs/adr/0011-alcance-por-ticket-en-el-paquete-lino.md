@@ -1,0 +1,21 @@
+# 0011: Alcance por ticket — los criterios globales acotados a lo que cada ticket construye
+
+El paquete del rediseño Lino (tickets #14–#36, epic #12) convive consigo mismo: cada pantalla se rediseña en su ticket mientras las ~10 vistas actuales siguen montadas y funcionales hasta que llegue el suyo. La retoma de #14 (2026-10-01, ya con el motor reforzado de ADR-0010) quemó sus 3 reintentos con 9 hallazgos, de los que ~5 eran artefactos de alcance: legítimos según la letra de la spec — los criterios globales del diseño suenan a repo entero («`tokens.css` única fuente de valores visuales», «contrato de accesibilidad cubierto») — pero irresolubles dentro del ticket: un enlace exigido en una vista legacy cuyo rediseño tiene su propio ticket, fechas accesibles en una vista que otra sesión había recibido orden de revertir, medidas literales en secciones que estilan vistas sin migrar. Dos sesiones de contexto fresco — que solo reciben el cuerpo del ticket (ADR-0003) — interpretaron el mismo criterio en direcciones opuestas, y cada interpretación costó una ronda de reparación. El inventario del paquete añadió la segunda cara: 9 dependencias cruzadas sin declarar (una semilla que verifica pantallas aún no construidas, dos tickets que comparten un diálogo sin declararse, un auditor que no bloquea a nada).
+
+Se decide que **todo ticket del paquete declara su alcance y los criterios globales se acotan a él**:
+
+- Cada cuerpo lleva una sección **«Alcance»** con dos listas: *Aplica a* (lo que el ticket añade o modifica) y *Fuera de alcance* (lo que convive: vistas sin migrar y sus criterios, citando su ticket; flujos cuya otra mitad vive en otro ticket, citándolo; exclusiones nominales de archivos compartidos).
+- La frontera de un criterio global es **el diff más las exclusiones nominales**: aplica a lo que el ticket añade o modifica; lo que el diff toca «de pasada» (una vista legacy montada en su ruta) queda fuera si está nombrado; los defectos reales en lo que el ticket construye quedan siempre dentro. Es la única frontera que una revisora con contexto fresco puede verificar mirando el diff.
+- Cada ticket cita **verbatim** la porción de la spec de pantalla que construye: la sesión no puede leer el doc de diseño, solo el cuerpo que recibe.
+- **Las dependencias implícitas se declaran** («Bloqueado por»): un ticket cuya verificación necesita el estado de otra pantalla bloquea con el ticket de esa pantalla, aunque no toque su código.
+
+Las specs por pantalla describen el estado final; los tickets describen porciones. Cuando una porción aún no puede construirse porque su otra mitad vive en otro ticket, el cuerpo lo dice y apunta al ticket que la trae. Cada ticket lleva además su tipo (dominio / pantalla / transversal) para que la bitácora mida reintentos por tipo: si un tipo quema sistemáticamente ≥2, el cambio de modelo implementador para esos tickets es una línea de configuración, no dos workflows (descartada la división front/back: partir pantallas por capa crea contratos entre tickets — la clase exacta del nudo de §01 — y rompe la verificación E2E del tracer bullet; el paralelismo real del DAG es por rama de pantallas).
+
+Como consecuencia operativa, los estilos Lino se separan a su propio archivo (`lino.css`, ticket propio bloqueado por #14) para que el diff de un ticket Lino no arrastre reglas que estilan vistas sin migrar.
+
+## Opciones consideradas
+
+- **Aplicar los criterios globales a todo el diff sin exclusiones**: máxima pureza, y hace irresoluble cualquier fundación que conviva con vistas sin migrar — el patrón exacto que quemó la retoma de #14. Descartado.
+- **Acotar por pantalla (los criterios aplican solo a las pantallas Lino ya migradas)**: deja escapar defectos reales en archivos compartidos (reglas globales que rompen la pantalla nueva) y no cubre estilos ni utilidades. Descartado.
+- **Arreglarlo con mejores instrucciones de sesión**: ya probado — ADR-0010 reforzó el motor (veredictos multi-hallazgo, autochequeo de puertas, spec en la reparadora) y el ciclo siguió quemando reintentos por alcance: el problema es el combustible, no el motor. Descartado.
+- **Dividir los tickets en front y back con dos workflows especializados**: parte pantallas por capa y crea contratos de API entre tickets; además ambas pasadas trabajarían sobre el mismo árbol sin commitear. Descartado.

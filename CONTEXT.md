@@ -88,6 +88,10 @@ _Avoid_: agente, bot, CI
 Conjunto de tickets desbloqueados y `ready-for-agent` del que el Piloto elige su siguiente trabajo.
 _Avoid_: backlog, cola, sprint
 
+**Alcance (de un ticket)**:
+Las dos listas que todo ticket declara — «Aplica a» (lo que el ticket añade o modifica) y «Fuera de alcance» (lo que convive hasta su propio ticket: vistas sin migrar y sus criterios, flujos cuya otra mitad vive en otro) — y que acota los criterios globales del diseño a lo que una sesión de contexto fresco puede verificar mirando el diff.
+_Avoid_: criterio global, spec de pantalla completa
+
 **Sesión de contexto fresco**:
 Sesión nueva y no interactiva que el Piloto arranca para un único papel — implementadora (recibe el ticket), revisora (recibe el diff y enumera todos sus hallazgos) o reparadora (recibe el ticket y el error del último ciclo) — sin heredar memoria de ninguna otra sesión.
 _Avoid_: subagente, worker, sesión persistente
