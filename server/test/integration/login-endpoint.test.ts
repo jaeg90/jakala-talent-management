@@ -126,6 +126,7 @@ describe('con sesión', () => {
     id: string;
     name: string;
     project: { id: string; name: string } | null;
+    proyectos: string[];
   }
 
   async function teamOf(email: string): Promise<MenteeApi[]> {
@@ -154,9 +155,24 @@ describe('con sesión', () => {
     const mentees = await teamOf(MARTA);
 
     expect(mentees).toEqual([
-      { id: 'me-ana', name: 'Ana Alonso', project: { id: 'pr-atlas', name: 'Atlas Bank' } },
-      { id: 'me-bea', name: 'Beatriz Blanco', project: { id: 'pr-nova', name: 'Retail Nova' } },
-      { id: 'me-carla', name: 'Carla Cano', project: { id: 'pr-aurora', name: 'Aurora Health' } },
+      {
+        id: 'me-ana',
+        name: 'Ana Alonso',
+        project: { id: 'pr-atlas', name: 'Atlas Bank' },
+        proyectos: ['Atlas Bank'],
+      },
+      {
+        id: 'me-bea',
+        name: 'Beatriz Blanco',
+        project: { id: 'pr-nova', name: 'Retail Nova' },
+        proyectos: ['Retail Nova'],
+      },
+      {
+        id: 'me-carla',
+        name: 'Carla Cano',
+        project: { id: 'pr-aurora', name: 'Aurora Health' },
+        proyectos: ['Aurora Health'],
+      },
     ]);
   });
 

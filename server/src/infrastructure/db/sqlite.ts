@@ -15,13 +15,21 @@ export function openDatabase(path: string): Database.Database {
     );
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE
+      name TEXT NOT NULL UNIQUE,
+      fecha_retirada TEXT
     );
     CREATE TABLE IF NOT EXISTS mentees (
       id TEXT PRIMARY KEY,
       manager_id TEXT NOT NULL REFERENCES managers(id),
-      name TEXT NOT NULL,
-      project_id TEXT REFERENCES projects(id)
+      name TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS asignaciones (
+      mentee_id TEXT NOT NULL REFERENCES mentees(id),
+      proyecto_id TEXT NOT NULL REFERENCES projects(id),
+      desde TEXT NOT NULL,
+      motivo_entrada TEXT NOT NULL,
+      hasta TEXT,
+      motivo_salida TEXT
     );
     CREATE TABLE IF NOT EXISTS onetoones (
       id TEXT PRIMARY KEY,

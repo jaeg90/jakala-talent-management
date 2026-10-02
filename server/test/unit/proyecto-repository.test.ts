@@ -45,7 +45,9 @@ describe('catálogo de proyectos', () => {
     const nuevo = await repo.addProyecto('Nueva Cuenta');
 
     expect(nuevo).toMatchObject({ id: expect.any(String), name: 'Nueva Cuenta' });
-    await expect(repo.proyectos()).resolves.toContainEqual(nuevo);
+    await expect(repo.proyectos()).resolves.toContainEqual(
+      expect.objectContaining({ id: nuevo.id, name: 'Nueva Cuenta', estado: 'vigente', fechaRetirada: null }),
+    );
   });
 
   it('rechaza un nombre de proyecto repetido', async () => {
@@ -117,6 +119,28 @@ describe('historial y registro de cambios de proyecto', () => {
       repo.registrarCambio(MARTA, ANA, { fecha: '2026-09-27', destinoId: 'pr-fantasma', motivo: 'Error' }),
     ).rejects.toThrow(/no encontrado/);
   });
+
+  it('un cambio legado hacia un proyecto ya vigente no crea una segunda entrada', async () => {
+    const repo = repos();
+
+    // Ana entra en Nova con fecha antigua, de modo que Atlas (entrada de la
+    // semilla, más reciente) siga siendo su proyecto actual.
+    await repo.entrarEnProyecto(MARTA, ANA, {
+      proyecto: 'pr-nova',
+      desde: '2020-01-01',
+      motivoEntrada: 'Apoyo',
+    });
+
+    // El cambio legado (Atlas → Nova) cerraría Atlas y crearía una segunda
+    // asignación vigente a Nova; la regla de dominio lo rechaza y revierte todo.
+    await expect(
+      repo.registrarCambio(MARTA, ANA, { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: 'Rotación' }),
+    ).rejects.toThrow(/ya está/);
+
+    const situacion = await repo.situacionDe(MARTA, ANA);
+    expect(situacion.project).toEqual({ id: 'pr-atlas', name: 'Atlas Bank' });
+    expect(situacion.cambios).toEqual([]);
+  });
 });
 
 describe('quién está en cada proyecto', () => {
@@ -132,17 +156,135 @@ describe('quién está en cada proyecto', () => {
     ]);
   });
 
-  it('el mentee sin proyecto agrupa bajo "sin proyecto"', async () => {
+  it('el mentee sin asignaciones vigentes no aparece en ningún grupo', async () => {
     const repo = repos();
 
     const grupos = await repo.miembrosPorProyecto('seed-manager-3');
+    const ids = grupos.flatMap((g) => g.mentees.map((m) => m.id));
 
-    const sinProyecto = grupos.find((g) => g.projectId === null);
-    expect(sinProyecto).toEqual({
-      projectId: null,
-      projectName: null,
-      mentees: [{ id: 'me-hugo', name: 'Hugo Herrera' }],
+    expect(ids).toContain('me-gabriela');
+    expect(ids).not.toContain(HUGO);
+  });
+
+  it('una mentee con varias asignaciones vigentes aparece en varios proyectos', async () => {
+    const repo = repos();
+
+    await repo.entrarEnProyecto(MARTA, ANA, {
+      proyecto: 'pr-nova',
+      desde: '2026-09-01',
+      motivoEntrada: 'Apoyo',
     });
+
+    const grupos = await repo.miembrosPorProyecto(MARTA);
+    const atlas = grupos.find((g) => g.projectId === 'pr-atlas');
+    const nova = grupos.find((g) => g.projectId === 'pr-nova');
+    expect(atlas?.mentees.map((m) => m.id)).toContain(ANA);
+    expect(nova?.mentees.map((m) => m.id)).toContain(ANA);
+  });
+});
+
+describe('entrar y salir de proyectos (asignaciones)', () => {
+  it('entrar crea una asignación vigente y rechaza entrar dos veces', async () => {
+    const repo = repos();
+
+    const entrada = await repo.entrarEnProyecto(MARTA, ANA, {
+      proyecto: 'pr-green',
+      desde: '2026-09-01',
+      motivoEntrada: 'Apoyo',
+    });
+
+    expect(entrada).toEqual({
+      mentee: ANA,
+      proyecto: 'pr-green',
+      desde: '2026-09-01',
+      motivoEntrada: 'Apoyo',
+      hasta: null,
+      motivoSalida: null,
+    });
+
+    await expect(
+      repo.entrarEnProyecto(MARTA, ANA, { proyecto: 'pr-green', desde: '2026-10-01', motivoEntrada: 'Otra' }),
+    ).rejects.toThrow(/ya está/);
+  });
+
+  it('salir cierra la asignación vigente; salir del último deja sin proyecto', async () => {
+    const repo = repos();
+
+    const salida = await repo.salirDeProyecto(MARTA, ANA, 'pr-atlas', {
+      hasta: '2026-09-30',
+      motivoSalida: 'Fin',
+    });
+
+    expect(salida).toMatchObject({ mentee: ANA, proyecto: 'pr-atlas', hasta: '2026-09-30', motivoSalida: 'Fin' });
+    const situacion = await repo.situacionDe(MARTA, ANA);
+    expect(situacion.project).toBeNull();
+  });
+
+  it('salir rechaza una fecha de salida anterior a la entrada', async () => {
+    const repo = repos();
+
+    await repo.entrarEnProyecto(MARTA, ANA, { proyecto: 'pr-green', desde: '2026-09-01', motivoEntrada: 'Apoyo' });
+
+    await expect(
+      repo.salirDeProyecto(MARTA, ANA, 'pr-green', { hasta: '2026-08-31', motivoSalida: 'Error' }),
+    ).rejects.toThrow(/anterior/);
+  });
+
+  it('salir de un proyecto en el que no está rebota', async () => {
+    const repo = repos();
+
+    await expect(
+      repo.salirDeProyecto(MARTA, ANA, 'pr-green', { hasta: '2026-09-30', motivoSalida: 'No está' }),
+    ).rejects.toThrow(/no está/);
+  });
+
+  it('desde sin proyecto, un cambio solo genera la entrada (y al revés)', async () => {
+    const repo = repos();
+
+    await repo.registrarCambio(MARTA, ANA, { fecha: '2026-09-25', destinoId: null, motivo: 'Fin' });
+    expect((await repo.situacionDe(MARTA, ANA)).project).toBeNull();
+
+    const cambio = await repo.registrarCambio(MARTA, ANA, {
+      fecha: '2026-09-27',
+      destinoId: 'pr-green',
+      motivo: 'Alta',
+    });
+    expect(cambio.origenId).toBeNull();
+    expect((await repo.situacionDe(MARTA, ANA)).project).toEqual({ id: 'pr-green', name: 'Green Energy' });
+  });
+});
+
+describe('retirar y reactivar proyectos', () => {
+  it('rechaza retirar un proyecto con asignaciones vigentes', async () => {
+    const repo = repos();
+
+    await expect(repo.retirarProyecto('pr-atlas')).rejects.toThrow(/asignaciones vigentes/);
+  });
+
+  it('retira un proyecto sin asignaciones y reactivar lo devuelve', async () => {
+    const repo = repos();
+
+    const nuevo = await repo.addProyecto('Proyecto Nuevo');
+    const retirado = await repo.retirarProyecto(nuevo.id);
+    expect(retirado).toMatchObject({ id: nuevo.id, estado: 'retirado' });
+    expect(retirado.fechaRetirada).toBe(new Date().toISOString().slice(0, 10));
+
+    const catalogo = await repo.proyectos();
+    expect(catalogo.find((p) => p.id === nuevo.id)?.estado).toBe('retirado');
+
+    const reactivado = await repo.reactivarProyecto(nuevo.id);
+    expect(reactivado).toEqual({ id: nuevo.id, estado: 'vigente', fechaRetirada: null });
+  });
+
+  it('rechaza retirar uno ya retirado y reactivar uno vigente', async () => {
+    const repo = repos();
+
+    const nuevo = await repo.addProyecto('Proyecto Nuevo');
+    await repo.retirarProyecto(nuevo.id);
+    await expect(repo.retirarProyecto(nuevo.id)).rejects.toThrow(/vigente/);
+
+    const otro = await repo.addProyecto('Otro');
+    await expect(repo.reactivarProyecto(otro.id)).rejects.toThrow(/retirado/);
   });
 });
 

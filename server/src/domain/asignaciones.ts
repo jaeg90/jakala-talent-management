@@ -31,6 +31,17 @@ export type EstadoProyecto = 'vigente' | 'retirado';
 export interface ProyectoConEstado {
   id: string;
   estado: EstadoProyecto;
+  /** Fecha ISO (YYYY-MM-DD) del retiro; null (o ausente) mientras está vigente. */
+  fechaRetirada?: string | null;
+}
+
+/** Evento del historial derivado de una asignación (fuente de la agregación de #20). */
+export interface EventoHistorialProyecto {
+  /** Entrada en el proyecto o salida de él. */
+  tipo: 'entrada' | 'salida';
+  proyecto: string;
+  fecha: string;
+  motivo: string;
 }
 
 /**
@@ -149,4 +160,45 @@ export function reactivarProyecto(proyecto: ProyectoConEstado): ProyectoConEstad
     throw new Error('Solo se puede reactivar un proyecto retirado');
   }
   return { ...proyecto, estado: 'vigente' };
+}
+
+/** Regla de dominio: la fecha de una asignación, una vez recortada, no puede estar vacía. */
+export function validarFechaAsignacion(fecha: string): string {
+  const f = fecha.trim();
+  if (f === '') throw new Error('La fecha no puede estar vacía');
+  return f;
+}
+
+/** Regla de dominio: el motivo de una asignación, una vez recortado, no puede estar vacío. */
+export function validarMotivoAsignacion(motivo: string): string {
+  const m = motivo.trim();
+  if (m === '') throw new Error('El motivo no puede estar vacío');
+  return m;
+}
+
+/**
+ * Proyección de las asignaciones a los eventos del historial (ADR-0007/#20): cada
+ * asignación aporta su entrada («Entra en {proyecto}») y, si está cerrada, su
+ * salida («Sale de {proyecto}»). Es una función pura, sin orden ni fusión de
+ * fuentes: #20 decide el orden de su agregación. Ver "Historial" en CONTEXT.md.
+ */
+export function eventosDeAsignaciones(asignaciones: Asignacion[]): EventoHistorialProyecto[] {
+  const eventos: EventoHistorialProyecto[] = [];
+  for (const asignacion of asignaciones) {
+    eventos.push({
+      tipo: 'entrada',
+      proyecto: asignacion.proyecto,
+      fecha: asignacion.desde,
+      motivo: asignacion.motivoEntrada,
+    });
+    if (asignacion.hasta !== null) {
+      eventos.push({
+        tipo: 'salida',
+        proyecto: asignacion.proyecto,
+        fecha: asignacion.hasta,
+        motivo: asignacion.motivoSalida ?? '',
+      });
+    }
+  }
+  return eventos;
 }

@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   asignacionesVigentes,
   crearEntradaEnProyecto,
+  eventosDeAsignaciones,
   proyectosActualesDe,
   reactivarProyecto,
   retirarProyecto,
   salirDeProyecto,
+  validarFechaAsignacion,
+  validarMotivoAsignacion,
   validarRetirarProyecto,
   validarSinAsignacionVigente,
 } from '../../src/domain/asignaciones.js';
@@ -187,5 +190,68 @@ describe('retirarProyecto / reactivarProyecto', () => {
 
   it('lanza al reactivar un proyecto ya vigente', () => {
     expect(() => reactivarProyecto(proyecto('vigente'))).toThrow(/retirado/);
+  });
+});
+
+describe('validadores de asignación', () => {
+  it('recorta fecha y motivo y rechaza los vacíos', () => {
+    expect(validarFechaAsignacion('  2026-09-01  ')).toBe('2026-09-01');
+    expect(validarMotivoAsignacion('  Alta  ')).toBe('Alta');
+    expect(() => validarFechaAsignacion('   ')).toThrow(/fecha/);
+    expect(() => validarMotivoAsignacion('   ')).toThrow(/motivo/);
+  });
+});
+
+describe('eventosDeAsignaciones', () => {
+  it('proyecta entrada y salida de cada asignación (sin salida si sigue vigente)', () => {
+    const asignaciones = [
+      vigente('pr-atlas'),
+      cerrada('pr-nova'),
+    ];
+
+    expect(eventosDeAsignaciones(asignaciones)).toEqual([
+      { tipo: 'entrada', proyecto: 'pr-atlas', fecha: '2026-09-01', motivo: 'Incorporación' },
+      { tipo: 'entrada', proyecto: 'pr-nova', fecha: '2026-09-01', motivo: 'Incorporación' },
+      { tipo: 'salida', proyecto: 'pr-nova', fecha: '2026-09-30', motivo: 'Fin de proyecto' },
+    ]);
+  });
+
+  it('sin asignaciones devuelve una lista vacía', () => {
+    expect(eventosDeAsignaciones([])).toEqual([]);
+  });
+
+  it('una salida con motivo ausente se proyecta con motivo vacío', () => {
+    const anomalas = [
+      {
+        mentee: 'me-1',
+        proyecto: 'pr-atlas',
+        desde: '2026-09-01',
+        motivoEntrada: 'Alta',
+        hasta: '2026-09-30',
+        motivoSalida: null,
+      },
+    ];
+
+    expect(eventosDeAsignaciones(anomalas)).toEqual([
+      { tipo: 'entrada', proyecto: 'pr-atlas', fecha: '2026-09-01', motivo: 'Alta' },
+      { tipo: 'salida', proyecto: 'pr-atlas', fecha: '2026-09-30', motivo: '' },
+    ]);
+  });
+
+  it('incluye las entradas vigentes (semilla) como evento de entrada', () => {
+    const asignaciones = [
+      {
+        mentee: 'me-1',
+        proyecto: 'pr-atlas',
+        desde: '2026-07-04',
+        motivoEntrada: 'Alta en el equipo',
+        hasta: null,
+        motivoSalida: null,
+      },
+    ];
+
+    expect(eventosDeAsignaciones(asignaciones)).toEqual([
+      { tipo: 'entrada', proyecto: 'pr-atlas', fecha: '2026-07-04', motivo: 'Alta en el equipo' },
+    ]);
   });
 });

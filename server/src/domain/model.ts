@@ -2,8 +2,25 @@ import type { Acuerdo } from './agreements.js';
 import type { EstadoObjetivo, Objetivo } from './objetivos.js';
 import type { EstadoIncidencia, Incidencia } from './incidencias.js';
 import type { CambioProyecto } from './proyectos.js';
+import type {
+  Asignacion,
+  EstadoProyecto,
+  EventoHistorialProyecto,
+  ProyectoConEstado,
+} from './asignaciones.js';
 
-export type { Acuerdo, EstadoObjetivo, Objetivo, EstadoIncidencia, Incidencia, CambioProyecto };
+export type {
+  Acuerdo,
+  EstadoObjetivo,
+  Objetivo,
+  EstadoIncidencia,
+  Incidencia,
+  CambioProyecto,
+  Asignacion,
+  EstadoProyecto,
+  ProyectoConEstado,
+  EventoHistorialProyecto,
+};
 
 export type ManagerId = string;
 
@@ -71,11 +88,22 @@ export interface Project {
   name: string;
 }
 
-/** Mentee tal y como la ve su manager en "Mi equipo": con su proyecto actual o ninguno. */
+/** Proyecto del catálogo con su estado: vigente o retirado, y la fecha del retiro. */
+export interface ProyectoCatalogo extends Project {
+  estado: EstadoProyecto;
+  fechaRetirada: string | null;
+}
+
+/**
+ * Mentee tal y como la ve su manager en "Mi equipo": su proyecto actual (el
+ * vigente con la entrada más reciente, para el puente legado de Team.tsx) y la
+ * lista de nombres de sus proyectos vigentes. Ver decisiones.md §Cambios 12.
+ */
 export interface MenteeConProyecto {
   id: string;
   name: string;
   project: Project | null;
+  proyectos: string[];
 }
 
 /** Nota tomada sobre un tema en un 1-to-1. */

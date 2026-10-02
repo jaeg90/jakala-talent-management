@@ -54,8 +54,8 @@ describe('LoginService', () => {
 describe('TeamService', () => {
   it('devuelve el equipo del manager con su proyecto actual', async () => {
     const equipo: MenteeConProyecto[] = [
-      { id: 'me-1', name: 'Ana Alonso', project: { id: 'pr-1', name: 'Atlas Bank' } },
-      { id: 'me-2', name: 'Beatriz Blanco', project: null },
+      { id: 'me-1', name: 'Ana Alonso', project: { id: 'pr-1', name: 'Atlas Bank' }, proyectos: ['Atlas Bank'] },
+      { id: 'me-2', name: 'Beatriz Blanco', project: null, proyectos: [] },
     ];
     const repo: TeamRepository = {
       async teamOf(managerId) {

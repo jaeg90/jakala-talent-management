@@ -1,8 +1,17 @@
-import type { CambioProyecto, Manager, Project } from '../domain/model.js';
+import type {
+  Asignacion,
+  CambioProyecto,
+  Manager,
+  Project,
+  ProyectoCatalogo,
+  ProyectoConEstado,
+} from '../domain/model.js';
 import type {
   MiembrosPorProyecto,
+  NuevaAsignacion,
   NuevoCambioProyecto,
   ProyectoRepository,
+  SalidaDeProyecto,
   SituacionProyecto,
 } from '../domain/ports.js';
 import {
@@ -10,13 +19,14 @@ import {
   validarMotivoCambio,
   validarNombreProyecto,
 } from '../domain/proyectos.js';
+import { validarFechaAsignacion, validarMotivoAsignacion } from '../domain/asignaciones.js';
 
 /** Caso de uso: catálogo de proyectos, cambios de proyecto y vista por proyecto. */
 export class ProyectoService {
   constructor(private readonly repository: ProyectoRepository) {}
 
-  /** Catálogo de proyectos (compartido). */
-  async proyectos(): Promise<Project[]> {
+  /** Catálogo completo de proyectos (vigentes y retirados). */
+  async proyectos(): Promise<ProyectoCatalogo[]> {
     return this.repository.proyectos();
   }
 
@@ -46,8 +56,48 @@ export class ProyectoService {
     });
   }
 
-  /** Mentees del manager agrupados por su proyecto actual. */
+  /** Mentees del manager agrupados por su proyecto vigente. */
   async miembrosPorProyecto(manager: Manager): Promise<MiembrosPorProyecto[]> {
     return this.repository.miembrosPorProyecto(manager.id);
+  }
+
+  /** Entra a una mentee en un proyecto validando fecha y motivo. */
+  async entrarEnProyecto(
+    manager: Manager,
+    menteeId: string,
+    entrada: NuevaAsignacion,
+  ): Promise<Asignacion> {
+    const desde = validarFechaAsignacion(entrada.desde);
+    const motivoEntrada = validarMotivoAsignacion(entrada.motivoEntrada);
+    return this.repository.entrarEnProyecto(manager.id, menteeId, {
+      proyecto: entrada.proyecto,
+      desde,
+      motivoEntrada,
+    });
+  }
+
+  /** Saca a una mentee de un proyecto validando fecha y motivo. */
+  async salirDeProyecto(
+    manager: Manager,
+    menteeId: string,
+    proyectoId: string,
+    salida: SalidaDeProyecto,
+  ): Promise<Asignacion> {
+    const hasta = validarFechaAsignacion(salida.hasta);
+    const motivoSalida = validarMotivoAsignacion(salida.motivoSalida);
+    return this.repository.salirDeProyecto(manager.id, menteeId, proyectoId, {
+      hasta,
+      motivoSalida,
+    });
+  }
+
+  /** Retira un proyecto vigente del catálogo (fechaRetirada = hoy). */
+  async retirarProyecto(proyectoId: string): Promise<ProyectoConEstado> {
+    return this.repository.retirarProyecto(proyectoId);
+  }
+
+  /** Reactiva un proyecto retirado (fechaRetirada = null). */
+  async reactivarProyecto(proyectoId: string): Promise<ProyectoConEstado> {
+    return this.repository.reactivarProyecto(proyectoId);
   }
 }

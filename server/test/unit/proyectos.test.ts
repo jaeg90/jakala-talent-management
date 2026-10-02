@@ -7,7 +7,7 @@ import {
   validarNombreProyecto,
 } from '../../src/domain/proyectos.js';
 import { ProyectoService } from '../../src/application/proyecto_service.js';
-import type { CambioProyecto, Manager, Project } from '../../src/domain/model.js';
+import type { CambioProyecto, Manager, ProyectoCatalogo } from '../../src/domain/model.js';
 import type { ProyectoRepository, SituacionProyecto } from '../../src/domain/ports.js';
 
 const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
@@ -84,13 +84,18 @@ describe('proyecto actual único a partir del último cambio', () => {
 });
 
 describe('ProyectoService', () => {
-  const proyecto: Project = { id: 'pr-atlas', name: 'Atlas Bank' };
-  const situacion: SituacionProyecto = { project: proyecto, cambios: [cambio('pr-atlas')] };
+  const catalogo: ProyectoCatalogo = {
+    id: 'pr-atlas',
+    name: 'Atlas Bank',
+    estado: 'vigente',
+    fechaRetirada: null,
+  };
+  const situacion: SituacionProyecto = { project: catalogo, cambios: [cambio('pr-atlas')] };
 
-  function fakeRepository(): ProyectoRepository {
+  function fakeRepository(opts: { registrarCambio?: () => void } = {}): ProyectoRepository {
     return {
       async proyectos() {
-        return [proyecto];
+        return [catalogo];
       },
       async addProyecto(name) {
         return { id: 'pr-nueva', name };
@@ -103,11 +108,43 @@ describe('ProyectoService', () => {
       async registrarCambio(managerId, menteeId, cambioRecibido) {
         expect(managerId).toBe('m-1');
         expect(menteeId).toBe('me-1');
+        opts.registrarCambio?.();
         return { id: 'c-2', menteeId, ...cambioRecibido, origenId: 'pr-atlas' };
       },
       async miembrosPorProyecto(managerId) {
         expect(managerId).toBe('m-1');
         return [{ projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] }];
+      },
+      async entrarEnProyecto(managerId, menteeId, entrada) {
+        expect(managerId).toBe('m-1');
+        expect(menteeId).toBe('me-1');
+        return {
+          mentee: menteeId,
+          proyecto: entrada.proyecto,
+          desde: entrada.desde,
+          motivoEntrada: entrada.motivoEntrada,
+          hasta: null,
+          motivoSalida: null,
+        };
+      },
+      async salirDeProyecto(managerId, menteeId, proyectoId, salida) {
+        expect(managerId).toBe('m-1');
+        expect(menteeId).toBe('me-1');
+        expect(proyectoId).toBe('pr-atlas');
+        return {
+          mentee: menteeId,
+          proyecto: proyectoId,
+          desde: '2026-09-01',
+          motivoEntrada: 'Alta',
+          hasta: salida.hasta,
+          motivoSalida: salida.motivoSalida,
+        };
+      },
+      async retirarProyecto(proyectoId) {
+        return { id: proyectoId, estado: 'retirado', fechaRetirada: '2026-10-01' };
+      },
+      async reactivarProyecto(proyectoId) {
+        return { id: proyectoId, estado: 'vigente', fechaRetirada: null };
       },
     };
   }
@@ -115,7 +152,7 @@ describe('ProyectoService', () => {
   it('lista el catálogo de proyectos', async () => {
     const service = new ProyectoService(fakeRepository());
 
-    await expect(service.proyectos()).resolves.toEqual([proyecto]);
+    await expect(service.proyectos()).resolves.toEqual([catalogo]);
   });
 
   it('da de alta con el nombre recortado', async () => {
@@ -140,25 +177,13 @@ describe('ProyectoService', () => {
 
   it('rechaza un motivo vacío sin llegar al repositorio', async () => {
     let llamado = false;
-    const repo: ProyectoRepository = {
-      async proyectos() {
-        return [];
-      },
-      async addProyecto() {
-        return proyecto;
-      },
-      async situacionDe() {
-        return { project: null, cambios: [] };
-      },
-      async registrarCambio() {
-        llamado = true;
-        return cambio('pr-nova');
-      },
-      async miembrosPorProyecto() {
-        return [];
-      },
-    };
-    const service = new ProyectoService(repo);
+    const service = new ProyectoService(
+      fakeRepository({
+        registrarCambio() {
+          llamado = true;
+        },
+      }),
+    );
 
     await expect(
       service.registrarCambio(manager, 'me-1', { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: '   ' }),
@@ -172,5 +197,66 @@ describe('ProyectoService', () => {
     await expect(service.miembrosPorProyecto(manager)).resolves.toEqual([
       { projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] },
     ]);
+  });
+
+  it('entra en un proyecto con fecha y motivo recortados', async () => {
+    const service = new ProyectoService(fakeRepository());
+
+    await expect(
+      service.entrarEnProyecto(manager, 'me-1', {
+        proyecto: 'pr-atlas',
+        desde: ' 2026-09-01 ',
+        motivoEntrada: ' Alta ',
+      }),
+    ).resolves.toMatchObject({
+      proyecto: 'pr-atlas',
+      desde: '2026-09-01',
+      motivoEntrada: 'Alta',
+      hasta: null,
+      motivoSalida: null,
+    });
+  });
+
+  it('rechaza una entrada con motivo vacío sin llegar al repositorio', async () => {
+    let llamado = false;
+    const repo = fakeRepository();
+    const original = repo.entrarEnProyecto.bind(repo);
+    repo.entrarEnProyecto = async (...args) => {
+      llamado = true;
+      return original(...args);
+    };
+    const service = new ProyectoService(repo);
+
+    await expect(
+      service.entrarEnProyecto(manager, 'me-1', {
+        proyecto: 'pr-atlas',
+        desde: '2026-09-01',
+        motivoEntrada: '   ',
+      }),
+    ).rejects.toThrow();
+    expect(llamado).toBe(false);
+  });
+
+  it('sale de un proyecto con fecha y motivo recortados', async () => {
+    const service = new ProyectoService(fakeRepository());
+
+    await expect(
+      service.salirDeProyecto(manager, 'me-1', 'pr-atlas', {
+        hasta: ' 2026-10-01 ',
+        motivoSalida: ' Fin ',
+      }),
+    ).resolves.toMatchObject({ hasta: '2026-10-01', motivoSalida: 'Fin' });
+  });
+
+  it('retira y reactiva un proyecto delegando en el repositorio', async () => {
+    const service = new ProyectoService(fakeRepository());
+
+    await expect(service.retirarProyecto('pr-atlas')).resolves.toMatchObject({
+      estado: 'retirado',
+    });
+    await expect(service.reactivarProyecto('pr-atlas')).resolves.toMatchObject({
+      estado: 'vigente',
+      fechaRetirada: null,
+    });
   });
 });

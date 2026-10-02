@@ -73,15 +73,38 @@ export function seed(db: Database): void {
     insertarPlantillaInicial(db, m.id);
   }
 
-  const insertProject = db.prepare('INSERT INTO projects (id, name) VALUES (?, ?)');
+  const insertProject = db.prepare(
+    'INSERT INTO projects (id, name, fecha_retirada) VALUES (?, ?, NULL)',
+  );
   for (const p of SEED_PROJECTS) {
     insertProject.run(p.id, p.name);
   }
 
-  const insertMentee = db.prepare(
-    'INSERT INTO mentees (id, manager_id, name, project_id) VALUES (?, ?, ?, ?)',
-  );
+  const insertMentee = db.prepare('INSERT INTO mentees (id, manager_id, name) VALUES (?, ?, ?)');
   for (const m of SEED_MENTEES) {
-    insertMentee.run(m.id, m.managerId, m.name, m.projectId);
+    insertMentee.run(m.id, m.managerId, m.name);
   }
+
+  // Fuente única de verdad de los proyectos actuales: las asignaciones vigentes.
+  // Cada mentee con proyecto se siembra con una entrada «Alta en el equipo» fechada
+  // hoy − 90 días (ver especificacion-pantallas.md §Ajustes · 3b). Sin proyecto, sin asignación.
+  const insertAsignacion = db.prepare(
+    'INSERT INTO asignaciones (mentee_id, proyecto_id, desde, motivo_entrada, hasta, motivo_salida) VALUES (?, ?, ?, ?, NULL, NULL)',
+  );
+  const desde = fechaHaceDias(90);
+  for (const m of SEED_MENTEES) {
+    if (m.projectId !== null) {
+      insertAsignacion.run(m.id, m.projectId, desde, MOTIVO_ALTA_EN_EL_EQUIPO);
+    }
+  }
+}
+
+/** Motivo canon del alta en el equipo (especificacion-pantallas.md §Ajustes · 3b). */
+const MOTIVO_ALTA_EN_EL_EQUIPO = 'Alta en el equipo';
+
+/** Fecha ISO (YYYY-MM-DD) de hace `dias` días, en UTC (coherente con toISOString). */
+function fechaHaceDias(dias: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - dias);
+  return d.toISOString().slice(0, 10);
 }

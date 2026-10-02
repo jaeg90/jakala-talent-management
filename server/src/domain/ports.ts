@@ -11,10 +11,12 @@ import type {
   TemaPropio,
   Incidencia,
   Project,
+  ProyectoCatalogo,
   CambioProyecto,
   Traspaso,
   TemaPlantilla,
 } from './model.js';
+import type { Asignacion, ProyectoConEstado } from './asignaciones.js';
 
 /**
  * Puerto de autenticación (ADR-0002): comprobar credenciales de manager.
@@ -124,6 +126,19 @@ export interface NuevoCambioProyecto {
   motivo: string;
 }
 
+/** Datos para entrar a una mentee en un proyecto (alta de asignación). */
+export interface NuevaAsignacion {
+  proyecto: string;
+  desde: string;
+  motivoEntrada: string;
+}
+
+/** Datos para salir de un proyecto (cierre de la asignación vigente). */
+export interface SalidaDeProyecto {
+  hasta: string;
+  motivoSalida: string;
+}
+
 /** Mentee tal y como aparece agrupada en la vista "quién está en cada proyecto". */
 export interface MiembroDeProyecto {
   id: string;
@@ -148,16 +163,29 @@ export interface SituacionProyecto {
  * Las operaciones sobre una mentee se acotan por manager (aislamiento).
  */
 export interface ProyectoRepository {
-  /** Catálogo de proyectos (compartido). */
-  proyectos(): Promise<Project[]>;
-  /** Da de alta un proyecto; lanza si el nombre está vacío o repetido. */
+  /** Catálogo completo de proyectos (vigentes y retirados), con su estado. */
+  proyectos(): Promise<ProyectoCatalogo[]>;
+  /** Da de alta un proyecto vigente; lanza si el nombre está vacío o repetido. */
   addProyecto(name: string): Promise<Project>;
   /** Proyecto actual e historial de cambios de una mentee, solo si es del manager. */
   situacionDe(managerId: ManagerId, menteeId: string): Promise<SituacionProyecto>;
-  /** Registra un cambio (origen = proyecto actual) y actualiza el proyecto actual. */
+  /** Registra un cambio (origen = proyecto actual); escribe doble en el histórico y en asignaciones. */
   registrarCambio(managerId: ManagerId, menteeId: string, cambio: NuevoCambioProyecto): Promise<CambioProyecto>;
-  /** Mentees del manager agrupados por su proyecto actual (incluye "sin proyecto"). */
+  /** Mentees del manager agrupados por su proyecto vigente (una mentee aparece en cada uno). */
   miembrosPorProyecto(managerId: ManagerId): Promise<MiembrosPorProyecto[]>;
+  /** Entra a una mentee en un proyecto; lanza si ya tiene una asignación vigente al mismo. */
+  entrarEnProyecto(managerId: ManagerId, menteeId: string, entrada: NuevaAsignacion): Promise<Asignacion>;
+  /** Cierra la asignación vigente de una mentee a un proyecto (salida con fecha y motivo). */
+  salirDeProyecto(
+    managerId: ManagerId,
+    menteeId: string,
+    proyectoId: string,
+    salida: SalidaDeProyecto,
+  ): Promise<Asignacion>;
+  /** Retira un proyecto vigente (fechaRetirada = hoy); lanza si tiene asignaciones vigentes. */
+  retirarProyecto(proyectoId: string): Promise<ProyectoConEstado>;
+  /** Reactiva un proyecto retirado (fechaRetirada = null). */
+  reactivarProyecto(proyectoId: string): Promise<ProyectoConEstado>;
 }
 
 /** Puerto de sesiones: crear/consultar/cerrar sesiones por token. */

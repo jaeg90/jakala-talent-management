@@ -421,7 +421,73 @@ export function createApp(deps: AppDeps): express.Express {
     }
   }));
 
-  // Quién está hoy en cada proyecto (mentees del manager, agrupados por proyecto actual).
+  // Retira un proyecto vigente del catálogo (fechaRetirada = hoy).
+  app.post('/api/proyectos/:proyectoId/retirar', requireSession(deps.sessions, async (req, res) => {
+    try {
+      const retirado = await deps.proyectos.retirarProyecto(param(req, 'proyectoId'));
+      res.json(retirado);
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al retirar el proyecto');
+    }
+  }));
+
+  // Reactiva un proyecto retirado (fechaRetirada = null).
+  app.post('/api/proyectos/:proyectoId/reactivar', requireSession(deps.sessions, async (req, res) => {
+    try {
+      const reactivado = await deps.proyectos.reactivarProyecto(param(req, 'proyectoId'));
+      res.json(reactivado);
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al reactivar el proyecto');
+    }
+  }));
+
+  // Entrar en un proyecto: alta de asignación (proyecto, desde, motivoEntrada).
+  app.post('/api/mentees/:menteeId/proyectos', requireSession(deps.sessions, async (req, res, manager) => {
+    const body = (req.body ?? {}) as { proyecto?: unknown; desde?: unknown; motivoEntrada?: unknown };
+    if (
+      typeof body.proyecto !== 'string' ||
+      typeof body.desde !== 'string' ||
+      typeof body.motivoEntrada !== 'string'
+    ) {
+      res.status(400).json({ error: 'Estructura de entrada en proyecto inválida' });
+      return;
+    }
+    try {
+      const asignacion = await deps.proyectos.entrarEnProyecto(manager, param(req, 'menteeId'), {
+        proyecto: body.proyecto,
+        desde: body.desde,
+        motivoEntrada: body.motivoEntrada,
+      });
+      res.status(201).json(asignacion);
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al entrar en el proyecto');
+    }
+  }));
+
+  // Salir de un proyecto: cierra la asignación vigente (hasta, motivoSalida).
+  app.post(
+    '/api/mentees/:menteeId/proyectos/:proyectoId/salir',
+    requireSession(deps.sessions, async (req, res, manager) => {
+      const body = (req.body ?? {}) as { hasta?: unknown; motivoSalida?: unknown };
+      if (typeof body.hasta !== 'string' || typeof body.motivoSalida !== 'string') {
+        res.status(400).json({ error: 'Estructura de salida de proyecto inválida' });
+        return;
+      }
+      try {
+        const asignacion = await deps.proyectos.salirDeProyecto(
+          manager,
+          param(req, 'menteeId'),
+          param(req, 'proyectoId'),
+          { hasta: body.hasta, motivoSalida: body.motivoSalida },
+        );
+        res.json(asignacion);
+      } catch (err) {
+        responderProyectoError(res, err, 'Error al salir del proyecto');
+      }
+    }),
+  );
+
+  // Quién está hoy en cada proyecto (mentees del manager, agrupados por proyecto vigente).
   app.get('/api/proyectos/miembros', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ proyectos: await deps.proyectos.miembrosPorProyecto(manager) });
   }));

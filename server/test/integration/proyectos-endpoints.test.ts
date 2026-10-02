@@ -230,3 +230,176 @@ describe('aislamiento por manager', () => {
     expect(ids).not.toContain(ANA);
   });
 });
+
+const LUCIA = 'lucia@jakala.example';
+const HUGO = 'me-hugo';
+
+interface ProyectoConEstadoApi {
+  id: string;
+  name: string;
+  estado: string;
+  fechaRetirada: string | null;
+}
+
+async function addProyecto(name: string, email: string): Promise<ProyectoApi> {
+  const res = await fetch(`${baseUrl}/api/proyectos`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: await login(email) },
+    body: JSON.stringify({ name }),
+  });
+  expect(res.status).toBe(201);
+  return (await res.json()) as ProyectoApi;
+}
+
+async function entrar(
+  menteeId: string,
+  email: string,
+  body: { proyecto: string; desde: string; motivoEntrada: string },
+): Promise<Response> {
+  return fetch(`${baseUrl}/api/mentees/${menteeId}/proyectos`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: await login(email) },
+    body: JSON.stringify(body),
+  });
+}
+
+async function salir(
+  menteeId: string,
+  proyectoId: string,
+  email: string,
+  body: { hasta: string; motivoSalida: string },
+): Promise<Response> {
+  return fetch(`${baseUrl}/api/mentees/${menteeId}/proyectos/${proyectoId}/salir`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: await login(email) },
+    body: JSON.stringify(body),
+  });
+}
+
+async function retirar(proyectoId: string, email: string): Promise<Response> {
+  return fetch(`${baseUrl}/api/proyectos/${proyectoId}/retirar`, {
+    method: 'POST',
+    headers: { cookie: await login(email) },
+  });
+}
+
+async function reactivar(proyectoId: string, email: string): Promise<Response> {
+  return fetch(`${baseUrl}/api/proyectos/${proyectoId}/reactivar`, {
+    method: 'POST',
+    headers: { cookie: await login(email) },
+  });
+}
+
+async function catalogos(email: string): Promise<ProyectoConEstadoApi[]> {
+  const res = await fetch(`${baseUrl}/api/proyectos`, { headers: { cookie: await login(email) } });
+  const body = (await res.json()) as { proyectos: ProyectoConEstadoApi[] };
+  return body.proyectos;
+}
+
+async function team(email: string): Promise<{ id: string; name: string; project: ProyectoApi | null; proyectos: string[] }[]> {
+  const res = await fetch(`${baseUrl}/api/team`, { headers: { cookie: await login(email) } });
+  const body = (await res.json()) as {
+    mentees: { id: string; name: string; project: ProyectoApi | null; proyectos: string[] }[];
+  };
+  return body.mentees;
+}
+
+describe('API nueva: GET /api/proyectos con estado', () => {
+  it('devuelve todos los proyectos con estado y fechaRetirada', async () => {
+    const proyectos = await catalogos(MARTA);
+    const atlas = proyectos.find((p) => p.id === 'pr-atlas');
+    expect(atlas).toEqual({ id: 'pr-atlas', name: 'Atlas Bank', estado: 'vigente', fechaRetirada: null });
+  });
+});
+
+describe('API nueva: entrar y salir de proyectos', () => {
+  it('entra en un proyecto con 201 y el contrato de Asignacion', async () => {
+    const nuevo = await addProyecto('Proyecto Extra', MARTA);
+    const res = await entrar(CARLA, MARTA, { proyecto: nuevo.id, desde: '2026-09-01', motivoEntrada: 'Apoyo' });
+
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      mentee: CARLA,
+      proyecto: nuevo.id,
+      desde: '2026-09-01',
+      motivoEntrada: 'Apoyo',
+      hasta: null,
+      motivoSalida: null,
+    });
+  });
+
+  it('rechaza entrar dos veces al mismo proyecto con 400', async () => {
+    const res = await entrar(CARLA, MARTA, { proyecto: 'pr-aurora', desde: '2026-09-02', motivoEntrada: 'Otra' });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/ya está/);
+  });
+
+  it('rechaza una estructura inválida con 400', async () => {
+    const res = await entrar(CARLA, MARTA, {
+      proyecto: 'pr-atlas',
+    } as unknown as { proyecto: string; desde: string; motivoEntrada: string });
+    expect(res.status).toBe(400);
+  });
+
+  it('sale de un proyecto con 200 y fija hasta/motivoSalida', async () => {
+    const nuevo = await addProyecto('Proyecto Salida', MARTA);
+    await entrar(BEA, MARTA, { proyecto: nuevo.id, desde: '2026-09-01', motivoEntrada: 'Alta' });
+
+    const res = await salir(BEA, nuevo.id, MARTA, { hasta: '2026-09-20', motivoSalida: 'Fin' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      mentee: BEA,
+      proyecto: nuevo.id,
+      hasta: '2026-09-20',
+      motivoSalida: 'Fin',
+    });
+  });
+
+  it('salir del último proyecto deja a la mentee sin proyecto', async () => {
+    const nuevo = await addProyecto('Proyecto Único', LUCIA);
+    await entrar(HUGO, LUCIA, { proyecto: nuevo.id, desde: '2026-09-01', motivoEntrada: 'Alta' });
+
+    const res = await salir(HUGO, nuevo.id, LUCIA, { hasta: '2026-09-20', motivoSalida: 'Fin' });
+    expect(res.status).toBe(200);
+
+    const equipo = await team(LUCIA);
+    const hugo = equipo.find((m) => m.id === HUGO);
+    expect(hugo?.project).toBeNull();
+    expect(hugo?.proyectos).toEqual([]);
+  });
+});
+
+describe('API nueva: retirar y reactivar proyectos', () => {
+  it('retirar con asignaciones vigentes da 400', async () => {
+    const res = await retirar('pr-atlas', MARTA);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/asignaciones vigentes/);
+  });
+
+  it('retirar fija fechaRetirada y reactivar la limpia', async () => {
+    const nuevo = await addProyecto('Proyecto Retirable', MARTA);
+
+    const resRetiro = await retirar(nuevo.id, MARTA);
+    expect(resRetiro.status).toBe(200);
+    const retirado = (await resRetiro.json()) as { id: string; estado: string; fechaRetirada: string | null };
+    expect(retirado).toEqual({
+      id: nuevo.id,
+      estado: 'retirado',
+      fechaRetirada: new Date().toISOString().slice(0, 10),
+    });
+
+    const enCatalogo = (await catalogos(MARTA)).find((p) => p.id === nuevo.id);
+    expect(enCatalogo?.estado).toBe('retirado');
+
+    const resReactivar = await reactivar(nuevo.id, MARTA);
+    expect(resReactivar.status).toBe(200);
+    expect(await resReactivar.json()).toEqual({ id: nuevo.id, estado: 'vigente', fechaRetirada: null });
+  });
+
+  it('reactivar un proyecto vigente da 400', async () => {
+    const res = await reactivar('pr-atlas', MARTA);
+    expect(res.status).toBe(400);
+  });
+});
