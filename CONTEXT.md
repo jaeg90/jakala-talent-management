@@ -108,16 +108,28 @@ _Avoid_: aprobado, OK, success
 Estado de un ticket en que algo ha fallado, una puerta o la revisión: nace una sesión reparadora.
 _Avoid_: fallo, error, broken
 
+**Hallazgo**:
+Defecto del diff contra la spec del ticket que la revisora enumera en una sola respuesta, un veredicto por criterio; fuerza rojo y viaja entero a la reparadora.
+_Avoid_: error de revisión, issue
+
+**Duda**:
+Ambigüedad del cuerpo de un ticket — dos lecturas razonables del mismo criterio que producen diffs distintos — que ninguna sesión puede resolver sin adivinar; fuerza devolución.
+_Avoid_: pregunta, incertidumbre, bloqueo
+
 **Reintento**:
 Ciclo de reparación de un ticket tras un rojo, sea cual sea su origen; cada ticket tiene N (configurable) antes del escalado.
 _Avoid_: intento, ciclo de reintento
 
 **Escalado**:
-Devolución de un ticket al humano tras agotar sus reintentos: etiqueta `ready-for-human`, comentario con el último error, aviso y fin de la pasada; el Piloto no pasa al siguiente ticket.
-_Avoid_: handoff, abandono, derivar
+Fin de la tramitación de un ticket en manos del humano tras agotar sus reintentos: etiqueta `ready-for-human`, comentario con el último error, aviso y fin de la pasada; el Piloto no pasa al siguiente ticket.
+_Avoid_: handoff, abandono, derivar, devolución
+
+**Devolución**:
+Salida del ciclo que devuelve un ticket al humano porque su cuerpo no determina la implementación: etiqueta `needs-grill`, comentario con las dudas, aviso y fin de la pasada; no consume reintentos y el diff queda en el árbol.
+_Avoid_: escalado, handoff, reembolso
 
 **Pasada**:
-Ejecución completa del Piloto sobre la frontera: arranca consultando los tickets y termina sola con la frontera vacía o un escalado.
+Ejecución completa del Piloto sobre la frontera: arranca consultando los tickets y termina sola con la frontera vacía, un escalado o una devolución.
 _Avoid_: run, ejecución, tanda
 
 **Retomada**:

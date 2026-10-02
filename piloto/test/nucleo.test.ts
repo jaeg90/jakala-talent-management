@@ -186,6 +186,83 @@ describe('Núcleo: rojo, reintentos y escalado', () => {
   });
 });
 
+describe('Núcleo: devolución por dudas de spec (ADR-0012)', () => {
+  it('la implementadora puede devolver el ticket antes de construir: no consume reintentos', () => {
+    const enImplementacion = paso(crearPasada({ reintentos: 3, tickets: ticketsDePrueba() })).pasada;
+
+    const mov = resultado(enImplementacion, {
+      tipo: 'ticketDevuelto',
+      dudas: '¿«tarjeta 420px» es ancho total o de contenido?',
+    });
+
+    expect(mov.pasada.fase).toBe('devuelta');
+    expect(mov.pasada.reintentosUsados).toBe(0);
+    expect(mov.pasada.tickets.find((t) => t.numero === 4)?.estado).toBe('devuelto');
+    expect(mov.comandos).toEqual([
+      {
+        tipo: 'devolver',
+        ticket: expect.objectContaining({ numero: 4 }),
+        dudas: '¿«tarjeta 420px» es ancho total o de contenido?',
+        hallazgos: null,
+      },
+    ]);
+    expect(mov.pasada.narracion.at(-1)).toMatch(/devuelve #4/);
+  });
+
+  it('una duda de la revisora fuerza devolución aunque traiga hallazgos, y sin quemar reintento', () => {
+    const mov = resultado(hasta('revisión'), {
+      tipo: 'revisiónConDuda',
+      hallazgos: 'El avatar solo tiene el tamaño 28px.',
+      dudas: '¿«tarjeta 420px» es ancho total o de contenido?',
+    });
+
+    expect(mov.pasada.fase).toBe('devuelta');
+    expect(mov.pasada.reintentosUsados).toBe(0);
+    expect(mov.comandos[0]).toEqual({
+      tipo: 'devolver',
+      ticket: expect.objectContaining({ numero: 4 }),
+      dudas: '¿«tarjeta 420px» es ancho total o de contenido?',
+      hallazgos: 'El avatar solo tiene el tamaño 28px.',
+    });
+    expect(mov.pasada.narracion.at(-1)).toMatch(/sin quemar reintento/);
+  });
+
+  it('el paso en devuelta termina la pasada sin tocar el resto de la frontera', () => {
+    const devuelta = resultado(hasta('revisión'), {
+      tipo: 'revisiónConDuda',
+      hallazgos: null,
+      dudas: '¿El aviso del login es un aviso inline o un diálogo modal?',
+    }).pasada;
+
+    const fin = paso(devuelta);
+
+    expect(fin.pasada.fase).toBe('fin');
+    expect(fin.comandos).toEqual([{ tipo: 'terminar', motivo: 'devolución', abiertos: [4, 5, 6, 7, 8] }]);
+    expect(fin.pasada.narracion.at(-1)).toMatch(/sesión de grill/);
+  });
+
+  it('un ticket devuelto no desbloquea a sus bloqueados', () => {
+    const devuelta = resultado(hasta('revisión'), {
+      tipo: 'revisiónConDuda',
+      hallazgos: null,
+      dudas: '¿El aviso del login es un aviso inline o un diálogo modal?',
+    }).pasada;
+
+    expect(fronteraDe(devuelta).map((t) => t.numero)).toEqual([8]);
+  });
+
+  it('una devolución fuera de fase se ignora', () => {
+    const mov = resultado(hasta('puertas'), {
+      tipo: 'revisiónConDuda',
+      hallazgos: null,
+      dudas: '¿El aviso del login es un aviso inline o un diálogo modal?',
+    });
+
+    expect(mov.pasada.fase).toBe('puertas');
+    expect(mov.pasada.narracion.at(-1)).toMatch(/Lo ignoro/);
+  });
+});
+
 describe('Núcleo: resultados inesperados y fin de pasada', () => {
   it('un evento que no corresponde a la fase se ignora: mismo estado, solo narración', () => {
     const enRevision = hasta('revisión');

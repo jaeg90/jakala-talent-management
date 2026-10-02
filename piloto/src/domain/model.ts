@@ -13,9 +13,10 @@ export type Fase =
   | 'verde'
   | 'rojo'
   | 'escalado'
+  | 'devuelta'
   | 'fin';
 
-export type EstadoTicket = 'lista' | 'cerrado' | 'escalado';
+export type EstadoTicket = 'lista' | 'cerrado' | 'escalado' | 'devuelto';
 
 /** Un ticket del tracker: lo que reciben la implementadora y la reparadora (contexto fresco: datos del tracker, no conversación). */
 export interface Ticket {
@@ -32,6 +33,14 @@ export interface ErrorEnMano {
   /** Puerta que falló, cuando el origen es una puerta. */
   puerta?: string;
   texto: string;
+}
+
+/** El veredicto de la revisora (ADR-0010 + ADR-0012): defectos del diff y ambigüedades del cuerpo. */
+export interface Veredicto {
+  /** Hallazgos: defectos del diff contra la spec, una línea por hallazgo; null = ninguno. */
+  hallazgos: string | null;
+  /** Dudas: valores que el cuerpo del ticket no determina; cualquier duda fuerza devolución. */
+  dudas: string[];
 }
 
 /** Estado completo de una pasada: lo único que el Piloto recuerda. */
@@ -51,8 +60,10 @@ export interface Pasada {
 /** Resultados que el mundo trae: cada sesión y cada puerta responde con un evento. */
 export type Evento =
   | { tipo: 'diffListo'; resumen: string }
+  | { tipo: 'ticketDevuelto'; dudas: string }
   | { tipo: 'revisiónSinHallazgos' }
   | { tipo: 'revisiónConHallazgo'; texto: string }
+  | { tipo: 'revisiónConDuda'; hallazgos: string | null; dudas: string }
   | { tipo: 'puertasEnVerde' }
   | { tipo: 'puertaEnRojo'; puerta: string; salida: string }
   | { tipo: 'parcheListo' };
@@ -65,14 +76,24 @@ export type Comando =
   | { tipo: 'lanzarReparadora'; ticket: Ticket; reintento: number; reintentosConfigurados: number; error: ErrorEnMano }
   | { tipo: 'empujarYCerrar'; ticket: Ticket; resumen: string | null }
   | { tipo: 'escalar'; ticket: Ticket; error: ErrorEnMano }
-  | { tipo: 'terminar'; motivo: 'fronteraVacia' | 'escalado'; abiertos: number[] };
+  | {
+      tipo: 'devolver';
+      ticket: Ticket;
+      /** Dudas numeradas que una sesión de grill con el humano debe resolver (ADR-0012). */
+      dudas: string;
+      /** Hallazgos que viajan como contexto para el grill, cuando la revisora trajo dudas y defectos. */
+      hallazgos: string | null;
+    }
+  | { tipo: 'terminar'; motivo: 'fronteraVacia' | 'escalado' | 'devolución'; abiertos: number[] };
 
 /** Etiquetas del tracker que marcan los tickets del Piloto (configuración). */
 export interface Etiquetas {
   /** Tickets candidatos: desbloqueados y listos (ready-for-agent). */
   lista: string;
-  /** Tickets devueltos al humano (ready-for-human). */
+  /** Tickets devueltos al humano tras agotar los reintentos (ready-for-human). */
   escalado: string;
+  /** Tickets devueltos por dudas de spec: requieren una sesión de grill (needs-grill, ADR-0012). */
+  devolución: string;
 }
 
 /** Una puerta del arnés: nombre y el comando que la ejecuta (configuración). */

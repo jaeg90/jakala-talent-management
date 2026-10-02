@@ -40,7 +40,11 @@ export async function cargarConfig(ruta: string): Promise<ConfigPiloto> {
       tiempoMaxMinutos: crudo.sesiones?.tiempoMaxMinutos ?? 30,
     },
     puertas: exigir(crudo.puertas, 'puertas'),
-    etiquetas: exigir(crudo.etiquetas, 'etiquetas'),
+    etiquetas: {
+      lista: exigir(crudo.etiquetas?.lista, 'etiquetas.lista'),
+      escalado: exigir(crudo.etiquetas?.escalado, 'etiquetas.escalado'),
+      devolución: exigir(crudo.etiquetas?.devolución, 'etiquetas.devolución'),
+    },
     aviso: crudo.aviso ?? { tipo: 'consola' },
   };
 }

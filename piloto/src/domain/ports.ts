@@ -1,4 +1,4 @@
-import type { ErrorEnMano, Ticket } from './model.js';
+import type { ErrorEnMano, Ticket, Veredicto } from './model.js';
 
 /**
  * Los cinco puertos del Piloto (ADR-0004). El núcleo decide; los adaptadores
@@ -28,11 +28,17 @@ export interface PuertoFrontera {
  * de la implementadora.
  * Adaptador actual: opencode run, un modelo por papel según configuración.
  */
+
+/** Lo que la implementadora trae: el diff listo con su resumen, o el ticket devuelto con sus dudas (ADR-0012). */
+export type ResultadoImplementación =
+  | { tipo: 'diffListo'; resumen: string }
+  | { tipo: 'ticketDevuelto'; dudas: string };
+
 export interface PuertoSesiones {
-  /** Implementadora: recibe solo el ticket; devuelve un resumen para el cierre. */
-  implementar(ticket: Ticket): Promise<string>;
-  /** Revisora: revisa el diff contra estándares y spec; null = sin hallazgos. */
-  revisar(ticket: Ticket): Promise<string | null>;
+  /** Implementadora: recibe solo el ticket; entrega el diff o devuelve el ticket si el cuerpo no determina la implementación. */
+  implementar(ticket: Ticket): Promise<ResultadoImplementación>;
+  /** Revisora: audita el diff criterio a criterio; hallazgos (defectos) y dudas (ambigüedades del cuerpo, ADR-0012). */
+  revisar(ticket: Ticket): Promise<Veredicto>;
   /** Reparadora: recibe el ticket y el error en mano (ADR-0010). */
   reparar(ticket: Ticket, error: ErrorEnMano, reintento: number): Promise<void>;
 }

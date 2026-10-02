@@ -54,6 +54,14 @@ A global design criterion (tokens as the only visual source, the accessibility c
 - Shared files (`styles.css`) carry explicit section exclusions, or the reviewer applies global criteria to everything the diff touches.
 - Real defects in what the ticket builds stay in scope: the rule excludes coexistence, never defects.
 
+## The precision rule: fix the values the revisora will audit
+
+The revisora audits the diff against the body AND the repo's design docs (`componentes.md`, `accesibilidad.md`, `tokens.css`), criterion by criterion (ADR-0012). Any value those docs fix that the body doesn't quote is a finding waiting for its round — or a DUDA if two readings are reasonable:
+
+- Quote verbatim the component rows the ticket builds (padding, gaps, sizes, states) and the accessibility contract rows it must satisfy (touch targets, ARIA, copy).
+- A global value that applies here (e.g. the 44px minimum touch target on mobile) is named in the criteria, scoped as always.
+- If the design docs and the screen spec disagree (§01 fixes the login card at 20px radius; tokens say cards are 16px), the body adjudicates — or the ticket is a DUDA from round one. Don't ship a contradiction.
+
 ## Size
 
 One implementación session (45 min) must be able to build the ticket. If the body holds more than one screen or more than one domain concept, split at the system's real seams (domain rules vs API vs UI bridge), and let each child declare its edges. Keep the parent's number for its natural core; children are new issues.

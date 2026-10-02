@@ -12,4 +12,10 @@ Las skills hablan en términos de cinco roles de triage canónicos. Este archivo
 
 Cuando una skill mencione un rol (p. ej. "apply the AFK-ready triage label"), usa la cadena de etiqueta correspondiente de esta tabla.
 
+Roles locales, añadidos a los cinco canónicos porque este repo los necesita:
+
+| Etiqueta en nuestro tracker | Significado |
+| --------------------------- | ----------- |
+| `needs-grill` | El cuerpo del issue no determina la implementación (ADR-0012): una sesión de contexto fresco lo devolvió con dudas numeradas. Requiere una sesión de grill con el humano; su desenlace aterriza en el propio cuerpo (antídotos, ADR-0011) y el issue vuelve a `ready-for-agent`. No es `needs-info` (la información no la trae quien reportó) ni `ready-for-human` (no requiere implementación humana). |
+
 Edita la columna derecha para adaptarla al vocabulario que realmente uses.

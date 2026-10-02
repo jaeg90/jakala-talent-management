@@ -5,7 +5,8 @@ import { ejecutar } from './procesos.js';
 /**
  * Adaptador de frontera: GitHub Issues vía gh CLI.
  * Un issue abierto con la etiqueta de lista es candidato; cerrado, cuenta como
- * bloqueo resuelto; con la etiqueta de escalado, queda fuera del Piloto.
+ * bloqueo resuelto; con la etiqueta de escalado o la de devolución (ADR-0012),
+ * queda fuera del Piloto, en manos del humano.
  */
 
 interface IssueGh {
@@ -33,6 +34,8 @@ function ticketsDesdeIssues(issues: IssueGh[], etiquetas: Etiquetas): Ticket[] {
       // Abierto sin etiqueta de lista: invisible para el Piloto (pero sigue bloqueando).
       if (tiene(etiquetas.escalado)) {
         tickets.push(aTicket(issue, 'escalado'));
+      } else if (tiene(etiquetas.devolución)) {
+        tickets.push(aTicket(issue, 'devuelto'));
       } else if (tiene(etiquetas.lista)) {
         tickets.push(aTicket(issue, 'lista'));
       }

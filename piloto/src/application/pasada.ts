@@ -15,7 +15,7 @@ export type Narrador = (linea: string) => void;
 /** Lo que el loop necesita saber de la configuración. */
 export interface ConfigPasada {
   reintentos: number;
-  /** Etiquetas del tracker (ready-for-agent / ready-for-human). */
+  /** Etiquetas del tracker (ready-for-agent / ready-for-human / needs-grill). */
   etiquetas: Etiquetas;
 }
 
@@ -66,13 +66,24 @@ async function ejecutarComando(
   comando: Comando,
 ): Promise<Evento | null> {
   switch (comando.tipo) {
-    case 'lanzarImplementadora':
-      return { tipo: 'diffListo', resumen: await puertos.sesiones.implementar(comando.ticket) };
+    case 'lanzarImplementadora': {
+      const entrega = await puertos.sesiones.implementar(comando.ticket);
+      return entrega.tipo === 'ticketDevuelto'
+        ? { tipo: 'ticketDevuelto', dudas: entrega.dudas }
+        : { tipo: 'diffListo', resumen: entrega.resumen };
+    }
     case 'lanzarRevisora': {
-      const hallazgo = await puertos.sesiones.revisar(comando.ticket);
-      return hallazgo === null
+      const veredicto = await puertos.sesiones.revisar(comando.ticket);
+      if (veredicto.dudas.length > 0) {
+        return {
+          tipo: 'revisiónConDuda',
+          hallazgos: veredicto.hallazgos,
+          dudas: veredicto.dudas.join('\n'),
+        };
+      }
+      return veredicto.hallazgos === null
         ? { tipo: 'revisiónSinHallazgos' }
-        : { tipo: 'revisiónConHallazgo', texto: hallazgo };
+        : { tipo: 'revisiónConHallazgo', texto: veredicto.hallazgos };
     }
     case 'abrirPuertas': {
       const rojo = await puertos.puertas.ejecutar();
@@ -99,6 +110,37 @@ async function ejecutarComando(
       await puertos.frontera.comentar(comando.ticket.numero, comentario);
       await puertos.avisos.avisar(
         `El Piloto escaló el ticket #${comando.ticket.numero} a un humano. La pasada se detiene. ${comentario}`,
+      );
+      return null;
+    }
+    case 'devolver': {
+      const lineas = [
+        'Devuelto por el Piloto: el cuerpo del ticket no determina la implementación (ADR-0012).',
+        'Dudas que una sesión de grill con el humano debe resolver:',
+        ...comando.dudas.split('\n').map((d) => `- ${d}`),
+      ];
+      if (comando.hallazgos !== null) {
+        lineas.push(
+          '',
+          'Hallazgos ya detectados en el diff (contexto para el grill, no dudas):',
+          ...comando.hallazgos.split('\n').map((h) => `- ${h}`),
+        );
+      }
+      lineas.push(
+        '',
+        'Desenlace esperado: las respuestas del grill aterrizan en este cuerpo (antídotos, ADR-0011),',
+        'se retira «needs-grill» y se repone «ready-for-agent»; la siguiente pasada retoma el diff donde quedó.',
+      );
+      const comentario = lineas.join('\n');
+      await puertos.frontera.etiquetar(
+        comando.ticket.numero,
+        config.etiquetas.devolución,
+        config.etiquetas.lista,
+      );
+      await puertos.frontera.comentar(comando.ticket.numero, comentario);
+      await puertos.avisos.avisar(
+        `El Piloto devolvió el ticket #${comando.ticket.numero}: el cuerpo no determina la implementación. ` +
+          `La pasada se detiene. ${comentario}`,
       );
       return null;
     }

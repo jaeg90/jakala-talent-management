@@ -19,7 +19,8 @@
   ],
   "etiquetas": {
     "lista": "ready-for-agent",
-    "escalado": "ready-for-human"
+    "escalado": "ready-for-human",
+    "devolución": "needs-grill"
   },
   "aviso": { "tipo": "consola" }
 }

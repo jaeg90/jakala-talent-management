@@ -4,6 +4,8 @@ import type { Evento, Movimiento, Pasada, Ticket } from './model.js';
  * Núcleo del Piloto (ADR-0003): máquina de estados pura, la misma que validó el
  * prototipo (rama prototipo/piloto-loop-estados). Sin I/O: decide, narra y ordena
  * comandos; los efectos los ejecuta la aplicación contra los puertos (ADR-0004).
+ * La devolución por dudas de spec (ADR-0012) es la única salida del ciclo que no
+ * nace de un rojo: no consume reintentos porque el defecto es del cuerpo, no del diff.
  */
 
 const con = (pasada: Pasada, cambios: Partial<Pasada>, linea: string): Pasada => ({
@@ -127,6 +129,17 @@ export function paso(pasada: Pasada): Movimiento {
       );
       return { pasada: nueva, comandos: [{ tipo: 'terminar', motivo: 'escalado', abiertos }] };
     }
+    case 'devuelta': {
+      const abiertos = pasada.tickets.filter((t) => t.estado !== 'cerrado').map((t) => t.numero);
+      const nueva = con(
+        pasada,
+        { fase: 'fin' as const },
+        `Cierro la pasada: #${pasada.ticketActual} vuelve al humano para una sesión de grill ` +
+          '(necesita decisiones de spec, no parches) y no paso al siguiente ticket. ' +
+          'Cuando el cuerpo esté endurecido, otra pasada retoma el diff donde quedó.',
+      );
+      return { pasada: nueva, comandos: [{ tipo: 'terminar', motivo: 'devolución', abiertos }] };
+    }
     case 'fin':
       return { pasada: con(pasada, {}, 'La pasada terminó.'), comandos: [] };
   }
@@ -175,6 +188,41 @@ export function resultado(pasada: Pasada, evento: Evento): Movimiento {
         ),
         comandos: [],
       };
+    case 'ticketDevuelto': {
+      if (pasada.fase !== 'implementación') return ignorado(pasada, 'devolución de la implementadora');
+      const t = ticketDe(pasada, pasada.ticketActual);
+      const tickets = pasada.tickets.map((x) =>
+        x.numero === t.numero ? { ...x, estado: 'devuelto' as const } : x,
+      );
+      const nueva = con(
+        pasada,
+        { fase: 'devuelta' as const, tickets },
+        `La implementadora devuelve #${t.numero} sin construir: el cuerpo no determina la implementación ` +
+          `(dudas: «${evento.dudas}»). No consume reintentos: el rojo es del cuerpo, no del ticket.`,
+      );
+      return {
+        pasada: nueva,
+        comandos: [{ tipo: 'devolver', ticket: t, dudas: evento.dudas, hallazgos: null }],
+      };
+    }
+    case 'revisiónConDuda': {
+      if (pasada.fase !== 'revisión') return ignorado(pasada, 'dudas de la revisora');
+      const t = ticketDe(pasada, pasada.ticketActual);
+      const tickets = pasada.tickets.map((x) =>
+        x.numero === t.numero ? { ...x, estado: 'devuelto' as const } : x,
+      );
+      const nueva = con(
+        pasada,
+        { fase: 'devuelta' as const, tickets },
+        `Dudas de spec de la revisora: «${evento.dudas}». ` +
+          'Reparar una ambigüedad es volver a adivinar: devuelvo el ticket sin quemar reintento' +
+          (evento.hallazgos !== null ? ' (los hallazgos viajan como contexto para el grill).' : '.'),
+      );
+      return {
+        pasada: nueva,
+        comandos: [{ tipo: 'devolver', ticket: t, dudas: evento.dudas, hallazgos: evento.hallazgos }],
+      };
+    }
     case 'puertasEnVerde':
       if (pasada.fase !== 'puertas') return ignorado(pasada, 'puertas en verde');
       return {

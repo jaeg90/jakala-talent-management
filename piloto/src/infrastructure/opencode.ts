@@ -1,6 +1,6 @@
-import type { ErrorEnMano, PuertaConfig, Ticket } from '../domain/model.js';
+import type { ErrorEnMano, PuertaConfig, Ticket, Veredicto } from '../domain/model.js';
 import { describirOrigen } from '../domain/model.js';
-import type { PuertoSesiones } from '../domain/ports.js';
+import type { PuertoSesiones, ResultadoImplementación } from '../domain/ports.js';
 import { ejecutar, recortar } from './procesos.js';
 
 /**
@@ -10,7 +10,9 @@ import { ejecutar, recortar } from './procesos.js';
  * skills, docs) la carga opencode por directorio. Los prompts de implementadora
  * y reparadora llevan las puertas de la configuración como autochequeo previo
  * (ADR-0010): las sesiones presentan su trabajo sin rojos; el veredicto sigue
- * siendo del arnés del coordinador.
+ * siendo del arnés del coordinador. Implementadora y revisora pueden devolver
+ * el ticket con dudas cuando el cuerpo no determina la implementación
+ * (ADR-0012): antes de adivinar, «DEVOLVER» / «DUDA n: …».
  *
  * Flags verificados contra `opencode run --help` (v2.0.18): --model admite
  * «provider/model», --title nombra la sesión (evidencia) y --auto aprueba los
@@ -63,6 +65,12 @@ export const promptImplementadora = (ticket: Ticket, puertas: PuertaConfig[]): s
     'Si el árbol ya tiene un diff pendiente de un intento anterior de este ticket, retómalo:',
     'verifícalo contra la spec en vez de rehacerlo desde cero.',
     '',
+    'Si un valor que vas a construir no está determinado por el cuerpo del ticket',
+    '(dos lecturas razonables que producirían diffs distintos), NO lo adivines:',
+    'termina ya, sin construir, con una línea «DEVOLVER» seguida de una línea por duda,',
+    '«DUDA n: <el criterio, las lecturas y qué decide cada una>» (n: 1, 2, …).',
+    'Devolver el ticket es legítimo y barato; adivinar quema reintentos del ticket.',
+    '',
     'Antes de dar el diff por listo:',
     '1. Relee el ticket y enumera sus criterios de aceptación; comprueba cada uno contra el diff.',
     '2. Ejecuta las puertas del arnés, una a una, y corrige el código hasta verlas todas en verde:',
@@ -85,12 +93,22 @@ export const promptRevisora = (ticket: Ticket): string =>
     'La spec del ticket:',
     ticket.cuerpo.trim(),
     '',
-    'Comprueba que el diff cumple la spec y los estándares del repo (AGENTS.md, CONTEXT.md, docs/adr),',
-    'criterio por criterio. No modifiques nada.',
-    'Si el diff cumple, responde exactamente «SIN HALLAZGOS».',
-    'Si hay problemas que impiden el verde, enuméralos TODOS en la misma respuesta,',
-    'una línea por problema con el formato «HALLAZGO n: <qué falla y por qué>» (n: 1, 2, …).',
-    'No reserves problemas para una próxima ronda: cada ronda extra consume un reintento del ticket.',
+    'Audita el diff contra esta spec y los estándares del repo (AGENTS.md, CONTEXT.md, docs/adr),',
+    'criterio por criterio, SIN SALTARTE NINGUNO:',
+    '1. Enumera los criterios de aceptación del ticket, incluidos los valores que cita',
+    '   (tokens, paddings, tamaños, copy exacto…).',
+    '2. Por CADA criterio emite una línea: «CRITERIO n: OK» si el diff lo cumple,',
+    '   o «CRITERIO n: HALLAZGO — <qué falla y por qué>» si no.',
+    '3. Si el diff incumple algo que no es criterio del ticket (estándares del repo), añade',
+    '   «HALLAZGO n: <qué falla y por qué>» por cada problema.',
+    '4. Si un criterio depende de un valor que el cuerpo del ticket NO determina — dos lecturas',
+    '   razonables que producirían diffs distintos —, no lo juzgues: emite',
+    '   «DUDA n: <el criterio, las lecturas y qué decide cada una>».',
+    '5. No reserves problemas para una próxima ronda: cada ronda extra consume un reintento',
+    '   del ticket.',
+    'No modifiques nada.',
+    '',
+    'Si todos los criterios están OK y no hay dudas, responde exactamente «SIN HALLAZGOS».',
   ].join('\n');
 
 export const promptReparadora = (ticket: Ticket, error: ErrorEnMano, puertas: PuertaConfig[]): string =>
@@ -115,17 +133,40 @@ export function extraerResumen(salida: string): string {
   return lineas.at(-1) ?? 'Implementado por el Piloto (la sesión no dejó resumen).';
 }
 
-export function extraerHallazgo(salida: string): string | null {
-  if (/SIN HALLAZGOS/.test(salida)) return null;
-  // Una línea por hallazgo — «HALLAZGO: …» o «HALLAZGO n: …» —; todos viajan
-  // juntos a la reparadora en un solo ciclo de reparación (ADR-0010).
-  const hallazgos = [...salida.matchAll(/^\s*(?:[-*]\s*)?HALLAZGO(?:\s+\d+)?\s*:\s*(.+)$/gm)]
+/** Las dudas numeradas de una respuesta: «DUDA n: …», compartidas por implementadora y revisora (ADR-0012). */
+export function extraerDudas(salida: string): string[] {
+  return [...salida.matchAll(/^[ \t]*(?:[-*][ \t]*)?DUDA(?:[ \t]+\d+)?[ \t]*:[ \t]*(.+)$/gm)]
+    .map((m) => m[1]?.trim() ?? '')
+    .filter((duda) => duda !== '');
+}
+
+export function extraerVeredicto(salida: string): Veredicto {
+  // Una línea por hallazgo — «HALLAZGO n: …» de siempre (ADR-0010) o
+  // «CRITERIO n: HALLAZGO — …» del contrato por criterio —; todos viajan
+  // juntos a la reparadora en un solo ciclo de reparación.
+  const hallazgos = [
+    ...salida.matchAll(/^[ \t]*(?:[-*][ \t]*)?(?:CRITERIO[ \t]+\d+[ \t]*:[ \t]*)?HALLAZGO(?:[ \t]+\d+)?[ \t]*(?::|—)[ \t]*(.+)$/gm),
+  ]
     .map((m) => m[1]?.trim() ?? '')
     .filter((hallazgo) => hallazgo !== '');
-  if (hallazgos.length > 0) return hallazgos.join('\n');
+  const dudas = extraerDudas(salida);
+  if (hallazgos.length === 0 && dudas.length === 0 && /SIN HALLAZGOS/.test(salida)) {
+    return { hallazgos: null, dudas: [] };
+  }
+  if (hallazgos.length > 0 || dudas.length > 0) {
+    return { hallazgos: hallazgos.length > 0 ? hallazgos.join('\n') : null, dudas };
+  }
   // Sin formato claro tampoco se pasa: la ambigüedad nunca es verde (ADR-0003).
   const cola = recortar(salida, 500);
-  return cola === '' ? 'La revisora respondió sin formato.' : cola;
+  return { hallazgos: cola === '' ? 'La revisora respondió sin formato.' : cola, dudas: [] };
+}
+
+/** La devolución de la implementadora (ADR-0012): null = entregó el diff; string = dudas para el grill. */
+export function extraerDevolucion(salida: string): string | null {
+  if (!/^[ \t]*DEVOLVER[ \t]*:?[ \t]*$/m.test(salida)) return null;
+  const dudas = extraerDudas(salida);
+  // Devolvió sin dudas legibles: se devuelve igual — nunca se trata como diff listo.
+  return dudas.length > 0 ? dudas.join('\n') : 'La implementadora devolvió el ticket sin dudas legibles.';
 }
 
 export function crearSesiones(
@@ -134,7 +175,7 @@ export function crearSesiones(
   puertas: PuertaConfig[],
 ): PuertoSesiones {
   return {
-    async implementar(ticket: Ticket): Promise<string> {
+    async implementar(ticket: Ticket): Promise<ResultadoImplementación> {
       const salida = await ejecutar(
         config.comando,
         argsSesion({
@@ -145,9 +186,11 @@ export function crearSesiones(
         }),
         { minutos: config.tiempoMaxMinutos },
       );
-      return extraerResumen(salida);
+      const dudas = extraerDevolucion(salida);
+      if (dudas !== null) return { tipo: 'ticketDevuelto', dudas };
+      return { tipo: 'diffListo', resumen: extraerResumen(salida) };
     },
-    async revisar(ticket: Ticket): Promise<string | null> {
+    async revisar(ticket: Ticket): Promise<Veredicto> {
       const salida = await ejecutar(
         config.comando,
         argsSesion({
@@ -158,7 +201,7 @@ export function crearSesiones(
         }),
         { minutos: config.tiempoMaxMinutos },
       );
-      return extraerHallazgo(salida);
+      return extraerVeredicto(salida);
     },
     async reparar(ticket: Ticket, error: ErrorEnMano, reintento: number): Promise<void> {
       await ejecutar(
