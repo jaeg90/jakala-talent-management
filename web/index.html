@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JTM — Jakala Talent Management</title>
+    <script>
+      // Tema antes del primer render (sin FOUC): preferencia en localStorage,
+      // «Según el sistema» por defecto (matchMedia). La UI de conmutación llega con #27.
+      (function () {
+        try {
+          var preferencia = localStorage.getItem('jtm-tema') || 'sistema';
+          var oscuro =
+            preferencia === 'oscuro' ||
+            (preferencia === 'sistema' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.tema = oscuro ? 'oscuro' : 'claro';
+        } catch (error) {
+          document.documentElement.dataset.tema = 'claro';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

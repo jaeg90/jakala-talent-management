@@ -1,0 +1,134 @@
+/* JTM · Identidad «Lino» — tokens como variables CSS (contrato §5.2)
+   Uso: <html data-tema="oscuro"> activa la paleta oscura (preparada, no obligatoria en el MVP).
+   Fuente: Figtree (Google Fonts) 400/500/600/700/800. */
+
+:root {
+  /* — Color · superficies — */
+  --color-fondo: oklch(0.97 0.012 70);           /* Lino */
+  --color-superficie: #fffdf9;                   /* tarjetas */
+  --color-superficie-hundida: oklch(0.97 0.012 70); /* filas dentro de tarjeta */
+  --color-borde: oklch(0.9 0.015 70);
+  --color-borde-campo: oklch(0.86 0.018 70);
+
+  /* — Color · texto — */
+  --color-texto: oklch(0.26 0.02 50);            /* Café */
+  --color-texto-secundario: oklch(0.46 0.02 50); /* ≥ 4.5:1 sobre fondo y superficie */
+  --color-texto-decorativo: oklch(0.7 0.015 60); /* solo «—» y separadores, nunca información */
+  --color-texto-sobre-primario: #ffffff;
+
+  /* — Color · acento (índigo evolucionado a Ciruela) — */
+  --color-primario: oklch(0.45 0.13 310);
+  --color-primario-hover: oklch(0.4 0.13 310);
+  --color-primario-texto: oklch(0.4 0.13 310);
+  --color-primario-suave: oklch(0.93 0.03 310);  /* Lavanda */
+
+  /* — Color · semánticos — */
+  --color-atencion: oklch(0.58 0.14 45);         /* Terracota: señal, no texto */
+  --color-atencion-fondo: oklch(0.96 0.025 45);
+  --color-atencion-badge: oklch(0.93 0.05 45);
+  --color-atencion-texto: oklch(0.45 0.13 40);
+  --color-exito: oklch(0.55 0.08 150);           /* Salvia */
+  --color-exito-badge: oklch(0.93 0.04 150);
+  --color-exito-texto: oklch(0.4 0.08 150);
+  --color-neutro-badge: oklch(0.93 0.01 60);
+  --color-neutro-texto: oklch(0.42 0.02 50);
+  --color-error: oklch(0.5 0.17 25);
+  --color-error-fondo: oklch(0.95 0.03 25);
+  --color-velo: rgba(40, 28, 16, 0.38);          /* fondo de diálogos */
+
+  /* — Avatares (tono por mentee, derivado del nombre) — */
+  --avatar-1-fondo: oklch(0.9 0.05 80);  --avatar-1-texto: oklch(0.4 0.08 70);
+  --avatar-2-fondo: oklch(0.9 0.04 20);  --avatar-2-texto: oklch(0.42 0.1 25);
+  --avatar-3-fondo: oklch(0.9 0.04 160); --avatar-3-texto: oklch(0.4 0.07 160);
+  --avatar-4-fondo: oklch(0.92 0.03 310); --avatar-4-texto: oklch(0.4 0.13 310);
+
+  /* — Tipografía — */
+  --fuente: 'Figtree', ui-sans-serif, sans-serif;
+  --peso-regular: 400; --peso-medio: 500; --peso-semi: 600; --peso-negrita: 700; --peso-titulo: 800;
+  --texto-xs: 0.75rem;   /* 12 · meta mínima */
+  --texto-s: 0.8125rem;  /* 13 · etiquetas, badges */
+  --texto-m: 0.9375rem;  /* 15 · cuerpo de interfaz */
+  --texto-l: 1.0625rem;  /* 17 · títulos de tarjeta */
+  --texto-xl: 1.25rem;   /* 20 · diálogos */
+  --texto-2xl: 1.875rem; /* 30 · título de sección de ficha */
+  --texto-3xl: 2.25rem;  /* 36 · título de página */
+  --interlineado: 1.5;
+  --interlineado-titulo: 1.15;
+  --tracking-titulo: -0.02em;
+
+  /* — Espaciado (base 4) — */
+  --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 20px;
+  --esp-6: 24px; --esp-8: 32px; --esp-10: 40px; --esp-12: 48px; --esp-16: 64px;
+
+  /* — Radios — */
+  --radio-s: 6px;    /* checkbox */
+  --radio-m: 10px;   /* campos, filas */
+  --radio-l: 12px;   /* botones, nav */
+  --radio-xl: 16px;  /* tarjetas */
+  --radio-xxl: 20px; /* tarjeta de login, diálogos */
+  --radio-pildora: 999px;
+
+  /* — Sombras (suaves, tono cálido) — */
+  --sombra-1: 0 1px 2px rgba(60, 40, 20, 0.06);
+  --sombra-2: 0 1px 2px rgba(60, 40, 20, 0.06), 0 4px 16px rgba(60, 40, 20, 0.05);
+  --sombra-3: 0 2px 6px rgba(60, 40, 20, 0.08), 0 16px 48px rgba(60, 40, 20, 0.14); /* diálogos */
+  --sombra-primario: 0 2px 8px oklch(0.45 0.13 310 / 0.25);
+
+  /* — Foco (P5) — */
+  --foco-anillo: 0 0 0 3px oklch(0.45 0.13 310 / 0.35);
+  --foco-borde: var(--color-primario);
+
+  /* — Layout — */
+  --ancho-sidebar: 236px;
+  --ancho-contenido: 1040px;
+  --ancho-contexto: 300px;
+  --alto-cabecera: 64px;
+
+  /* — Motion — */
+  --duracion-rapida: 120ms;
+  --duracion-media: 200ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duracion-rapida: 0ms; --duracion-media: 0ms; }
+}
+
+[data-tema="oscuro"] {
+  --color-fondo: oklch(0.22 0.015 50);           /* Tueste */
+  --color-superficie: oklch(0.26 0.015 50);
+  --color-superficie-hundida: oklch(0.23 0.015 50);
+  --color-borde: oklch(0.33 0.015 50);
+  --color-borde-campo: oklch(0.4 0.015 50);
+  --color-texto: oklch(0.94 0.01 70);
+  --color-texto-secundario: oklch(0.76 0.015 60);
+  --color-texto-decorativo: oklch(0.5 0.015 60);
+  --color-texto-sobre-primario: oklch(0.2 0.03 310);
+  --color-primario: oklch(0.75 0.1 310);
+  --color-primario-hover: oklch(0.8 0.09 310);
+  --color-primario-texto: oklch(0.8 0.09 310);
+  --color-primario-suave: oklch(0.32 0.05 310);
+  --color-atencion: oklch(0.72 0.13 50);
+  --color-atencion-fondo: oklch(0.28 0.03 45);
+  --color-atencion-badge: oklch(0.34 0.06 45);
+  --color-atencion-texto: oklch(0.84 0.09 50);
+  --color-exito: oklch(0.72 0.08 150);
+  --color-exito-badge: oklch(0.32 0.04 150);
+  --color-exito-texto: oklch(0.84 0.07 150);
+  --color-neutro-badge: oklch(0.32 0.01 60);
+  --color-neutro-texto: oklch(0.82 0.01 60);
+  --color-error: oklch(0.75 0.13 25);
+  --color-error-fondo: oklch(0.3 0.05 25);
+  --color-velo: rgba(0, 0, 0, 0.55);
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sombra-2: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+  --sombra-3: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --sombra-primario: none;
+  --foco-anillo: 0 0 0 3px oklch(0.75 0.1 310 / 0.45);
+}
+
+/* Estado de badge — mapeo del dominio:
+   .badge--en-curso   → primario-suave / primario-texto
+   .badge--cumplido   → exito-badge / exito-texto
+   .badge--no-cumplido, .badge--resuelta → neutro-badge / neutro-texto
+   .badge--abierta, .badge--atencion     → atencion-badge / atencion-texto */

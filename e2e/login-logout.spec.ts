@@ -1,48 +1,56 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-// Credenciales del manager semilla (ficticias, ver README).
+// Credenciales de los managers semilla (ficticias, ver README).
 const EMAIL = 'manager@jakala.example';
 const PASSWORD = 'secreta123';
 
-test('login → vista de equipo → logout', async ({ page }) => {
-  await page.goto('/');
-
-  // Login
-  await page.getByLabel('Email').fill(EMAIL);
+async function iniciarSesion(page: Page, email = EMAIL) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+}
 
-  // Vista de equipo con los proyectos correctos
+test('login normal → Mi equipo → logout', async ({ page }) => {
+  await iniciarSesion(page);
+  await expect(page).toHaveURL(/\/equipo$/);
   await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeVisible();
   await expect(page.locator('.mentee-list li', { hasText: 'Ana Alonso' })).toContainText('Atlas Bank');
   await expect(page.locator('.mentee-list li', { hasText: 'Beatriz Blanco' })).toContainText('Retail Nova');
   await expect(page.locator('.mentee-list li', { hasText: 'Carla Cano' })).toContainText('Aurora Health');
-
-  // Aislamiento: no ve mentees de otros managers
   await expect(page.locator('.mentee-list li', { hasText: 'David Duarte' })).toHaveCount(0);
 
-  // Logout: vuelve al login y la vista queda bloqueada
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
-  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
-
-  // Sin sesión, la UI no muestra la vista de equipo
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeHidden();
+  await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
 });
 
-test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) => {
-  await page.goto('/');
+test('credenciales incorrectas: error exacto y foco en Contraseña', async ({ page }) => {
+  await page.goto('/login');
   await page.getByLabel('Email').fill(EMAIL);
-  await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Contraseña', { exact: true }).fill('incorrecta');
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-  // Abro la ficha de Ana Alonso
+  await expect(page.getByRole('alert')).toHaveText(
+    'Email o contraseña incorrectos. Revísalos e inténtalo de nuevo.',
+  );
+  await expect(page.getByLabel('Contraseña', { exact: true })).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Mi equipo' })).toHaveCount(0);
+});
+
+test('contraseña temporal → Perfil y contraseña', async ({ page }) => {
+  await iniciarSesion(page, 'julia@jakala.example');
+  await expect(page).toHaveURL(/\/ajustes\/perfil$/);
+  await expect(page.getByRole('heading', { name: 'Perfil y contraseña' })).toBeVisible();
+});
+
+test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) => {
+  await iniciarSesion(page);
+
   await page.getByRole('button', { name: 'Ana Alonso' }).click();
   await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
   await expect(page.getByText('Todavía no hay 1-to-1s registrados.')).toBeVisible();
 
-  // Registro un 1-to-1 con notas por tema y un acuerdo
   await page.getByLabel('Fecha', { exact: true }).fill('2026-09-27');
   await page.getByLabel('¿Cómo estás?').fill('Animada, con ganas');
   await page.getByLabel('¿Qué tal el proyecto?', { exact: true }).fill('Atlas Bank va bien');
@@ -50,25 +58,69 @@ test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) =>
   await page.getByRole('button', { name: 'Añadir acuerdo' }).click();
   await page.getByRole('button', { name: 'Registrar 1-to-1' }).click();
 
-  // Aparece en historial y el acuerdo queda pendiente a la vista
   await expect(page.getByRole('heading', { name: '2026-09-27' })).toBeVisible();
   await expect(page.getByText('Animada, con ganas')).toBeVisible();
   const pendientes = page.getByRole('region', { name: 'Acuerdos pendientes' });
   await expect(pendientes.getByText('Preparar dossier de Atlas Bank')).toBeVisible();
 
-  // Marco el acuerdo cumplido: desaparece de pendientes y queda ✓ en historial
   await page.getByRole('button', { name: 'Marcar cumplido' }).click();
   await expect(page.getByText('Sin acuerdos pendientes.')).toBeVisible();
   const historial = page.getByRole('region', { name: 'Historial de 1-to-1s' });
   await expect(historial.getByText('✓ Preparar dossier de Atlas Bank')).toBeVisible();
 });
 
-test('credenciales incorrectas muestran error', async ({ page }) => {
-  await page.goto('/');
-  await page.getByLabel('Email').fill(EMAIL);
-  await page.getByLabel('Contraseña', { exact: true }).fill('incorrecta');
-  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+test('rutas navegables: deep-link, recarga, redirecciones', async ({ page }) => {
+  await iniciarSesion(page);
 
-  await expect(page.getByText('Credenciales incorrectas')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeHidden();
+  await page.goto('/mentees/me-ana/objetivos');
+  await expect(page.getByRole('heading', { name: 'Objetivos' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Objetivos' })).toBeVisible();
+
+  await page.goto('/ajustes');
+  await expect(page).toHaveURL(/\/ajustes\/perfil$/);
+
+  await page.goto('/ruta-desconocida');
+  await expect(page).toHaveURL(/\/equipo$/);
+
+  // Una ruta privada sin sesión redirige al Login.
+  await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+  await page.goto('/equipo');
+  await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
+});
+
+test('el tema se aplica antes del render y es conmutable por código sin recargar', async ({ page }) => {
+  await page.goto('/login');
+  const inicial = await page.evaluate(() => document.documentElement.dataset.tema);
+  expect(['claro', 'oscuro']).toContain(inicial);
+
+  // Conmutación por código en la página activa: actualiza `data-tema` sin recargar.
+  await page.evaluate(() => window.__jtm?.cambiarTema('oscuro'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'oscuro');
+
+  await page.evaluate(() => window.__jtm?.cambiarTema('claro'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'claro');
+
+  // La preferencia persiste y se aplica antes del render (sin FOUC).
+  await page.evaluate(() => window.__jtm?.cambiarTema('oscuro'));
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'oscuro');
+
+  // «Según el sistema» resuelve con matchMedia.
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.evaluate(() => window.__jtm?.cambiarTema('sistema'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'oscuro');
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.evaluate(() => window.__jtm?.cambiarTema('sistema'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'claro');
+});
+
+test('foco visible con --foco-anillo en el Login', async ({ page }) => {
+  await page.goto('/login');
+  await page.keyboard.press('Tab');
+  await expect(page.getByLabel('Email')).toBeFocused();
+
+  const sombra = await page.getByLabel('Email').evaluate((el) => getComputedStyle(el).boxShadow);
+  expect(sombra).not.toBe('none');
 });

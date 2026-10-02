@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
-import type { ManagerAutenticado, Mentee } from './api';
+import { useNavigate } from 'react-router';
+import type { Mentee } from './api';
 import { api } from './api';
-import { MenteeDetail } from './MenteeDetail';
+import { useAuth } from './auth';
 import { IncidenciasView } from './IncidenciasView';
 import { ProyectosView } from './ProyectosView';
 
-export function Team({ manager, onLogout }: { manager: ManagerAutenticado; onLogout: () => void }) {
+/**
+ * Mi equipo (vista actual, sin rediseñar — #17). Montada en `/equipo`; la ficha
+ * pasa a su propia ruta (`/mentees/:id`) y las vistas globales de incidencias y
+ * proyectos siguen aquí hasta que las retire #17.
+ */
+export function Team() {
+  const { manager, logout } = useAuth();
+  const navigate = useNavigate();
   const [mentees, setMentees] = useState<Mentee[] | null>(null);
-  const [abierta, setAbierta] = useState<Mentee | null>(null);
   const [viendoIncidencias, setViendoIncidencias] = useState(false);
   const [viendoProyectos, setViendoProyectos] = useState(false);
 
@@ -21,25 +28,6 @@ export function Team({ manager, onLogout }: { manager: ManagerAutenticado; onLog
   useEffect(() => {
     reloadTeam();
   }, []);
-
-  async function handleLogout() {
-    await api.logout();
-    onLogout();
-  }
-
-  if (abierta !== null) {
-    return (
-      <MenteeDetail
-        menteeId={abierta.id}
-        menteeName={abierta.name}
-        manager={manager}
-        onBack={() => {
-          setAbierta(null);
-          reloadTeam();
-        }}
-      />
-    );
-  }
 
   if (viendoIncidencias) {
     return <IncidenciasView onBack={() => setViendoIncidencias(false)} />;
@@ -56,8 +44,8 @@ export function Team({ manager, onLogout }: { manager: ManagerAutenticado; onLog
         <div>
           <button className="link" onClick={() => setViendoIncidencias(true)}>Incidencias</button>
           <button className="link" onClick={() => setViendoProyectos(true)}>Proyectos</button>
-          <span>{manager.name}</span>
-          <button onClick={handleLogout}>Cerrar sesión</button>
+          <span>{manager?.name}</span>
+          <button onClick={() => void logout()}>Cerrar sesión</button>
         </div>
       </header>
       {mentees === null ? (
@@ -68,7 +56,9 @@ export function Team({ manager, onLogout }: { manager: ManagerAutenticado; onLog
         <ul className="mentee-list">
           {mentees.map((m) => (
             <li key={m.id}>
-              <button className="link mentee-name" onClick={() => setAbierta(m)}>{m.name}</button>
+              <button className="link mentee-name" onClick={() => navigate(`/mentees/${m.id}`)}>
+                {m.name}
+              </button>
               <span className="mentee-project">{m.project?.name ?? 'Sin proyecto'}</span>
             </li>
           ))}
