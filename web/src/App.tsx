@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate, useParams } from 'react-router';
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router';
 import type { Mentee } from './api';
 import { api } from './api';
+import { AjustesLayout, Perfil } from './Ajustes';
 import { AuthProvider, useAuth } from './auth';
 import { Login } from './Login';
 import { MenteeDetail } from './MenteeDetail';
@@ -24,8 +34,10 @@ export function App() {
             <Route path="/mentees/:id/incidencias" element={<PantallaEnConstruccion titulo="Incidencias" />} />
             <Route path="/mentees/:id/historial" element={<PantallaEnConstruccion titulo="Historial" />} />
             <Route path="/mentees/:id/ajustes" element={<PantallaEnConstruccion titulo="Ajustes de la mentee" />} />
-            <Route path="/ajustes" element={<Navigate to="/ajustes/perfil" replace />} />
-            <Route path="/ajustes/perfil" element={<PantallaEnConstruccion titulo="Perfil y contraseña" />} />
+            <Route path="/ajustes" element={<AjustesLayout />}>
+              <Route index element={<Navigate to="/ajustes/perfil" replace />} />
+              <Route path="perfil" element={<Perfil />} />
+            </Route>
             <Route path="/ajustes/apariencia" element={<PantallaEnConstruccion titulo="Apariencia" />} />
             <Route path="/ajustes/plantilla" element={<PantallaEnConstruccion titulo="Plantilla de 1-to-1" />} />
             <Route path="/ajustes/mentees" element={<PantallaEnConstruccion titulo="Añadir mentee" />} />
@@ -39,11 +51,17 @@ export function App() {
   );
 }
 
-/** Rutas privadas: requieren sesión; mientras se consulta, pantalla de carga mínima. */
+/** Rutas privadas: requieren sesión; mientras se consulta, pantalla de carga mínima.
+ * Con el flag de contraseña temporal activo, cualquier ruta distinta de
+ * `/ajustes/perfil` redirige allí (bloqueo duro); cerrar sesión sigue disponible. */
 function RutaPrivada() {
-  const { status } = useAuth();
+  const { status, manager } = useAuth();
+  const location = useLocation();
   if (status === 'checking') return <PantallaCargando />;
   if (status === 'anonymous') return <Navigate to="/login" replace />;
+  if (manager?.debeCambiarContraseña && location.pathname !== '/ajustes/perfil') {
+    return <Navigate to="/ajustes/perfil" replace />;
+  }
   return <Outlet />;
 }
 

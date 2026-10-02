@@ -17,6 +17,8 @@ import { IncidenciaService } from '../../src/application/incidencia_service.js';
 import { ProyectoService } from '../../src/application/proyecto_service.js';
 import { TraspasoService } from '../../src/application/traspaso_service.js';
 import { PlantillaService } from '../../src/application/plantilla_service.js';
+import { CuentaService } from '../../src/application/cuenta_service.js';
+import { SqliteCuentaRepository } from '../../src/infrastructure/db/sqlite-cuenta-repository.js';
 import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-plantilla-repository.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { tempDbPath } from './tempdb.js';
@@ -36,6 +38,7 @@ export function buildApp() {
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
     traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
     plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
+    cuentas: new CuentaService(new SqliteCuentaRepository(db), sessions),
     sessions,
   });
   return { app, db };

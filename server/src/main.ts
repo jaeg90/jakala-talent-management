@@ -13,6 +13,8 @@ import { IncidenciaService } from './application/incidencia_service.js';
 import { ProyectoService } from './application/proyecto_service.js';
 import { TraspasoService } from './application/traspaso_service.js';
 import { PlantillaService } from './application/plantilla_service.js';
+import { CuentaService } from './application/cuenta_service.js';
+import { SqliteCuentaRepository } from './infrastructure/db/sqlite-cuenta-repository.js';
 import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
 import { SqliteTemaPropioRepository } from './infrastructure/db/sqlite-tema-propio-repository.js';
 import { SqliteObjetivoRepository } from './infrastructure/db/sqlite-objetivo-repository.js';
@@ -51,6 +53,7 @@ const app = createApp({
   proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
   traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
   plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
+  cuentas: new CuentaService(new SqliteCuentaRepository(db), sessions),
   sessions,
 });
 

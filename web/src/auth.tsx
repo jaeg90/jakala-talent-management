@@ -17,6 +17,7 @@ export interface ValorAuth {
   manager: ManagerAutenticado | null;
   login: (email: string, password: string) => Promise<ManagerAutenticado>;
   logout: () => Promise<void>;
+  actualizarManager: (manager: ManagerAutenticado) => void;
 }
 
 const AuthContext = createContext<ValorAuth | null>(null);
@@ -54,8 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEstado({ status: 'anonymous', manager: null });
   }
 
+  function actualizarManager(manager: ManagerAutenticado): void {
+    decidido.current = true;
+    setEstado({ status: 'authenticated', manager });
+  }
+
   return (
-    <AuthContext.Provider value={{ status: estado.status, manager: estado.manager, login, logout }}>
+    <AuthContext.Provider
+      value={{ status: estado.status, manager: estado.manager, login, logout, actualizarManager }}
+    >
       {children}
     </AuthContext.Provider>
   );

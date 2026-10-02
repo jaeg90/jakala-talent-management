@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { useAuth } from './auth';
 
 const MENSAJE_ERROR = 'Email o contraseña incorrectos. Revísalos e inténtalo de nuevo.';
 
 /** Login rediseñado (spec §01): logo, campos, error, botón y pie con redirección post-login. */
 export function Login() {
-  const { login } = useAuth();
+  const { login, status, manager } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +28,20 @@ export function Login() {
       passwordRef.current?.focus();
     }
   }
+
+  // Bloqueo duro (ticket #24): con el flag de contraseña temporal activo, /login
+  // también redirige a Perfil y contraseña (cualquier ruta salvo /ajustes/perfil).
+  // Mientras se consulta la sesión no se muestra el formulario: en una carga en
+  // frío con cookie temporal, el bloqueo es inmediato (sin parpadeo del login).
+  if (status === 'checking') {
+    return (
+      <main className="cargando">
+        <p role="status">Cargando…</p>
+      </main>
+    );
+  }
+
+  if (manager?.debeCambiarContraseña) return <Navigate to="/ajustes/perfil" replace />;
 
   return (
     <main className="login">

@@ -61,6 +61,7 @@
   --esp-6: 24px; --esp-8: 32px; --esp-10: 40px; --esp-12: 48px; --esp-16: 64px;
 
   /* — Radios — */
+  --radio-xs: 9px;    /* logo */
   --radio-s: 6px;    /* checkbox */
   --radio-m: 10px;   /* campos, filas */
   --radio-l: 12px;   /* botones, nav */

@@ -8,6 +8,7 @@ import { IncidenciaService } from '../../application/incidencia_service.js';
 import { ProyectoService } from '../../application/proyecto_service.js';
 import { TraspasoService } from '../../application/traspaso_service.js';
 import { PlantillaService } from '../../application/plantilla_service.js';
+import { CuentaService } from '../../application/cuenta_service.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -24,6 +25,7 @@ export interface AppDeps {
   proyectos: ProyectoService;
   traspasos: TraspasoService;
   plantilla: PlantillaService;
+  cuentas: CuentaService;
   sessions: SessionStore;
 }
 
@@ -51,16 +53,24 @@ function sessionCookie(token: string): string {
   return `${SESSION_COOKIE}=${token}; HttpOnly; Path=/; SameSite=Lax${expiry}`;
 }
 
-/** Envoltura de rutas autenticadas: rechaza 401 sin sesión y pasa el manager tipado. */
+/** Envoltura de rutas autenticadas: rechaza 401 sin sesión, aplica el bloqueo duro
+ * por contraseña temporal (403) y pasa el manager tipado. `permitirBloqueado` deja
+ * pasar a los endpoints de sesión y de cambio de contraseña, que siguen disponibles
+ * con el flag activo. */
 function requireSession(
   sessions: SessionStore,
   handler: Handler,
+  permitirBloqueado = false,
 ): (req: Request, res: Response) => Promise<void> {
   return async (req, res) => {
     const token = req.cookies?.[SESSION_COOKIE];
     const manager = typeof token === 'string' ? await sessions.find(token) : null;
     if (manager === null) {
       res.status(401).json({ error: 'No autenticado' });
+      return;
+    }
+    if (!permitirBloqueado && manager.debeCambiarContraseña) {
+      res.status(403).json({ error: 'Debes cambiar tu contraseña temporal para continuar' });
       return;
     }
     await handler(req, res, manager);
@@ -109,7 +119,31 @@ export function createApp(deps: AppDeps): express.Express {
 
   app.get('/api/session', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ manager });
-  }));
+  }, true));
+
+  // Cambio de contraseña: requiere la actual, valida la nueva y, al guardar, se
+  // invalidan las demás sesiones de ese manager. Sigue disponible con el flag
+  // temporal activo (es el desbloqueo del bloqueo duro).
+  app.post('/api/cuenta/contrasena', requireSession(deps.sessions, async (req, res, manager) => {
+    const token = req.cookies?.[SESSION_COOKIE];
+    if (typeof token !== 'string') {
+      res.status(401).json({ error: 'No autenticado' });
+      return;
+    }
+    const { actual, nueva } = (req.body ?? {}) as { actual?: unknown; nueva?: unknown };
+    if (typeof actual !== 'string' || typeof nueva !== 'string') {
+      res.status(400).json({ error: 'Contraseña actual y nueva requeridas' });
+      return;
+    }
+    try {
+      const actualizado = await deps.cuentas.cambiarContrasena(manager, token, actual, nueva);
+      res.json({ manager: actualizado });
+    } catch (err) {
+      res
+        .status(400)
+        .json({ error: err instanceof Error ? err.message : 'Error al cambiar la contraseña' });
+    }
+  }, true));
 
   app.get('/api/team', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ mentees: await deps.team.teamOf(manager) });

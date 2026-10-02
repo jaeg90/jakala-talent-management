@@ -165,6 +165,22 @@ export interface SessionStore {
   create(manager: Manager): Promise<string>;
   find(token: string): Promise<Manager | null>;
   revoke(token: string): Promise<void>;
+  /** Invalida todas las sesiones de un manager salvo la actual (`keepToken`). */
+  invalidateOtherSessions(managerId: ManagerId, keepToken: string): Promise<void>;
+  /** Actualiza el manager de una sesión (p. ej. al despejar el flag de contraseña temporal). */
+  updateManager(token: string, manager: Manager): Promise<void>;
+}
+
+/**
+ * Puerto de cuentas de manager: cambio de contraseña. La verificación de la
+ * contraseña vigente y el guardado de la nueva despejan el flag de contraseña
+ * temporal. Ver "Cambiar contraseña" en decisiones.md.
+ */
+export interface CuentaRepository {
+  /** Devuelve true si `actual` es la contraseña vigente del manager. */
+  verificarContrasena(managerId: ManagerId, actual: string): Promise<boolean>;
+  /** Guarda la nueva contraseña y despeja el flag; devuelve el manager actualizado. */
+  cambiarContrasena(managerId: ManagerId, nueva: string): Promise<Manager>;
 }
 
 /** Incidencia tal y como la ve su manager en la vista de equipo: incluye el nombre de la mentee. */

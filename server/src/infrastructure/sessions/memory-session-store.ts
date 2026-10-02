@@ -20,4 +20,14 @@ export class MemorySessionStore implements SessionStore {
   async revoke(token: string): Promise<void> {
     this.sessions.delete(token);
   }
+
+  async invalidateOtherSessions(managerId: string, keepToken: string): Promise<void> {
+    for (const [token, manager] of this.sessions) {
+      if (token !== keepToken && manager.id === managerId) this.sessions.delete(token);
+    }
+  }
+
+  async updateManager(token: string, manager: Manager): Promise<void> {
+    if (this.sessions.has(token)) this.sessions.set(token, manager);
+  }
 }

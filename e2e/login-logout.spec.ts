@@ -41,7 +41,7 @@ test('credenciales incorrectas: error exacto y foco en Contraseña', async ({ pa
 test('contraseña temporal → Perfil y contraseña', async ({ page }) => {
   await iniciarSesion(page, 'julia@jakala.example');
   await expect(page).toHaveURL(/\/ajustes\/perfil$/);
-  await expect(page.getByRole('heading', { name: 'Perfil y contraseña' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Ajustes' })).toBeVisible();
 });
 
 test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) => {
@@ -150,6 +150,9 @@ test('el fondo de body computa --color-fondo en claro y oscuro, no el #f5f5fa le
 
 test('foco visible con --foco-anillo en el Login', async ({ page }) => {
   await page.goto('/login');
+  // El Login espera la resolución de la sesión antes de pintar el formulario
+  // (bloqueo duro #24); esperamos a que el campo esté disponible antes de tabular.
+  await expect(page.getByLabel('Email')).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.getByLabel('Email')).toBeFocused();
 

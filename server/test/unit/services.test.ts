@@ -27,6 +27,8 @@ function fakeSessions(): SessionStore & { tokens: string[] } {
       return tokens.includes(token) ? manager : null;
     },
     async revoke() {},
+    async invalidateOtherSessions() {},
+    async updateManager() {},
   };
 }
 

@@ -131,6 +131,12 @@ export const api = {
   session(): Promise<{ manager: ManagerAutenticado }> {
     return request('/api/session');
   },
+  cambiarContrasena(actual: string, nueva: string): Promise<{ manager: ManagerAutenticado }> {
+    return request('/api/cuenta/contrasena', {
+      method: 'POST',
+      body: JSON.stringify({ actual, nueva }),
+    });
+  },
   team(): Promise<{ mentees: Mentee[] }> {
     return request('/api/team');
   },

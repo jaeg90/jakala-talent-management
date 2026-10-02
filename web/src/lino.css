@@ -203,10 +203,312 @@ body {
   letter-spacing: var(--tracking-titulo);
 }
 
+/* — Cabecera global (spec §Esqueletos) — */
+
+/* Logo de cabecera: cuadrado 28px, radio --radio-xs (9px), «J» 13px (componentes.md §Logo). */
+.logo--cabecera {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radio-xs);
+  font-size: 13px;
+}
+
+.cabecera-global {
+  height: var(--alto-cabecera);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--esp-12);
+}
+
+.cabecera-global__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.cabecera-global__wordmark {
+  font-size: 18px;
+  font-weight: var(--peso-titulo);
+}
+
+.cabecera-global__opciones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-6);
+  font-size: 14px;
+  color: var(--color-texto-secundario);
+}
+
+.cabecera-global__opciones a {
+  color: var(--color-texto-secundario);
+  text-decoration: none;
+}
+
+.cabecera-global__opciones a[aria-current='page'] {
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-negrita);
+}
+
+.cabecera-global__manager {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.cabecera-global__logout {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-texto-secundario);
+}
+
+/* Neutraliza el `button:hover` de styles.css (fondo #3730a3 hardcodeado): el
+   botón de cerrar sesión es un enlace de texto, sin fondo en hover. */
+.cabecera-global__logout:hover {
+  background: none;
+}
+
+/* — Avatar (componentes.md §Avatar): círculo con iniciales, tono por id (1..4). */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radio-pildora);
+  font-size: 11px;
+  font-weight: var(--peso-negrita);
+  flex-shrink: 0;
+}
+
+.avatar--1 { background: var(--avatar-1-fondo); color: var(--avatar-1-texto); }
+.avatar--2 { background: var(--avatar-2-fondo); color: var(--avatar-2-texto); }
+.avatar--3 { background: var(--avatar-3-fondo); color: var(--avatar-3-texto); }
+.avatar--4 { background: var(--avatar-4-fondo); color: var(--avatar-4-texto); }
+
+.avatar--perfil {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+/* — Área Ajustes (spec §Esqueletos) — */
+
+.ajustes {
+  min-height: calc(100vh - var(--alto-cabecera));
+  /* Restablece las reglas globales de `main` heredadas de styles.css: el área de
+     Ajustes no es la tarjeta centrada de 40rem de las vistas sin migrar. */
+  margin: 0;
+  max-width: none;
+  padding: var(--esp-4) 120px;
+  background: var(--color-fondo);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  box-sizing: border-box;
+}
+
+.ajustes__titulo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.ajustes__titulo h1 {
+  margin: 0;
+  font-size: var(--texto-3xl);
+  font-weight: var(--peso-titulo);
+  letter-spacing: var(--tracking-titulo);
+}
+
+.ajustes__volver {
+  font-size: 14px;
+  color: var(--color-texto-secundario);
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.ajustes__cuerpo {
+  display: flex;
+  gap: var(--esp-10);
+  align-items: flex-start;
+}
+
+.ajustes__contenido {
+  flex: 1;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+/* Nav lateral de ajustes (componentes.md §Nav lateral; grupos e ítems de §Esqueletos). */
+.nav-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: var(--texto-m);
+  font-weight: var(--peso-medio);
+}
+
+.nav-lateral--ajustes {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.nav-lateral__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.nav-lateral__titulo {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+  padding: 0 12px var(--esp-1);
+}
+
+.nav-lateral a {
+  padding: 10px 12px;
+  border-radius: var(--radio-l);
+  color: var(--color-texto);
+  text-decoration: none;
+}
+
+.nav-lateral a[aria-current='page'] {
+  background: var(--color-superficie);
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-negrita);
+  box-shadow: var(--sombra-1);
+}
+
+/* — Perfil y contraseña (spec §Ajustes · 3a) — */
+
+.tarjeta--perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: 22px 24px;
+}
+
+.perfil__datos {
+  display: flex;
+  flex-direction: column;
+  /* Excepción declarada: gap 2px menor que --esp-1 (ticket #24). */
+  gap: 2px;
+}
+
+.perfil__nombre {
+  font-size: var(--texto-l);
+  font-weight: var(--peso-titulo);
+}
+
+.perfil__meta {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+.tarjeta--contrasena {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-6);
+}
+
+.contrasena__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.contrasena__cabecera h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--peso-titulo);
+}
+
+.contrasena__cabecera p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-texto-secundario);
+}
+
+.contrasena__fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-3);
+}
+
+.contrasena__requisitos {
+  display: flex;
+  gap: var(--esp-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+}
+
+.contrasena__requisitos li {
+  color: var(--color-texto-secundario);
+}
+
+.contrasena__requisitos .requisito--cumplido {
+  color: var(--color-exito-texto);
+}
+
+.contrasena__boton {
+  align-self: flex-start;
+}
+
+/* Mensaje de error por campo (componentes.md §Campo). */
+.campo__error {
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+  color: var(--color-error);
+}
+
+/* Avisos (componentes.md §Aviso): éxito y atención (bloqueo por contraseña temporal). */
+.aviso--exito {
+  background: var(--color-exito-badge);
+  color: var(--color-exito-texto);
+}
+
+.aviso--atencion {
+  background: var(--color-atencion-fondo);
+  color: var(--color-atencion-texto);
+}
+
+/* Foco visible en los enlaces del shell (accesibilidad.md §Globales). */
+.cabecera-global__opciones a:focus-visible,
+.cabecera-global__logout:focus-visible,
+.ajustes__volver:focus-visible,
+.nav-lateral a:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
 /* Objetivos táctiles ≥ 44px de alto en móvil (< 640px) (accesibilidad.md §Globales). */
 @media (max-width: 639px) {
   .campo input,
   .boton {
     min-height: 44px;
+  }
+
+  .cabecera-global__opciones a,
+  .cabecera-global__logout,
+  .ajustes__volver,
+  .nav-lateral a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }
