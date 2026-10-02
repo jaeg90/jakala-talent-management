@@ -20,7 +20,7 @@ Todos consumen `tokens.css`. Nombres en BEM-ligero y español.
 | Campo | `.campo` (label envolvente) | etiqueta 14px/700 encima (gap 6px); input borde 1.5px `--color-borde-campo`, radio `--radio-m`, padding 10px 12px, 15px/400. Foco: borde `--foco-borde` + `--foco-anillo`. Error: borde `--color-error` + mensaje 13px/600 `--color-error` debajo |
 | Checkbox de acuerdo | `.check` | 18×18, radio `--radio-s`, borde 2px oklch(0.75 0.03 310); marcado: fondo `--color-exito` con ✓ blanco |
 | Avatar | `.avatar.avatar--{1..4}` | círculo con iniciales 700; 28px (cabecera, 11px), 38px (listas, 13px), 48–52px (ficha/perfil, 16–17px). Tono = hash del id mod 4 |
-| Logo | `.logo` | cuadrado 28px radio 9px (44px/13px en login) fondo primario con «J» 800 blanca + «JTM» 800 18px |
+| Logo | `.logo` | cuadrado 28px radio `--radio-xs` (9px) (44px/13px en login) fondo primario con «J» 800 blanca + «JTM» 800 18px |
 | Nav lateral | `.nav-lateral a[aria-current=page]` | ítems 15px/500, padding 10px 12px, radio `--radio-l`; activo = fondo superficie + texto primario 700 + `--sombra-1`. Títulos de grupo 12px/700 secundario |
 | Diálogo | `<dialog>.dialogo` | ancho 520–540px, fondo superficie, radio `--radio-xxl` (20px), padding 28px, gap 14–16px, sombra `--sombra-3`, velo `--color-velo`. Título 21px/800. Acciones alineadas a la derecha: Cancelar (secundario) + acción con verbo explícito |
 | Aviso | `.aviso.aviso--{exito|error}` | radio 10–14px, padding 10–12px 12–16px, 14px/600. Éxito: `--color-exito-badge`/`--color-exito-texto` con enlace subrayado. Error: `--color-error-fondo`/`--color-error` |
