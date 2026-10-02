@@ -116,6 +116,38 @@ test('el tema se aplica antes del render y es conmutable por código sin recarga
   await expect(page.locator('html')).toHaveAttribute('data-tema', 'claro');
 });
 
+test('el fondo de body computa --color-fondo en claro y oscuro, no el #f5f5fa legacy', async ({ page }) => {
+  await page.goto('/login');
+
+  // Resuelve el fondo computado de <body> y el valor del token --color-fondo en el
+  // mismo formato del navegador: una sonda con `background-color: var(--color-fondo)`.
+  const leerFondo = () =>
+    page.evaluate(() => {
+      const sonda = document.createElement('div');
+      sonda.style.backgroundColor = 'var(--color-fondo)';
+      document.body.appendChild(sonda);
+      const tokenResuelto = getComputedStyle(sonda).backgroundColor;
+      sonda.remove();
+      return {
+        fondo: getComputedStyle(document.body).backgroundColor,
+        tokenResuelto,
+      };
+    });
+
+  await page.evaluate(() => window.__jtm?.cambiarTema('claro'));
+  const claro = await leerFondo();
+  // En claro el fondo sigue al token Lino y no al #f5f5fa legacy.
+  expect(claro.fondo).toBe(claro.tokenResuelto);
+  expect(claro.fondo).not.toBe('rgb(245, 245, 250)');
+
+  await page.evaluate(() => window.__jtm?.cambiarTema('oscuro'));
+  const oscuro = await leerFondo();
+  // En oscuro el fondo sigue al token Tueste y tampoco cae al #f5f5fa legacy.
+  expect(oscuro.fondo).toBe(oscuro.tokenResuelto);
+  expect(oscuro.fondo).not.toBe('rgb(245, 245, 250)');
+  expect(oscuro.fondo).not.toBe(claro.fondo);
+});
+
 test('foco visible con --foco-anillo en el Login', async ({ page }) => {
   await page.goto('/login');
   await page.keyboard.press('Tab');

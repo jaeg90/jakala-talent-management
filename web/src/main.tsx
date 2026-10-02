@@ -10,6 +10,7 @@ import '@fontsource/figtree/700.css';
 import '@fontsource/figtree/800.css';
 import './tokens.css';
 import './styles.css';
+import './lino.css';
 import { cambiarTema, iniciarTema } from './lib/tema';
 
 // Mecanismo de tema: se inicia al arrancar y queda conmutable por código. La UI de
