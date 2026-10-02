@@ -159,3 +159,43 @@ test('foco visible con --foco-anillo en el Login', async ({ page }) => {
   const sombra = await page.getByLabel('Email').evaluate((el) => getComputedStyle(el).boxShadow);
   expect(sombra).not.toBe('none');
 });
+
+test('el botón primario muestra --foco-anillo con foco visible en claro y en oscuro', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByLabel('Email')).toBeVisible();
+
+  // Fija el tema claro antes de asertar: el tema inicial depende de la preferencia
+  // del sistema, y el anillo debe quedar demostrado en claro Y en oscuro.
+  await page.evaluate(() => window.__jtm?.cambiarTema('claro'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'claro');
+
+  const boton = page.getByRole('button', { name: 'Iniciar sesión' });
+
+  // Resuelve --foco-anillo en el mismo formato del navegador (sonda con
+  // box-shadow: var(--foco-anillo)) y lee el box-shadow computado del botón.
+  const leerAnillo = () =>
+    page.evaluate(() => {
+      const sonda = document.createElement('div');
+      sonda.style.boxShadow = 'var(--foco-anillo)';
+      document.body.appendChild(sonda);
+      const tokenResuelto = getComputedStyle(sonda).boxShadow;
+      sonda.remove();
+      return tokenResuelto;
+    });
+  const anilloBoton = () => boton.evaluate((el) => getComputedStyle(el).boxShadow);
+
+  // Foco por teclado (Tab Email → Contraseña → botón) para que aplique :focus-visible.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(boton).toBeFocused();
+  expect(await anilloBoton()).toBe(await leerAnillo());
+
+  // Al pasar a oscuro --sombra-primario vale `none`; si el anillo se sumaba a esa
+  // sombra, la lista de box-shadow era inválida y el botón perdía el anillo. Con el
+  // arreglo (solo --foco-anillo) debe recomputar al token oscuro, sin anillo vacío.
+  await page.evaluate(() => window.__jtm?.cambiarTema('oscuro'));
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'oscuro');
+  await expect(boton).toBeFocused();
+  expect(await anilloBoton()).toBe(await leerAnillo());
+});

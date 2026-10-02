@@ -99,7 +99,7 @@ body {
 }
 
 .boton--primario:focus-visible {
-  box-shadow: var(--foco-anillo), var(--sombra-primario);
+  box-shadow: var(--foco-anillo);
   outline: none;
 }
 
