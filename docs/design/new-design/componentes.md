@@ -53,4 +53,4 @@ No hacen falta tokens nuevos: todo sale de los existentes.
 Figtree (Google Fonts, 400–800). Títulos de página 36px/800 tracking −0.02em; título de sección de ficha 30px/800; título de tarjeta 17–18px/800; cuerpo 15px/400–600; meta 13px; etiquetas de grupo 12–13px/700. Interlineado cuerpo 1.5–1.55.
 
 ## Fechas
-Relativas en listas y señales («hace 9 días», «hace 3 semanas»); exactas en detalle y timeline («20 sept», «12 sept 2026», «3 mar 2025» — año solo si no es el actual). Meses abreviados: ene, feb, mar, abr, may, jun, jul, ago, sept, oct, nov, dic. Tooltip (`title`/`<time datetime>`) con la fecha exacta en las relativas.
+Relativas en listas y señales — escalera: hoy → días (<7) → semanas (<5) → meses (hasta 12) → años desde 365 días exactos («hace 9 días», «hace 3 semanas», «hace 2 meses»; nunca un contador a cero) —; exactas en detalle y timeline («20 sept», «12 sept 2026», «3 mar 2025» — año solo si no es el actual). Meses abreviados: ene, feb, mar, abr, may, jun, jul, ago, sept, oct, nov, dic. Tooltip (`title`/`<time datetime>`) con la fecha exacta en las relativas.
