@@ -10,6 +10,7 @@ Todos consumen `tokens.css`. Nombres en BEM-ligero y español.
 | Botón de éxito suave | `.boton.boton--exito` | fondo `--color-exito-badge`, texto `--color-exito-texto`, padding 8px 14px, radio `--radio-m` («Marcar cumplido» en Objetivos) |
 | Enlace de acción | `.accion` | 14px/600 `--color-primario-texto`, sin subrayado; variante `.accion--tenue` con `--color-texto-secundario` (Retirar) |
 | Tarjeta | `.tarjeta` | fondo `--color-superficie`, radio `--radio-xl`, padding 24px (18px compacta), sombra `--sombra-2` (`--sombra-1` compacta) |
+| Tarjeta de login | `.tarjeta--login` | `.tarjeta` con ancho 420px **total** (`box-sizing: border-box`), padding 40px, radio `--radio-xxl`; solo en el Login (§01) |
 | Tarjeta de atención | `.tarjeta--atencion` | fondo `--color-atencion-fondo`, sin sombra; título 13px/700 `--color-atencion-texto` |
 | Tarjeta archivada | `.tarjeta--plana` | sin fondo, borde interior 1px `--color-borde`, radio 14px (cumplidos, resueltas, retirados) |
 | Fila hundida | `.fila` | fondo `--color-superficie-hundida`, radio `--radio-m`, padding 10–11px 12–14px, 15px |
@@ -21,7 +22,7 @@ Todos consumen `tokens.css`. Nombres en BEM-ligero y español.
 | Avatar | `.avatar.avatar--{1..4}` | círculo con iniciales 700; 28px (cabecera, 11px), 38px (listas, 13px), 48–52px (ficha/perfil, 16–17px). Tono = hash del id mod 4 |
 | Logo | `.logo` | cuadrado 28px radio 9px (44px/13px en login) fondo primario con «J» 800 blanca + «JTM» 800 18px |
 | Nav lateral | `.nav-lateral a[aria-current=page]` | ítems 15px/500, padding 10px 12px, radio `--radio-l`; activo = fondo superficie + texto primario 700 + `--sombra-1`. Títulos de grupo 12px/700 secundario |
-| Diálogo | `<dialog>.dialogo` | ancho 520–540px, fondo superficie, radio 20px, padding 28px, gap 14–16px, sombra `--sombra-3`, velo `--color-velo`. Título 21px/800. Acciones alineadas a la derecha: Cancelar (secundario) + acción con verbo explícito |
+| Diálogo | `<dialog>.dialogo` | ancho 520–540px, fondo superficie, radio `--radio-xxl` (20px), padding 28px, gap 14–16px, sombra `--sombra-3`, velo `--color-velo`. Título 21px/800. Acciones alineadas a la derecha: Cancelar (secundario) + acción con verbo explícito |
 | Aviso | `.aviso.aviso--{exito|error}` | radio 10–14px, padding 10–12px 12–16px, 14px/600. Éxito: `--color-exito-badge`/`--color-exito-texto` con enlace subrayado. Error: `--color-error-fondo`/`--color-error` |
 | Timeline | `.timeline` | grid `96px 28px 1fr`, row-gap 16px dentro de tarjeta; separador de mes 13px/700 primario-texto. Marcadores 12px: 1-to-1 = círculo primario; incidencia abierta = círculo `--color-atencion`; resuelta = círculo hueco borde 2px decorativo; cambio de proyecto = rombo `--color-exito`; traspaso = rombo hueco primario |
 | Opción de apariencia | `.opcion-tema` (radio) | tarjeta seleccionable con miniatura 96px, radio 14px; seleccionada = borde interior 2px primario + fondo primario-suave 40% |

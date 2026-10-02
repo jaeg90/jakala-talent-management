@@ -27,7 +27,7 @@ Nav de ajustes (grupos gap 18px; título de grupo 12px/700 secundario):
 ---
 
 ## 01 · Login [2a-01]
-- Fondo `--color-fondo`; tarjeta centrada 420px, padding 40px, radio 20px, `--sombra-2`, gap 20px.
+- Fondo `--color-fondo`; tarjeta centrada de **420px de ancho total** (`box-sizing: border-box`: el padding 40px va dentro), radio `--radio-xxl` (20px), `--sombra-2`, gap 20px.
 - Logo 44px («J» 20px) · h1 «JTM» 36px/800 · «Jakala Talent Management» 15px secundario.
 - Campos «Email», «Contraseña» (type=password).
 - Error (`role="alert"`, aviso error): **«Email o contraseña incorrectos. Revísalos e inténtalo de nuevo.»** Aparece entre campos y botón; el foco pasa a Contraseña.

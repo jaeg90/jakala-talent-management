@@ -65,6 +65,7 @@
   --radio-m: 10px;   /* campos, filas */
   --radio-l: 12px;   /* botones, nav */
   --radio-xl: 16px;  /* tarjetas */
+  --radio-xxl: 20px; /* tarjeta de login, diálogos */
   --radio-pildora: 999px;
 
   /* — Sombras (suaves, tono cálido) — */
