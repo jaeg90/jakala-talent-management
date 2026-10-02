@@ -45,6 +45,7 @@ describe('Sesiones: prompts', () => {
     expect(prompt).toContain('- e2e: npm run test:e2e');
     expect(prompt).toContain('RESUMEN:');
     expect(prompt).toContain('NO lo adivines');
+    expect(prompt).toContain('un valor o un contrato');
     expect(prompt).toContain('DEVOLVER');
     expect(prompt).toContain('DUDA n: <el criterio, las lecturas y qué decide cada una>');
   });
@@ -55,6 +56,7 @@ describe('Sesiones: prompts', () => {
     expect(prompt).toContain('SIN SALTARTE NINGUNO');
     expect(prompt).toContain('CRITERIO n: OK');
     expect(prompt).toContain('CRITERIO n: HALLAZGO');
+    expect(prompt).toContain('un valor o de un contrato');
     expect(prompt).toContain('DUDA n:');
     expect(prompt).toContain('No reserves problemas para una próxima ronda');
     expect(prompt).toContain('SIN HALLAZGOS');

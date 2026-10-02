@@ -113,7 +113,7 @@ Defecto del diff contra la spec del ticket que la revisora enumera en una sola r
 _Avoid_: error de revisión, issue
 
 **Duda**:
-Ambigüedad del cuerpo de un ticket — dos lecturas razonables del mismo criterio que producen diffs distintos — que ninguna sesión puede resolver sin adivinar; fuerza devolución.
+Ambigüedad del cuerpo de un ticket — un valor o un contrato que admite dos lecturas con implementaciones distintas — que ninguna sesión puede resolver sin adivinar; fuerza devolución.
 _Avoid_: pregunta, incertidumbre, bloqueo
 
 **Reintento**:
