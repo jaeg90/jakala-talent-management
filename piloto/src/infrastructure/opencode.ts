@@ -128,26 +128,50 @@ export const promptReparadora = (ticket: Ticket, error: ErrorEnMano, puertas: Pu
     'Ejecútalas de verdad: no des el parche por listo con alguna en rojo o sin correrlas.',
   ].join('\n');
 
+const SIN_RESUMEN = 'Implementado por el Piloto (la sesión no dejó resumen).';
+
 export function extraerResumen(salida: string): string {
-  const lineas = [...salida.matchAll(/RESUMEN:\s*(.+)/g)].map((m) => m[1]?.trim() ?? '');
-  return lineas.at(-1) ?? 'Implementado por el Piloto (la sesión no dejó resumen).';
+  const lineas = [...salida.matchAll(/RESUMEN:[ \t]*(?:\*\*)?[ \t]*(.+)$/gm)].map((m) =>
+    sinMarcasDeCierre(m[1]?.trim() ?? ''),
+  );
+  const ultima = lineas.at(-1);
+  return ultima === undefined || ultima === '' ? SIN_RESUMEN : ultima;
 }
+
+/**
+ * Énfasis markdown alrededor de las palabras clave de los contratos (HALLAZGO,
+ * DUDA, DEVOLVER, RESUMEN): la revisora escribe tablas con negritas —
+ * «**CRITERIO n: HALLAZGO — …**» — y los contratos deben leerse a través del
+ * formato, no romperse contra él (ajuste ADR-0012, 2-oct: el veredicto de #38
+ * se negó con ** y el extractor cayó a la cola de 500; la reparadora recibió
+ * criterios OK como si fueran el hallazgo y el hallazgo real se perdió).
+ */
+const APERTURA = String.raw`[ \t]*(?:[-*_>#]+[ \t]*)*`;
+const CIERRE = String.raw`[*_ \t]*`;
+
+/** Quita los marcadores de énfasis de cierre que quedan pegados al texto capturado. */
+const sinMarcasDeCierre = (texto: string): string => texto.replace(/[\s*_]+$/, '');
+
+const RE_HALLAZGO = new RegExp(
+  String.raw`^${APERTURA}(?:CRITERIO[ \t]*\d+[ \t]*:[ \t]*)?[*_ \t]*HALLAZGO(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
+  'gm',
+);
+const RE_DUDA = new RegExp(String.raw`^${APERTURA}[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*:[ \t]*${CIERRE}(.+)$`, 'gm');
+const RE_DEVOLVER = new RegExp(String.raw`^${APERTURA}[*_ \t]*DEVOLVER[*_ \t]*:?[ \t]*${CIERRE}$`, 'm');
 
 /** Las dudas numeradas de una respuesta: «DUDA n: …», compartidas por implementadora y revisora (ADR-0012). */
 export function extraerDudas(salida: string): string[] {
-  return [...salida.matchAll(/^[ \t]*(?:[-*][ \t]*)?DUDA(?:[ \t]+\d+)?[ \t]*:[ \t]*(.+)$/gm)]
-    .map((m) => m[1]?.trim() ?? '')
+  return [...salida.matchAll(RE_DUDA)]
+    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
     .filter((duda) => duda !== '');
 }
 
 export function extraerVeredicto(salida: string): Veredicto {
   // Una línea por hallazgo — «HALLAZGO n: …» de siempre (ADR-0010) o
-  // «CRITERIO n: HALLAZGO — …» del contrato por criterio —; todos viajan
-  // juntos a la reparadora en un solo ciclo de reparación.
-  const hallazgos = [
-    ...salida.matchAll(/^[ \t]*(?:[-*][ \t]*)?(?:CRITERIO[ \t]+\d+[ \t]*:[ \t]*)?HALLAZGO(?:[ \t]+\d+)?[ \t]*(?::|—)[ \t]*(.+)$/gm),
-  ]
-    .map((m) => m[1]?.trim() ?? '')
+  // «CRITERIO n: HALLAZGO — …» del contrato por criterio —, con o sin énfasis
+  // markdown alrededor; todos viajan juntos a la reparadora en un solo ciclo.
+  const hallazgos = [...salida.matchAll(RE_HALLAZGO)]
+    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
     .filter((hallazgo) => hallazgo !== '');
   const dudas = extraerDudas(salida);
   if (hallazgos.length === 0 && dudas.length === 0 && /SIN HALLAZGOS/.test(salida)) {
@@ -163,7 +187,7 @@ export function extraerVeredicto(salida: string): Veredicto {
 
 /** La devolución de la implementadora (ADR-0012): null = entregó el diff; string = dudas para el grill. */
 export function extraerDevolucion(salida: string): string | null {
-  if (!/^[ \t]*DEVOLVER[ \t]*:?[ \t]*$/m.test(salida)) return null;
+  if (!RE_DEVOLVER.test(salida)) return null;
   const dudas = extraerDudas(salida);
   // Devolvió sin dudas legibles: se devuelve igual — nunca se trata como diff listo.
   return dudas.length > 0 ? dudas.join('\n') : 'La implementadora devolvió el ticket sin dudas legibles.';

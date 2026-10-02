@@ -124,6 +124,40 @@ describe('Sesiones: veredicto de la revisora', () => {
     });
     expect(extraerVeredicto('')).toEqual({ hallazgos: 'La revisora respondió sin formato.', dudas: [] });
   });
+
+  it('las negritas de la revisora no esconden el hallazgo (regresión de #38, 2-oct)', () => {
+    const salida = [
+      '### Criterios de aceptación',
+      '',
+      '**CRITERIO 1 — Ninguna clase Lino queda en `styles.css`.**  ',
+      'Los estilos están en `lino.css`.',
+      '**CRITERIO 1: OK**',
+      '',
+      '**CRITERIO 2 — El fondo computado de `<body>`.**  ',
+      'El E2E existente solo comprueba el atributo `data-tema`.',
+      '**CRITERIO 2: HALLAZGO — falta la aserción E2E explícita del fondo computado de `<body>` en claro y oscuro.**',
+      '**CRITERIO 3: OK**',
+      '',
+      'No encontré incumplimientos adicionales de estándares del repo.',
+    ].join('\n');
+
+    expect(extraerVeredicto(salida)).toEqual({
+      hallazgos: 'falta la aserción E2E explícita del fondo computado de `<body>` en claro y oscuro.',
+      dudas: [],
+    });
+  });
+
+  it('DUDA y DEVOLVER con negritas también viajan limpios', () => {
+    const salida = '**DEVOLVER**\n**DUDA 1:** ¿La tarjeta de 420px es ancho total o de contenido?**';
+
+    expect(extraerDevolucion(salida)).toBe('¿La tarjeta de 420px es ancho total o de contenido?');
+  });
+
+  it('el resumen con negritas llega sin marcadores', () => {
+    expect(extraerResumen('**RESUMEN:** Movidos los estilos a `lino.css`.**')).toBe(
+      'Movidos los estilos a `lino.css`.',
+    );
+  });
 });
 
 describe('Sesiones: devolución de la implementadora', () => {
