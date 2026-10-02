@@ -35,7 +35,8 @@ export interface Project {
 export interface Mentee {
   id: string;
   name: string;
-  project: Project | null;
+  /** Nombres de los proyectos vigentes de la mentee (lista de /api/team). */
+  proyectos: string[];
 }
 
 export interface TemaPropio {

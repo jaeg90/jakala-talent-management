@@ -296,10 +296,10 @@ async function catalogos(email: string): Promise<ProyectoConEstadoApi[]> {
   return body.proyectos;
 }
 
-async function team(email: string): Promise<{ id: string; name: string; project: ProyectoApi | null; proyectos: string[] }[]> {
+async function team(email: string): Promise<{ id: string; name: string; proyectos: string[] }[]> {
   const res = await fetch(`${baseUrl}/api/team`, { headers: { cookie: await login(email) } });
   const body = (await res.json()) as {
-    mentees: { id: string; name: string; project: ProyectoApi | null; proyectos: string[] }[];
+    mentees: { id: string; name: string; proyectos: string[] }[];
   };
   return body.mentees;
 }
@@ -365,7 +365,6 @@ describe('API nueva: entrar y salir de proyectos', () => {
 
     const equipo = await team(LUCIA);
     const hugo = equipo.find((m) => m.id === HUGO);
-    expect(hugo?.project).toBeNull();
     expect(hugo?.proyectos).toEqual([]);
   });
 });

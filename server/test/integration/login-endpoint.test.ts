@@ -125,7 +125,6 @@ describe('con sesión', () => {
   interface MenteeApi {
     id: string;
     name: string;
-    project: { id: string; name: string } | null;
     proyectos: string[];
   }
 
@@ -151,26 +150,23 @@ describe('con sesión', () => {
     expect(body.manager.debeCambiarContraseña).toBe(true);
   });
 
-  it('GET /api/team lista los mentees del manager con su proyecto actual', async () => {
+  it('GET /api/team lista los mentees del manager con sus proyectos vigentes', async () => {
     const mentees = await teamOf(MARTA);
 
     expect(mentees).toEqual([
       {
         id: 'me-ana',
         name: 'Ana Alonso',
-        project: { id: 'pr-atlas', name: 'Atlas Bank' },
         proyectos: ['Atlas Bank'],
       },
       {
         id: 'me-bea',
         name: 'Beatriz Blanco',
-        project: { id: 'pr-nova', name: 'Retail Nova' },
         proyectos: ['Retail Nova'],
       },
       {
         id: 'me-carla',
         name: 'Carla Cano',
-        project: { id: 'pr-aurora', name: 'Aurora Health' },
         proyectos: ['Aurora Health'],
       },
     ]);
@@ -186,10 +182,10 @@ describe('con sesión', () => {
     expect(marta.length).toBe(3);
   });
 
-  it('la mentee sin proyecto de Lucía aparece con project null', async () => {
+  it('la mentee sin proyecto de Lucía aparece con proyectos vacíos', async () => {
     const lucia = await teamOf('lucia@jakala.example');
     const hugo = lucia.find((m) => m.id === 'me-hugo');
-    expect(hugo?.project).toBeNull();
+    expect(hugo?.proyectos).toEqual([]);
   });
 
   it('POST /api/logout revoca la sesión', async () => {

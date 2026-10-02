@@ -59,7 +59,9 @@ export function Team() {
               <button className="link mentee-name" onClick={() => navigate(`/mentees/${m.id}`)}>
                 {m.name}
               </button>
-              <span className="mentee-project">{m.project?.name ?? 'Sin proyecto'}</span>
+              <span className="mentee-project">
+                {m.proyectos.length > 0 ? m.proyectos.join(', ') : 'Sin proyecto'}
+              </span>
             </li>
           ))}
         </ul>

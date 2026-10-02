@@ -95,14 +95,13 @@ export interface ProyectoCatalogo extends Project {
 }
 
 /**
- * Mentee tal y como la ve su manager en "Mi equipo": su proyecto actual (el
- * vigente con la entrada más reciente, para el puente legado de Team.tsx) y la
- * lista de nombres de sus proyectos vigentes. Ver decisiones.md §Cambios 12.
+ * Mentee tal y como la ve su manager en "Mi equipo": la lista de nombres de
+ * sus proyectos vigentes (separados por «, » en el puente legado de Team.tsx).
+ * Ver decisiones.md §Cambios 12.
  */
 export interface MenteeConProyecto {
   id: string;
   name: string;
-  project: Project | null;
   proyectos: string[];
 }
 
