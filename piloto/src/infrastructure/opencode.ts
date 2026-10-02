@@ -103,7 +103,9 @@ export const promptRevisora = (ticket: Ticket): string =>
     '   «HALLAZGO n: <qué falla y por qué>» por cada problema.',
     '4. Si un criterio depende de un valor o de un contrato que el cuerpo del ticket NO',
     '   determina — dos lecturas razonables que producirían implementaciones distintas —,',
-    '   no lo juzgues: emite «DUDA n: <el criterio, las lecturas y qué decide cada una>».',
+    '   no lo juzgues: emite ese criterio como «CRITERIO n: DUDA — <el criterio, las',
+    '   lecturas y qué decide cada una>». La duda nunca se marca OK ni HALLAZGO:',
+    '   viaja a devolución, igual que las dudas sueltas («DUDA n: …»).',
     '5. No reserves problemas para una próxima ronda: cada ronda extra consume un reintento',
     '   del ticket.',
     'No modifiques nada.',
@@ -156,7 +158,14 @@ const RE_HALLAZGO = new RegExp(
   String.raw`^${APERTURA}(?:CRITERIO[ \t]*\d+[ \t]*:[ \t]*)?[*_ \t]*HALLAZGO(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
   'gm',
 );
-const RE_DUDA = new RegExp(String.raw`^${APERTURA}[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*:[ \t]*${CIERRE}(.+)$`, 'gm');
+// La duda admite el prefijo de criterio y ambos separadores — el formato natural del
+// contrato por criterio es «CRITERIO n: DUDA — …» (regresión de #24, 2-oct noche: la
+// revisora la emitió así y el extractor la ignoró, degradando una decisión humana a
+// un ciclo de reparación).
+const RE_DUDA = new RegExp(
+  String.raw`^${APERTURA}(?:CRITERIO[ \t]*\d+[ \t]*:[ \t]*)?[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
+  'gm',
+);
 const RE_DEVOLVER = new RegExp(String.raw`^${APERTURA}[*_ \t]*DEVOLVER[*_ \t]*:?[ \t]*${CIERRE}$`, 'm');
 
 /** Las dudas numeradas de una respuesta: «DUDA n: …», compartidas por implementadora y revisora (ADR-0012). */

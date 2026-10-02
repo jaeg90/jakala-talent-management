@@ -147,6 +147,19 @@ describe('Sesiones: veredicto de la revisora', () => {
     });
   });
 
+  it('la DUDA dentro de la tabla de criterios, con negritas y guion largo, viaja (regresión de #24)', () => {
+    const salida = [
+      '**CRITERIO 1: DUDA** — «Contraseña nueva ≥ 10 caracteres»: `nueva.length` cuenta unidades UTF-16; contar puntos de código trataría cinco emoji como cinco. El ticket no determina qué unidad define «carácter».',
+      '**CRITERIO 2: OK** — El cambio de contraseña requiere la actual y la nueva es distinta.',
+    ].join('\n');
+
+    const veredicto = extraerVeredicto(salida);
+
+    expect(veredicto.hallazgos).toBeNull();
+    expect(veredicto.dudas).toHaveLength(1);
+    expect(veredicto.dudas[0]).toContain('unidades UTF-16');
+  });
+
   it('DUDA y DEVOLVER con negritas también viajan limpios', () => {
     const salida = '**DEVOLVER**\n**DUDA 1:** ¿La tarjeta de 420px es ancho total o de contenido?**';
 
