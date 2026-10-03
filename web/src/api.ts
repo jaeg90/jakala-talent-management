@@ -35,8 +35,17 @@ export interface Project {
 export interface Mentee {
   id: string;
   name: string;
-  /** Nombres de los proyectos vigentes de la mentee (lista de /api/team). */
+  /** Nombres de los proyectos vigentes de la mentee, en orden alfabético. */
   proyectos: string[];
+  acuerdosPendientes: number;
+  incidenciasAbiertas: number;
+  objetivosEnCurso: number;
+  /** Fecha ISO (YYYY-MM-DD) del último 1-to-1; null si no hay ninguno. */
+  ultimoUnoAUno: string | null;
+  /** Señal de dominio «Necesita atención»: incidencia abierta o último 1-to-1 > 14 días. */
+  necesitaAtencion: boolean;
+  /** Veredicto del badge de antigüedad: el último 1-to-1 tiene más de 14 días. */
+  badgeAntiguedad: boolean;
 }
 
 export interface TemaPropio {

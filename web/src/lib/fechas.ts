@@ -56,10 +56,11 @@ export function fechaISO(fecha: string): string {
   return parseFecha(fecha).toISOString().slice(0, 10);
 }
 
-/** «hace 9 días», «hace 3 semanas», «hace 2 meses»… contando días naturales hasta hoy. */
+/** «hace 9 días», «hace 3 semanas», «hace 2 meses»… contando días naturales hasta hoy
+ * (en UTC, la misma convención de «hoy» del dominio: `hoyISO()` del backend). */
 export function fechaRelativa(fecha: string, hoy: Date = new Date()): string {
   const objetivo = parseFecha(fecha).getTime();
-  const referencia = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const referencia = Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate());
   const dias = Math.round((referencia - objetivo) / MILISEGUNDOS_POR_DIA);
 
   // Escalera: hoy → días (<7) → semanas (<5) → meses (hasta 12) → años desde

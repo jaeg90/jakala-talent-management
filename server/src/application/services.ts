@@ -1,5 +1,11 @@
-import type { Manager, MenteeConProyecto } from '../domain/model.js';
+import type { Manager } from '../domain/model.js';
 import type { Authenticator, SessionStore, TeamRepository } from '../domain/ports.js';
+import {
+  badgeAntiguedad,
+  necesitaAtencion,
+  ordenarEquipo,
+  type FilaDeEquipo,
+} from '../domain/equipo.js';
 
 /** Caso de uso: iniciar sesión con email y contraseña. */
 export class LoginService {
@@ -17,11 +23,28 @@ export class LoginService {
   }
 }
 
-/** Caso de uso: el equipo de un manager, con el proyecto actual de cada mentee. */
+/** Caso de uso: el equipo de un manager, con las señales agregadas de cada mentee
+ * y la señal de dominio «Necesita atención», ordenado atención-primero. */
 export class TeamService {
   constructor(private readonly teamRepository: TeamRepository) {}
 
-  teamOf(manager: Manager): Promise<MenteeConProyecto[]> {
-    return this.teamRepository.teamOf(manager.id);
+  async teamOf(manager: Manager, hoy: string = hoyISO()): Promise<FilaDeEquipo[]> {
+    const equipo = await this.teamRepository.teamOf(manager.id);
+    return ordenarEquipo(
+      equipo.map((mentee): FilaDeEquipo => ({
+        ...mentee,
+        necesitaAtencion: necesitaAtencion(
+          mentee.incidenciasAbiertas,
+          mentee.ultimoUnoAUno,
+          hoy,
+        ),
+        badgeAntiguedad: badgeAntiguedad(mentee.ultimoUnoAUno, hoy),
+      })),
+    );
   }
+}
+
+/** Hoy en ISO (YYYY-MM-DD), para que el cálculo de días sea determinista en tests. */
+function hoyISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }

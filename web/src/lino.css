@@ -272,6 +272,21 @@ body {
   background: none;
 }
 
+/* La marca de la cabecera es un enlace a Mi equipo (accesibilidad: foco visible). */
+.cabecera-global__marca a {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.cabecera-global__marca a:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
 /* — Avatar (componentes.md §Avatar): círculo con iniciales, tono por id (1..4). */
 .avatar {
   display: inline-flex;
@@ -294,6 +309,315 @@ body {
   width: 48px;
   height: 48px;
   font-size: 16px;
+}
+
+/* Avatar de la fila de Mi equipo: 38px con iniciales 13px (componentes.md §Avatar
+   «38px (listas, 13px)»; spec §02 «avatar 38px»). */
+.avatar--lista {
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
+}
+
+/* — Mi equipo (spec §02) — */
+
+/* §02: contenedor padding 32px 120px, gap 24px (--esp-6); el 120px es un literal
+   de pantalla (no hay token de 120px). */
+.equipo {
+  min-height: calc(100vh - var(--alto-cabecera));
+  margin: 0;
+  max-width: none;
+  padding: var(--esp-8) 120px;
+  background: var(--color-fondo);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-6);
+  box-sizing: border-box;
+}
+
+.equipo__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.equipo__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.equipo__saludo {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+.equipo__titulos h1 {
+  margin: 0;
+  font-size: var(--texto-3xl);
+  font-weight: var(--peso-titulo);
+  letter-spacing: var(--tracking-titulo);
+}
+
+/* §02: contador «n mentees · primero quien necesita atención» a 14px secundario. */
+.equipo__contador {
+  font-size: 14px;
+  color: var(--color-texto-secundario);
+}
+
+.panel-tabla {
+  padding: var(--esp-2);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: var(--texto-m);
+}
+
+/* §02: proporciones de columnas 2fr 1.4fr 1fr 1fr 1fr 1.3fr. Como la tabla es un
+   `<table>` real (no grid), las fracciones se traducen a porcentajes equivalentes
+   sobre los `<col>` del `<colgroup>`. */
+.tabla col:nth-child(1) { width: 25.974%; }
+.tabla col:nth-child(2) { width: 18.182%; }
+.tabla col:nth-child(3) { width: 12.987%; }
+.tabla col:nth-child(4) { width: 12.987%; }
+.tabla col:nth-child(5) { width: 12.987%; }
+.tabla col:nth-child(6) { width: 16.883%; }
+
+.tabla th {
+  padding: var(--esp-3) var(--esp-4);
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+  color: var(--color-texto-secundario);
+  text-align: left;
+}
+
+/* §02 fila: radio 12px (--radio-l) y borde interior 1px (--fila-inset) en el hover.
+   `border-radius` no se aplica a `table-row` (la fila es un `<tr>` en la tabla de
+   Mi equipo): el radio y el fondo se pintan en las celdas — las de los extremos
+   recortan las esquinas y las esquinas del fondo quedan redondeadas. */
+.fila {
+  --fila-inset: 1px;
+}
+
+/* §02 fila: padding 14px 16px (14px literal; 16px = --esp-4) y alineación vertical centrada. */
+.fila td {
+  padding: 14px var(--esp-4);
+  vertical-align: middle;
+}
+
+.fila > td:first-child {
+  border-top-left-radius: var(--radio-l);
+  border-bottom-left-radius: var(--radio-l);
+}
+
+.fila > td:last-child {
+  border-top-right-radius: var(--radio-l);
+  border-bottom-right-radius: var(--radio-l);
+}
+
+/* Toda la fila es clicable: hover fondo hundido + borde interior; el enlace está
+   en el nombre (contrato de accesibilidad). El fondo va en las celdas (así sigue
+   el radio de las esquinas) y el borde interior con box-shadow en cada celda para
+   no variar el ancho de la fila: las centrales trazan solo arriba/abajo y los
+   extremos cierran el anillo por los lados. */
+.fila:hover {
+  cursor: pointer;
+}
+
+.fila:hover td {
+  background-color: var(--color-superficie-hundida);
+  box-shadow:
+    inset 0 var(--fila-inset) 0 var(--color-borde),
+    inset 0 calc(var(--fila-inset) * -1) 0 var(--color-borde);
+}
+
+.fila:hover > td:first-child {
+  box-shadow:
+    inset 0 var(--fila-inset) 0 var(--color-borde),
+    inset 0 calc(var(--fila-inset) * -1) 0 var(--color-borde),
+    inset var(--fila-inset) 0 0 var(--color-borde);
+}
+
+.fila:hover > td:last-child {
+  box-shadow:
+    inset 0 var(--fila-inset) 0 var(--color-borde),
+    inset 0 calc(var(--fila-inset) * -1) 0 var(--color-borde),
+    inset calc(var(--fila-inset) * -1) 0 0 var(--color-borde);
+}
+
+.fila--atencion td {
+  /* Fondo de la fila que necesita atención (spec §02), solo en reposo: en hover
+     la fila adopta `--color-superficie-hundida` como el resto (regla `.fila:hover
+     td`, que gana por especificidad). Sin el `:hover` aquí no se anula ese fondo. */
+  background-color: var(--color-atencion-fondo);
+}
+
+/* Fila enfocable por teclado (accesibilidad.md §Globales: foco visible en todo
+   interactivo). `--foco-anillo` es un box-shadow, que no se dibuja en un `<tr>`;
+   se usa `outline` con el mismo grosor (3px) y color del anillo (`--foco-borde`).
+   El enlace del nombre conserva su propio foco visible. */
+.fila:focus-visible {
+  outline: 3px solid var(--foco-borde);
+  outline-offset: -3px;
+}
+
+/* Celda Mentee: se mantiene como celda real (vertical-align centrado del resto de
+   la fila); dentro, una columna con el enlace del nombre y, debajo, la etiqueta
+   «Necesita atención». */
+.td-mentee {
+  vertical-align: middle;
+}
+
+.td-mentee__contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-1);
+}
+
+.fila__mentee {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: var(--color-texto);
+  font-weight: var(--peso-negrita);
+  text-decoration: none;
+}
+
+.fila__mentee:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+.fila__atencion {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semi);
+  color: var(--color-atencion-texto);
+}
+
+/* §02 celda Proyectos [v2]: lista sin viñetas, un proyecto por línea, gap 2px e
+   interlineado 1.35 (ambos literales de pantalla). */
+.lista-proyectos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+
+.lista-proyectos li {
+  white-space: nowrap;
+}
+
+.numero {
+  font-size: var(--texto-m);
+  color: var(--color-texto);
+}
+
+.guion {
+  color: var(--color-texto-decorativo);
+}
+
+.texto-secundario {
+  color: var(--color-texto-secundario);
+}
+
+/* Badge de estado (componentes.md §Badge): píldora 13px/600; padding compacto
+   2px 9px (2–3px 9–10px en la variante compacta). */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--radio-pildora);
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+  white-space: nowrap;
+}
+
+.badge--atencion {
+  background: var(--color-atencion-badge);
+  color: var(--color-atencion-texto);
+}
+
+/* Botón secundario (componentes.md §Botón secundario): borde interior 1.5px,
+   14px/600, padding 11px 18px. */
+.boton--secundario {
+  display: inline-block;
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-l);
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: var(--peso-semi);
+  color: var(--color-texto);
+  text-decoration: none;
+  background: transparent;
+}
+
+.boton--secundario:hover:not(:disabled) {
+  background: var(--color-superficie-hundida);
+}
+
+.boton--secundario:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+.estado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-3);
+}
+
+.estado__mensaje {
+  margin: 0;
+  color: var(--color-texto-secundario);
+}
+
+.tabla-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  background: var(--color-superficie);
+  border-radius: var(--radio-xl);
+  padding: var(--esp-2);
+  box-shadow: var(--sombra-2);
+}
+
+/* Skeleton de Mi equipo (P4 §Estados «Cargando»): filas de 52px. */
+.tabla-skeleton__fila {
+  height: 52px;
+  border-radius: var(--radio-l);
+  background: var(--color-superficie-hundida);
+  opacity: 1;
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
+@keyframes pulso-esqueleto {
+  50% { opacity: 0.6; }
+}
+
+/* Texto solo para lectores de pantalla (caption oculto, «Cargando…» del skeleton). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* — Área Ajustes (spec §Esqueletos) — */
@@ -507,6 +831,17 @@ body {
   .cabecera-global__logout,
   .ajustes__volver,
   .nav-lateral a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Enlaces de la marca de la cabecera (logo 28px) y del mentee (avatar 38px),
+     y el botón secundario «Añadir mentee» (`.boton--secundario`): también son
+     objetivos táctiles y deben alcanzar 44px de alto en móvil. */
+  .cabecera-global__marca a,
+  .fila__mentee,
+  .boton--secundario {
     min-height: 44px;
     display: inline-flex;
     align-items: center;

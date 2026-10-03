@@ -13,9 +13,9 @@ import type { Mentee } from './api';
 import { api } from './api';
 import { AjustesLayout, Perfil } from './Ajustes';
 import { AuthProvider, useAuth } from './auth';
+import { Equipo } from './Equipo';
 import { Login } from './Login';
 import { MenteeDetail } from './MenteeDetail';
-import { Team } from './Team';
 
 /** Router de JTM: rutas del mapa de `decisiones.md`. Sesión y rutas dirigen; sin estado interno de vista. */
 export function App() {
@@ -25,7 +25,7 @@ export function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<RutaPrivada />}>
-            <Route path="/equipo" element={<Team />} />
+            <Route path="/equipo" element={<Equipo />} />
             <Route path="/mentees/:id" element={<MenteeDetailRoute />} />
             <Route path="/mentees/:id/1-to-1s" element={<PantallaEnConstruccion titulo="1-to-1s" />} />
             <Route path="/mentees/:id/1-to-1s/nuevo" element={<PantallaEnConstruccion titulo="Registrar 1-to-1" />} />

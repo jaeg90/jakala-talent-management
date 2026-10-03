@@ -15,10 +15,13 @@ test('login normal → Mi equipo → logout', async ({ page }) => {
   await iniciarSesion(page);
   await expect(page).toHaveURL(/\/equipo$/);
   await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeVisible();
-  await expect(page.locator('.mentee-list li', { hasText: 'Ana Alonso' })).toContainText('Atlas Bank');
-  await expect(page.locator('.mentee-list li', { hasText: 'Beatriz Blanco' })).toContainText('Retail Nova');
-  await expect(page.locator('.mentee-list li', { hasText: 'Carla Cano' })).toContainText('Aurora Health');
-  await expect(page.locator('.mentee-list li', { hasText: 'David Duarte' })).toHaveCount(0);
+  const filaAna = page.locator('tbody tr', { hasText: 'Ana Alonso' });
+  await expect(filaAna).toContainText('Atlas Bank');
+  const filaBeatriz = page.locator('tbody tr', { hasText: 'Beatriz Blanco' });
+  await expect(filaBeatriz).toContainText('Retail Nova');
+  const filaCarla = page.locator('tbody tr', { hasText: 'Carla Cano' });
+  await expect(filaCarla).toContainText('Aurora Health');
+  await expect(page.locator('tbody tr', { hasText: 'David Duarte' })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
   await expect(page).toHaveURL(/\/login$/);
@@ -47,7 +50,7 @@ test('contraseña temporal → Perfil y contraseña', async ({ page }) => {
 test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) => {
   await iniciarSesion(page);
 
-  await page.getByRole('button', { name: 'Ana Alonso' }).click();
+  await page.getByRole('link', { name: 'Ana Alonso' }).click();
   await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
   await expect(page.getByText('Todavía no hay 1-to-1s registrados.')).toBeVisible();
 

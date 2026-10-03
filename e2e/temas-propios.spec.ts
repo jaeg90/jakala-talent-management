@@ -11,7 +11,7 @@ test('añado un tema propio, lo veo en el formulario y lo retiro', async ({ page
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
   // Abro la ficha de Ana Alonso
-  await page.getByRole('button', { name: 'Ana Alonso' }).click();
+  await page.getByRole('link', { name: 'Ana Alonso' }).click();
   await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
 
   const temasPropios = page.getByRole('region', { name: 'Temas propios' });

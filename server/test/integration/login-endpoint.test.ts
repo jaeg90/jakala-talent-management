@@ -126,6 +126,12 @@ describe('con sesión', () => {
     id: string;
     name: string;
     proyectos: string[];
+    acuerdosPendientes: number;
+    incidenciasAbiertas: number;
+    objetivosEnCurso: number;
+    ultimoUnoAUno: string | null;
+    necesitaAtencion: boolean;
+    badgeAntiguedad: boolean;
   }
 
   async function teamOf(email: string): Promise<MenteeApi[]> {
@@ -150,7 +156,7 @@ describe('con sesión', () => {
     expect(body.manager.debeCambiarContraseña).toBe(true);
   });
 
-  it('GET /api/team lista los mentees del manager con sus proyectos vigentes', async () => {
+  it('GET /api/team lista los mentees del manager con sus señales y proyectos vigentes', async () => {
     const mentees = await teamOf(MARTA);
 
     expect(mentees).toEqual([
@@ -158,16 +164,34 @@ describe('con sesión', () => {
         id: 'me-ana',
         name: 'Ana Alonso',
         proyectos: ['Atlas Bank'],
+        acuerdosPendientes: 0,
+        incidenciasAbiertas: 0,
+        objetivosEnCurso: 0,
+        ultimoUnoAUno: null,
+        necesitaAtencion: false,
+        badgeAntiguedad: false,
       },
       {
         id: 'me-bea',
         name: 'Beatriz Blanco',
         proyectos: ['Retail Nova'],
+        acuerdosPendientes: 0,
+        incidenciasAbiertas: 0,
+        objetivosEnCurso: 0,
+        ultimoUnoAUno: null,
+        necesitaAtencion: false,
+        badgeAntiguedad: false,
       },
       {
         id: 'me-carla',
         name: 'Carla Cano',
         proyectos: ['Aurora Health'],
+        acuerdosPendientes: 0,
+        incidenciasAbiertas: 0,
+        objetivosEnCurso: 0,
+        ultimoUnoAUno: null,
+        necesitaAtencion: false,
+        badgeAntiguedad: false,
       },
     ]);
   });

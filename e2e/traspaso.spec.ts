@@ -13,7 +13,7 @@ async function iniciarSesion(page: Page, email: string) {
 test('traspaso una mentee entre dos managers y el destino hereda su historial', async ({ page }) => {
   // Diego registra un 1-to-1 de Elena antes de traspasarla.
   await iniciarSesion(page, 'diego@jakala.example');
-  await page.getByRole('button', { name: 'Elena Estévez' }).click();
+  await page.getByRole('link', { name: 'Elena Estévez' }).click();
   await expect(page.getByRole('heading', { name: 'Elena Estévez' })).toBeVisible();
 
   await page.getByLabel('¿Cómo estás?').fill('Animada, con ganas');
@@ -31,16 +31,16 @@ test('traspaso una mentee entre dos managers y el destino hereda su historial', 
 
   // Vuelve a "Mi equipo": Elena ya no está en el equipo de Diego.
   await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Elena Estévez' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Elena Estévez' })).toHaveCount(0);
 
   // Lucía inicia sesión y ve a Elena en su equipo.
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
   await iniciarSesion(page, 'lucia@jakala.example');
 
-  await expect(page.getByRole('button', { name: 'Elena Estévez' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Elena Estévez' })).toBeVisible();
 
   // Abre la ficha: hereda el historial íntegro (1-to-1) y ve el traspaso registrado.
-  await page.getByRole('button', { name: 'Elena Estévez' }).click();
+  await page.getByRole('link', { name: 'Elena Estévez' }).click();
   await expect(page.getByRole('heading', { name: 'Elena Estévez' })).toBeVisible();
   await expect(page.getByText('Animada, con ganas')).toBeVisible();
 

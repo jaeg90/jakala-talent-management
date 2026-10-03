@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { api } from './api';
 import { useAuth } from './auth';
+import { CabeceraGlobal } from './CabeceraGlobal';
 import { iniciales, tonoAvatar } from './lib/avatar';
 
 /**
@@ -10,28 +11,9 @@ import { iniciales, tonoAvatar } from './lib/avatar';
  * conforme llegan sus tickets; el único que existe hoy es «Perfil y contraseña».
  */
 export function AjustesLayout() {
-  const { manager, logout } = useAuth();
-
   return (
     <>
-      <header className="cabecera-global">
-        <div className="cabecera-global__marca">
-          <span className="logo logo--cabecera" aria-hidden="true">J</span>
-          <span className="cabecera-global__wordmark">JTM</span>
-        </div>
-        <div className="cabecera-global__opciones">
-          <Link to="/ajustes/perfil" aria-current="page">Ajustes</Link>
-          <span className="cabecera-global__manager">
-            <span className={`avatar avatar--${tonoAvatar(manager?.id ?? '')}`}>
-              {manager ? iniciales(manager.name) : ''}
-            </span>
-            {manager?.name}
-          </span>
-          <button className="cabecera-global__logout" type="button" onClick={() => void logout()}>
-            Cerrar sesión
-          </button>
-        </div>
-      </header>
+      <CabeceraGlobal enAjustes />
 
       <main className="ajustes">
         <div className="ajustes__titulo">

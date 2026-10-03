@@ -58,38 +58,6 @@ button:hover {
   color: #666;
 }
 
-.team header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.team header div {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.mentee-list {
-  list-style: none;
-  padding: 0;
-}
-
-.mentee-list li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #eee;
-}
-
-.mentee-name {
-  font-weight: 500;
-}
-
-.mentee-project {
-  color: #666;
-}
-
 /* Ficha de mentee */
 .detail header {
   display: block;

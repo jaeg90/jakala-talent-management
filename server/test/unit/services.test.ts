@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LoginService, TeamService } from '../../src/application/services.js';
 import type { Authenticator, SessionStore, TeamRepository } from '../../src/domain/ports.js';
-import type { Manager, MenteeConProyecto } from '../../src/domain/model.js';
+import type { Manager, MenteeDeEquipo } from '../../src/domain/model.js';
 
 const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
@@ -52,10 +52,11 @@ describe('LoginService', () => {
 });
 
 describe('TeamService', () => {
-  it('devuelve el equipo del manager con sus proyectos vigentes', async () => {
-    const equipo: MenteeConProyecto[] = [
-      { id: 'me-1', name: 'Ana Alonso', proyectos: ['Atlas Bank'] },
-      { id: 'me-2', name: 'Beatriz Blanco', proyectos: [] },
+  it('devuelve el equipo con la señal «Necesita atención» y el orden atención-primero', async () => {
+    const equipo: MenteeDeEquipo[] = [
+      { id: 'me-1', name: 'Ana Alonso', proyectos: ['Atlas Bank'], acuerdosPendientes: 0, incidenciasAbiertas: 0, objetivosEnCurso: 0, ultimoUnoAUno: null },
+      { id: 'me-2', name: 'Beatriz Blanco', proyectos: [], acuerdosPendientes: 2, incidenciasAbiertas: 0, objetivosEnCurso: 1, ultimoUnoAUno: '2026-09-29' },
+      { id: 'me-3', name: 'Carla Cano', proyectos: ['Nexo Seguros'], acuerdosPendientes: 1, incidenciasAbiertas: 1, objetivosEnCurso: 0, ultimoUnoAUno: '2026-09-29' },
     ];
     const repo: TeamRepository = {
       async teamOf(managerId) {
@@ -65,6 +66,8 @@ describe('TeamService', () => {
     };
     const service = new TeamService(repo);
 
-    expect(await service.teamOf(manager)).toEqual(equipo);
+    const resultado = await service.teamOf(manager, '2026-09-29');
+    expect(resultado.map((m) => m.name)).toEqual(['Carla Cano', 'Beatriz Blanco', 'Ana Alonso']);
+    expect(resultado.map((m) => m.necesitaAtencion)).toEqual([true, false, false]);
   });
 });

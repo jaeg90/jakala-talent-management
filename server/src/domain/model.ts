@@ -95,14 +95,21 @@ export interface ProyectoCatalogo extends Project {
 }
 
 /**
- * Mentee tal y como la ve su manager en "Mi equipo": la lista de nombres de
- * sus proyectos vigentes (separados por «, » en el puente legado de Team.tsx).
- * Ver decisiones.md §Cambios 12.
+ * Mentee tal y como la ve su manager en "Mi equipo": los proyectos vigentes
+ * (orden alfabético) y las señales agregadas por mentee — nº de acuerdos
+ * pendientes, incidencias abiertas, objetivos en curso y fecha del último
+ * 1-to-1. Ver decisiones.md §Cambios 5 y 12.
  */
-export interface MenteeConProyecto {
+export interface MenteeDeEquipo {
   id: string;
   name: string;
+  /** Nombres de los proyectos vigentes, en orden alfabético. */
   proyectos: string[];
+  acuerdosPendientes: number;
+  incidenciasAbiertas: number;
+  objetivosEnCurso: number;
+  /** Fecha ISO (YYYY-MM-DD) del último 1-to-1; null si no hay ninguno. */
+  ultimoUnoAUno: string | null;
 }
 
 /** Nota tomada sobre un tema en un 1-to-1. */

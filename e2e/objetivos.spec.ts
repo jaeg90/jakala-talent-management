@@ -11,7 +11,7 @@ test('creo un objetivo anual y lo marco cumplido', async ({ page }) => {
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
   // Abro la ficha de Ana Alonso
-  await page.getByRole('button', { name: 'Ana Alonso' }).click();
+  await page.getByRole('link', { name: 'Ana Alonso' }).click();
   await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
 
   const objetivos = page.getByRole('region', { name: 'Objetivos anuales' });
