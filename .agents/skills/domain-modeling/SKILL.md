@@ -63,6 +63,10 @@ When a term is resolved, update `CONTEXT.md` right there. Don't batch these up: 
 
 `CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
+### Land grill-resolved rules in the design docs, in the same session
+
+When a grill resolves a cross-cutting rule (a visual-values convention, a data-interpretation rule), land it in the design doc in the SAME session. A de-facto rule that lives only in diffs and commit messages is invisible to the fresh-context sessions that will build and review the tickets against it — for them it is two reasonable readings, the exact definition of a DUDA, and it manufactures devolutions that no antidote can close. If the rule has no home yet in the design docs, give it one (a «Pautas» row, a note in the component spec); the ticket bodies quote it, the doc is where it lives.
+
 ### Offer ADRs sparingly
 
 Only offer to create an ADR when all three are true:

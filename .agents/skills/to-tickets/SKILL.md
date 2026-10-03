@@ -37,7 +37,9 @@ Break the work into **tracer bullet** tickets.
 
 Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
 
-**Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
+**Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. The criterion is not how many call sites the edit touches — **it's whether any gate would be red with this ticket's diff alone**: gates watch the consumers, not the edit. A ticket that substitutes a contract (a route, a response shape, a schema under live views) consumed outside its scope can have a blast radius of three call sites and still not land green alone, because the E2E tests the old consumer. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
+
+**A ticket that converts a data model specifies the THREE populations:** historical events, initial state, and the interaction between them (who writes what, how they're told apart). «No migration code — the seed regenerates» doesn't exempt: a regenerated seed is also a conversion, and the state that never moved (the seed's existing rows) needs a materialization rule of its own.
 
 ### 4. Quiz the user
 
@@ -52,6 +54,8 @@ Ask the user:
 - Does the granularity feel right? (too coarse / too fine)
 - Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
 - Should any tickets be merged or split further?
+- Does any edge of the DAG transport a contract (API, schema, event)? Where is its shape written?
+- Does any cross-cutting guideline with its own ticket (responsive passes, anti-legacy audits, seed narratives) touch these bodies? The exclusions are bidirectional: the transversal ticket names the bodies it blocks, and each body excludes the guideline by name.
 
 Iterate until the user approves the breakdown.
 

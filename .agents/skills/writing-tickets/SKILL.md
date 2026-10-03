@@ -10,10 +10,12 @@ Every ticket here is built by a fresh-context session that receives ONLY the tic
 ## Steps
 
 1. Gather the material: the design docs the ticket touches (`docs/design/new-design/`), the parent epic, and the tickets it blocks or is blocked by.
-2. Write the body from the template below. Quote the ticket's portion of the screen spec VERBATIM — the session cannot read the design doc, only the body.
+2. Write the body from the template below. Quote the ticket's portion of the screen spec VERBATIM — the session cannot read the design doc, only the body. Never summarize or paraphrase the quote, however long the ticket already is: a summary reopens the exact ambiguity the quote came to close.
 3. Scope every global criterion to what the ticket builds (rule below). Where a flow's other half lives in another ticket, name that ticket by number.
 4. Declare every dependency in «Bloqueado por», including implicit ones: a verification that needs another screen's state blocks on that screen's ticket.
 5. Completion check, per ticket: each acceptance criterion passes or fails by looking at the diff alone, and every global criterion in play has a scope verdict in «Alcance».
+
+   **Gate check, per ticket (and per antidote):** every gate stays green with this ticket's diff ALONE. If the diff substitutes a contract consumed outside «Alcance» (a route, a response shape, a schema under live views, a function another ticket shares), the body names how those consumers keep passing — thin adapters keeping the old routes and shapes, or the ticket that reconnects them. The opposite is a deferred DUDA (ADR-0012): a gate that goes red with this diff alone will be found mid-pass, when it costs a devolución. The check applies also to every antidote that lands in a body after a grill: an antidote without its own gate check is a devolución with a date.
 
 ## Template
 
@@ -61,6 +63,14 @@ The revisora audits the diff against the body AND the repo's design docs (`compo
 - Quote verbatim the component rows the ticket builds (padding, gaps, sizes, states) and the accessibility contract rows it must satisfy (touch targets, ARIA, copy).
 - A global value that applies here (e.g. the 44px minimum touch target on mobile) is named in the criteria, scoped as always.
 - If the design docs and the screen spec disagree (§01 fixes the login card at 20px radius; tokens say cards are 16px), the body adjudicates — or the ticket is a DUDA from round one. Don't ship a contradiction.
+
+The values the body fixes include the **public contracts other tickets consume**. When an edge between tickets transports a contract (a route, a response shape, a schema under live views, an event), the body of the ticket that builds it fixes it with exact names: route, verb, response code, request and response bodies with their field names — anchored to the repo's existing pattern («como `POST /api/plantilla/temas/:id/retirar`») so the session inherits the style instead of guessing it. «Consumes the API of #N» without the shape fixed in #N's body is a DUDA with a due date. When two tickets share a data transformation (a projection, an aggregation, a format), the first body names the piece it delivers (type and signature) and the second declares consuming it — «the other half lives in the other ticket» applies to functions, not only to screens.
+
+**A repo-state quote is a verifiable claim, not context.** «X already exists in `main`», «flow Y lives in Z»: verify it against the code at the moment of writing it, never from memory — the same discipline as a spec value. An antidote with a wrong repo quote is worse than a gap: it closes the ambiguity with the wrong answer and the session implements it with confidence.
+
+**Every threshold or comparison with «hoy» (today) fixes its unit.** Timezone and who computes it — a single source of truth for the decision (who calculates), separate from who renders. Three date systems silently mixing around a 14-day threshold (server UTC, browser local, E2E-relative fixtures) is the twin of the character-count ambiguity (UTF-16 vs code points): one domain value, two reasonable units, two different diffs. The E2E fixtures say which timezone they build their dates in, so a threshold doesn't dance around midnight.
+
+**When a ticket extends work built by an earlier ticket and cites design docs, adjudicate the doc against what was built.** If they diverge, the body says which one rules and what this ticket extends — a fresh-context session that finds doc ≠ code with no adjudication has two reasonable readings, the exact definition of a DUDA.
 
 ## Size
 
