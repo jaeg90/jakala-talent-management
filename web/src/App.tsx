@@ -11,6 +11,7 @@ import { AjustesLayout, Perfil } from './Ajustes';
 import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
 import { Login } from './Login';
+import { Historial } from './Historial';
 import { PuenteAjustes, PuenteIncidencias, PuenteLista1to1, PuenteObjetivos } from './puentes';
 import { RegistrarUnoAUno } from './RegistrarUnoAUno';
 import { Resumen } from './Resumen';
@@ -35,7 +36,7 @@ const router = createBrowserRouter(
           <Route path="1-to-1s/:unoAUnoId" element={<PuenteLista1to1 />} />
           <Route path="objetivos" element={<PuenteObjetivos />} />
           <Route path="incidencias" element={<PuenteIncidencias />} />
-          <Route path="historial" element={<PantallaEnConstruccionFicha titulo="Historial" />} />
+          <Route path="historial" element={<Historial />} />
           <Route path="ajustes" element={<PuenteAjustes />} />
         </Route>
         <Route path="/mentees/:id/1-to-1s/nuevo" element={<RegistrarUnoAUno />} />
@@ -88,18 +89,6 @@ function PantallaEnConstruccion({ titulo }: { titulo: string }) {
       <h1>{titulo}</h1>
       <p>Pantalla en construcción.</p>
     </main>
-  );
-}
-
-/** Stub de una pantalla de ficha aún sin construir: vive dentro del `main` del shell. */
-function PantallaEnConstruccionFicha({ titulo }: { titulo: string }) {
-  return (
-    <div className="puente">
-      <header className="ficha__cabecera">
-        <h1>{titulo}</h1>
-      </header>
-      <p className="estado__mensaje">Pantalla en construcción.</p>
-    </div>
   );
 }
 

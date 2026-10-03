@@ -19,9 +19,11 @@ import { ProyectoService } from '../../src/application/proyecto_service.js';
 import { TraspasoService } from '../../src/application/traspaso_service.js';
 import { PlantillaService } from '../../src/application/plantilla_service.js';
 import { CuentaService } from '../../src/application/cuenta_service.js';
+import { HistorialService } from '../../src/application/historial_service.js';
 import { SqliteTraspasoRepository } from '../../src/infrastructure/db/sqlite-traspaso-repository.js';
 import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-plantilla-repository.js';
 import { SqliteCuentaRepository } from '../../src/infrastructure/db/sqlite-cuenta-repository.js';
+import { SqliteHistorialRepository } from '../../src/infrastructure/db/sqlite-historial-repository.js';
 import { createApp, SESSION_COOKIE } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
@@ -47,6 +49,7 @@ beforeAll(async () => {
     traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
     plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
     cuentas: new CuentaService(new SqliteCuentaRepository(db), sessions),
+    historial: new HistorialService(new SqliteHistorialRepository(db)),
     sessions,
   });
   server = app.listen(0);

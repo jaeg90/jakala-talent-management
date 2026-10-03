@@ -14,6 +14,7 @@ import { ProyectoService } from './application/proyecto_service.js';
 import { TraspasoService } from './application/traspaso_service.js';
 import { PlantillaService } from './application/plantilla_service.js';
 import { CuentaService } from './application/cuenta_service.js';
+import { HistorialService } from './application/historial_service.js';
 import { SqliteCuentaRepository } from './infrastructure/db/sqlite-cuenta-repository.js';
 import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
 import { SqliteTemaPropioRepository } from './infrastructure/db/sqlite-tema-propio-repository.js';
@@ -22,6 +23,7 @@ import { SqliteIncidenciaRepository } from './infrastructure/db/sqlite-incidenci
 import { SqliteProyectoRepository } from './infrastructure/db/sqlite-proyecto-repository.js';
 import { SqliteTraspasoRepository } from './infrastructure/db/sqlite-traspaso-repository.js';
 import { SqlitePlantillaRepository } from './infrastructure/db/sqlite-plantilla-repository.js';
+import { SqliteHistorialRepository } from './infrastructure/db/sqlite-historial-repository.js';
 import { createApp } from './infrastructure/http/app.js';
 import { startTelemetry } from './infrastructure/observability/telemetry.js';
 import { initSentry, setupSentryErrorHandler } from './infrastructure/observability/sentry.js';
@@ -57,6 +59,7 @@ const app = createApp({
   traspasos: new TraspasoService(new SqliteTraspasoRepository(db)),
   plantilla: new PlantillaService(new SqlitePlantillaRepository(db)),
   cuentas: new CuentaService(new SqliteCuentaRepository(db), sessions),
+  historial: new HistorialService(new SqliteHistorialRepository(db)),
   sessions,
 });
 

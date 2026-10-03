@@ -143,6 +143,31 @@ export interface TemaPlantilla {
   estado: EstadoTemaPlantilla;
 }
 
+/** Valores de filtro del historial (`?tipo=`), spec §07. */
+export type FiltroHistorial = '1-to-1s' | 'objetivos' | 'incidencias' | 'proyectos' | 'traspasos';
+
+/** Evento del historial proyectado por la agregación (GET /api/mentees/:id/historial). */
+export type EventoHistorial =
+  | {
+      tipo: '1-to-1';
+      id: string;
+      fecha: string;
+      temasConNota: number;
+      acuerdos: number;
+      inicioNota: string | null;
+    }
+  | { tipo: 'incidencia'; id: string; fecha: string; estado: 'abierta' | 'resuelta'; descripcion: string }
+  | { tipo: 'objetivo'; id: string; fecha: string; estado: 'cumplido' | 'no cumplido'; titulo: string }
+  | {
+      tipo: 'proyecto';
+      id: string;
+      fecha: string;
+      direccion: 'entrada' | 'salida';
+      proyecto: string;
+      motivo: string;
+    }
+  | { tipo: 'traspaso'; id: string; fecha: string; origen: string; destino: string };
+
 export const api = {
   login(email: string, password: string): Promise<{ manager: ManagerAutenticado }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
@@ -266,6 +291,10 @@ export const api = {
   },
   plantilla(): Promise<{ temas: TemaPlantilla[] }> {
     return request('/api/plantilla');
+  },
+  historial(menteeId: string, tipo?: FiltroHistorial): Promise<{ eventos: EventoHistorial[] }> {
+    const query = tipo === undefined ? '' : `?tipo=${tipo}`;
+    return request(`/api/mentees/${menteeId}/historial${query}`);
   },
 };
 

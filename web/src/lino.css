@@ -2036,3 +2036,231 @@ body {
     align-items: center;
   }
 }
+
+/* — Historial (spec §07, #20): timeline agrupado + filtros + marcadores — */
+
+.historial {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+/* Filtros (accesibilidad.md §Filtros del historial): grupo `role="group"` con
+   `button[aria-pressed]`; píldora 14px/600 (componentes.md §Filtro). */
+.historial__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.filtro {
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-pildora);
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--color-texto);
+  font: inherit;
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  cursor: pointer;
+}
+
+.filtro[aria-pressed='true'] {
+  background: var(--color-primario);
+  border-color: var(--color-primario);
+  color: var(--color-texto-sobre-primario);
+}
+
+.filtro:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+.historial__vacio {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+/* Tarjeta con timeline: padding 22px 26px (spec §07). */
+.historial__tarjeta {
+  padding: 22px 26px;
+}
+
+/* Timeline (componentes.md §Timeline): columna de grupos; cada grupo lleva un
+   encabezado de mes/año y su lista de eventos. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+.timeline__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+/* Separador de mes (13px/700 primario-texto, componentes.md §Timeline). */
+.timeline__mes {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-primario-texto);
+}
+
+.timeline__eventos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  /* Row-gap 16px entre eventos del mismo grupo (componentes.md §Timeline). */
+  gap: var(--esp-4);
+}
+
+.timeline__evento {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  gap: var(--esp-2);
+}
+
+.timeline__evento-cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Título del evento: 700 (spec §07). */
+.timeline__evento-titulo {
+  font-weight: var(--peso-negrita);
+  font-size: var(--texto-m);
+  line-height: var(--interlineado);
+  word-break: break-word;
+}
+
+/* El 1-to-1 es un enlace a su detalle (sin subrayado, color de texto). */
+.timeline__evento-enlace {
+  color: var(--color-texto);
+  text-decoration: none;
+}
+
+.timeline__evento-enlace:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+/* Detalle del evento: 14px secundario (spec §07). */
+.timeline__evento-detalle {
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+/* — Marcadores (componentes.md §Timeline y §Marcadores de timeline nuevos) — */
+
+.timeline__marca {
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  border-radius: var(--radio-pildora);
+  flex-shrink: 0;
+}
+
+/* 1-to-1: círculo primario (relleno). */
+.timeline__marca--1to1 {
+  background: var(--color-primario);
+}
+
+/* Incidencia abierta: círculo --color-atencion. */
+.timeline__marca--incidencia-abierta {
+  background: var(--color-atencion);
+}
+
+/* Incidencia resuelta: círculo hueco borde 2px decorativo. */
+.timeline__marca--incidencia-resuelta {
+  background: transparent;
+  border: 2px solid var(--color-texto-decorativo);
+  box-sizing: border-box;
+}
+
+/* Objetivo (componentes.md §Timeline «círculos = conversaciones y señales»):
+   cumplido --color-exito, no cumplido --color-atencion. */
+.timeline__marca--objetivo--cumplido {
+  background: var(--color-exito);
+}
+
+.timeline__marca--objetivo--no-cumplido {
+  background: var(--color-atencion);
+}
+
+/* Entra en proyecto: rombo 11px --color-exito (componentes.md §Marcadores nuevos). */
+.timeline__marca--entra {
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
+  border-radius: 0;
+  background: var(--color-exito);
+  transform: rotate(45deg);
+}
+
+/* Sale de proyecto: rombo 11px hueco borde 2px --color-exito. */
+.timeline__marca--sale {
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
+  border-radius: 0;
+  background: transparent;
+  border: 2px solid var(--color-exito);
+  box-sizing: border-box;
+  transform: rotate(45deg);
+}
+
+/* Traspaso: rombo hueco bordes 2px primario (componentes.md §Timeline). */
+.timeline__marca--traspaso {
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
+  border-radius: 0;
+  background: transparent;
+  border: 2px solid var(--color-primario);
+  box-sizing: border-box;
+  transform: rotate(45deg);
+}
+
+/* — Badges de estado usados por el Historial (mapeo al final de tokens.css) — */
+
+.badge--abierta {
+  background: var(--color-atencion-badge);
+  color: var(--color-atencion-texto);
+}
+
+.badge--resuelta,
+.badge--no-cumplido {
+  background: var(--color-neutro-badge);
+  color: var(--color-neutro-texto);
+}
+
+/* En el timeline el badge es 12px (componentes.md §Badge) con el padding
+   compacto 2px 9px (2–3px vertical, 9–10px horizontal; el vertical ya es 2px). */
+.timeline .badge {
+  font-size: 12px;
+  padding: 2px 9px;
+}
+
+/* Foco visible y objetivo táctil para filtros y enlace del timeline. */
+@media (max-width: 639px) {
+  .filtro,
+  .timeline__evento-enlace {
+    min-height: var(--alto-objetivo-tactil);
+    display: inline-flex;
+    align-items: center;
+  }
+}

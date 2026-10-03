@@ -17,6 +17,7 @@ import type {
   TemaPlantilla,
 } from './model.js';
 import type { Asignacion, ProyectoConEstado } from './asignaciones.js';
+import type { EventoHistorial } from './historial.js';
 
 /**
  * Puerto de autenticación (ADR-0002): comprobar credenciales de manager.
@@ -248,6 +249,18 @@ export interface NuevoTraspaso {
   fecha: string;
   destinoId: ManagerId;
   motivo: string;
+}
+
+/**
+ * Puerto del historial unificado de una mentee (ADR-0007): la agregación en
+ * consulta de 1-to-1s, incidencias, objetivos cerrados, entradas/salidas de
+ * proyecto y traspasos, ya ordenada por fecha descendente (criterio estable del
+ * mismo día en domain/historial.ts). El filtrado por `?tipo=` lo aplica el caso
+ * de uso; el puerto devuelve el feed completo de la mentee, acotado por manager.
+ */
+export interface HistorialRepository {
+  /** Feed cronológico completo (descendente) de una mentee, solo si es del manager. */
+  historialDe(managerId: ManagerId, menteeId: string): Promise<EventoHistorial[]>;
 }
 
 /**

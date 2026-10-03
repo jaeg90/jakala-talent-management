@@ -71,6 +71,40 @@ export function fechaISO(fecha: string): string {
   return parseFecha(fecha).toISOString().slice(0, 10);
 }
 
+const MES_COMPLETO = new Intl.DateTimeFormat('es-ES', {
+  month: 'long',
+  timeZone: 'UTC',
+});
+
+/**
+ * Etiqueta de grupo del timeline del Historial (spec §07): el año en curso se
+ * agrupa por mes con el nombre COMPLETO («Septiembre 2026», «Febrero 2026») y los
+ * años anteriores por año («2025»). Distinto del compacto «mes año» de `fechaMesAnio`
+ * (que abrevia el mes). `anioActual` se inyecta para que el agrupado sea determinista.
+ */
+export function etiquetaGrupoHistorial(fecha: string, anioActual: number): string {
+  const d = parseFecha(fecha);
+  const anio = d.getUTCFullYear();
+  if (anio !== anioActual) return String(anio);
+  const mes = MES_COMPLETO.format(d);
+  return mes.charAt(0).toUpperCase() + mes.slice(1) + ' ' + String(anio);
+}
+
+/**
+ * Valor ISO para el `<time datetime>` del encabezado de grupo del Historial
+ * (accesibilidad.md §Globales: «Fechas en `<time datetime="…">`»). El grupo por
+ * mes apunta al día 1 de ese mes («2026-09-01») y el grupo por año al 1 de enero
+ * («2025-01-01»): el encabezado es una marca de posición temporal, no una fecha
+ * propia del evento (que el ticket excluye).
+ */
+export function isoGrupoHistorial(fecha: string, anioActual: number): string {
+  const d = parseFecha(fecha);
+  const anio = d.getUTCFullYear();
+  if (anio !== anioActual) return `${anio}-01-01`;
+  const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${anio}-${mes}-01`;
+}
+
 /** «hace 9 días», «hace 3 semanas», «hace 2 meses»… contando días naturales hasta hoy
  * (en UTC, la misma convención de «hoy» del dominio: `hoyISO()` del backend). */
 export function fechaRelativa(fecha: string, hoy: Date = new Date()): string {

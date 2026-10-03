@@ -9,6 +9,8 @@ import { ProyectoService } from '../../application/proyecto_service.js';
 import { TraspasoService } from '../../application/traspaso_service.js';
 import { PlantillaService } from '../../application/plantilla_service.js';
 import { CuentaService } from '../../application/cuenta_service.js';
+import { HistorialService } from '../../application/historial_service.js';
+import { esFiltroHistorial, type FiltroHistorial } from '../../domain/historial.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
 
@@ -26,6 +28,7 @@ export interface AppDeps {
   traspasos: TraspasoService;
   plantilla: PlantillaService;
   cuentas: CuentaService;
+  historial: HistorialService;
   sessions: SessionStore;
 }
 
@@ -566,6 +569,15 @@ export function createApp(deps: AppDeps): express.Express {
     } catch (err) {
       responderTraspasoError(res, err, 'Error al registrar el traspaso');
     }
+  }));
+
+  // Historial unificado de una mentee (ADR-0007): agregación en consulta con
+  // filtro opcional `?tipo=` (un valor no reconocido equivale a «Todo»).
+  app.get('/api/mentees/:menteeId/historial', requireSession(deps.sessions, async (req, res, manager) => {
+    const raw = req.query.tipo;
+    const filtro: FiltroHistorial | null = esFiltroHistorial(raw) ? raw : null;
+    const eventos = await deps.historial.historialDe(manager, param(req, 'menteeId'), filtro);
+    res.json({ eventos });
   }));
 
   return app;
