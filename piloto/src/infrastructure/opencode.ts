@@ -99,6 +99,9 @@ export const promptRevisora = (ticket: Ticket): string =>
     '   (tokens, paddings, tamaños, copy exacto…).',
     '2. Por CADA criterio emite una línea: «CRITERIO n: OK» si el diff lo cumple,',
     '   o «CRITERIO n: HALLAZGO — <qué falla y por qué>» si no.',
+    '   Formato plano: empieza cada línea de veredicto por «CRITERIO n:» (o la',
+    '   palabra clave), sin numeración de lista delante ni paréntesis tras el',
+    '   número — el extractor lee líneas, no prosa.',
     '3. Si el diff incumple algo que no es criterio del ticket (estándares del repo), añade',
     '   «HALLAZGO n: <qué falla y por qué>» por cada problema.',
     '4. Si un criterio depende de un valor o de un contrato que el cuerpo del ticket NO',
@@ -133,9 +136,14 @@ export const promptReparadora = (ticket: Ticket, error: ErrorEnMano, puertas: Pu
 const SIN_RESUMEN = 'Implementado por el Piloto (la sesión no dejó resumen).';
 
 export function extraerResumen(salida: string): string {
-  const lineas = [...salida.matchAll(/RESUMEN:[ \t]*(?:\*\*)?[ \t]*(.+)$/gm)].map((m) =>
-    sinMarcasDeCierre(m[1]?.trim() ?? ''),
-  );
+  // La línea RESUMEN puede llegar con prefijo de lista numerada o énfasis
+  // (misma familia de formatos que los veredictos; anclada a inicio de línea
+  // para no capturar la palabra clave citada a mitad de línea).
+  const lineas = [
+    ...salida.matchAll(
+      /^(?:\d+[.)][ \t]+)?(?:[-*_>#]+[ \t]*)*RESUMEN[ \t]*:(?:\*\*)?[ \t]*(.+)$/gm,
+    ),
+  ].map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''));
   const ultima = lineas.at(-1);
   return ultima === undefined || ultima === '' ? SIN_RESUMEN : ultima;
 }
@@ -147,15 +155,25 @@ export function extraerResumen(salida: string): string {
  * formato, no romperse contra él (ajuste ADR-0012, 2-oct: el veredicto de #38
  * se negó con ** y el extractor cayó a la cola de 500; la reparadora recibió
  * criterios OK como si fueran el hallazgo y el hallazgo real se perdió).
+ *
+ * Ajuste (3-oct, regresión de #20): la revisora también enumera sus líneas de
+ * veredicto — «7. **CRITERIO 7: DUDA** — …» — y anota el criterio entre
+ * paréntesis — «CRITERIO 10 (CA: resumen del 1-to-1): **DUDA** — …». La
+ * APERTURA tolera el prefijo de lista numerada, y el prefijo de criterio la
+ * anotación parentizada; los dos formatos se tragaron sendas DUDAs de la 4ª
+ * pasada de #20 y la máquina las degradó a ciclos de reparación.
  */
-const APERTURA = String.raw`[ \t]*(?:[-*_>#]+[ \t]*)*`;
+const APERTURA = String.raw`[ \t]*(?:\d+[.)][ \t]+)?(?:[-*_>#]+[ \t]*)*`;
 const CIERRE = String.raw`[*_ \t]*`;
+
+/** Prefijo de criterio: «CRITERIO n:» opcional, con énfasis o anotación parentizada tras el número. */
+const CRITERIO = String.raw`(?:CRITERIO[ \t]*\d+(?:[ \t]*\([^)]*\))?[ \t]*:[ \t]*)?`;
 
 /** Quita los marcadores de énfasis de cierre que quedan pegados al texto capturado. */
 const sinMarcasDeCierre = (texto: string): string => texto.replace(/[\s*_]+$/, '');
 
 const RE_HALLAZGO = new RegExp(
-  String.raw`^${APERTURA}(?:CRITERIO[ \t]*\d+[ \t]*:[ \t]*)?[*_ \t]*HALLAZGO(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
+  String.raw`^${APERTURA}${CRITERIO}[*_ \t]*HALLAZGO(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
   'gm',
 );
 // La duda admite el prefijo de criterio y ambos separadores — el formato natural del
@@ -163,7 +181,7 @@ const RE_HALLAZGO = new RegExp(
 // revisora la emitió así y el extractor la ignoró, degradando una decisión humana a
 // un ciclo de reparación).
 const RE_DUDA = new RegExp(
-  String.raw`^${APERTURA}(?:CRITERIO[ \t]*\d+[ \t]*:[ \t]*)?[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
+  String.raw`^${APERTURA}${CRITERIO}[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
   'gm',
 );
 const RE_DEVOLVER = new RegExp(String.raw`^${APERTURA}[*_ \t]*DEVOLVER[*_ \t]*:?[ \t]*${CIERRE}$`, 'm');

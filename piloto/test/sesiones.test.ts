@@ -166,6 +166,60 @@ describe('Sesiones: veredicto de la revisora', () => {
     expect(extraerDevolucion(salida)).toBe('¿La tarjeta de 420px es ancho total o de contenido?');
   });
 
+  it('la DUDA enumerada en lista numerada con negritas viaja (regresión de #20, 3-oct)', () => {
+    // Formato verbatim de la revisora de la ronda 1 de la 4ª pasada de #20: la
+    // línea de veredicto numerada como lista — «7. **CRITERIO 7: DUDA** — …» —
+    // no matcheaba y la máquina degradó la DUDA a ciclo de reparación.
+    const salida = [
+      '## Criterios revisados',
+      '',
+      '6. **CRITERIO 6: OK** — El timeline usa listas `<ol>` y eventos `<li>`.',
+      '7. **CRITERIO 7: DUDA** — Para un 1-to-1 sin notas no vacías, el contrato no determina qué mostrar en lugar de «inicio de nota…».',
+      '8. **CRITERIO 8: OK** — El 1-to-1 cuenta temas con nota.',
+    ].join('\n');
+
+    const veredicto = extraerVeredicto(salida);
+
+    expect(veredicto.hallazgos).toBeNull();
+    expect(veredicto.dudas).toHaveLength(1);
+    expect(veredicto.dudas[0]).toContain('qué mostrar en lugar de «inicio de nota…»');
+  });
+
+  it('la DUDA con anotación parentizada tras el número de criterio viaja (regresión de #20, 3-oct)', () => {
+    // Formato verbatim de la revisora de la ronda 2: «CRITERIO 10 (CA: …): **DUDA** — …».
+    const salida = [
+      '### Criterios auditados',
+      '',
+      'CRITERIO 9 (CA: marcadores y accesibilidad): **OK** — Los marcadores son decorativos.',
+      'CRITERIO 10 (CA: resumen del 1-to-1): **DUDA** — «80 caracteres» admite lecturas con resultados distintos: 80 unidades UTF-16 o 80 puntos de código.',
+      'CRITERIO 11 (CA: incidencia): **OK** — Muestra «Incidencia» como título visible.',
+    ].join('\n');
+
+    const veredicto = extraerVeredicto(salida);
+
+    expect(veredicto.hallazgos).toBeNull();
+    expect(veredicto.dudas).toHaveLength(1);
+    expect(veredicto.dudas[0]).toContain('80 unidades UTF-16');
+  });
+
+  it('el HALLAZGO enumerado y con anotación parentizada también viaja', () => {
+    const salida = [
+      '10. **CRITERIO 10: HALLAZGO** — El badge del timeline queda a 12 px, pero su padding horizontal es 8px.',
+      '11. **CRITERIO 11: OK** — La agregación consulta las tablas existentes.',
+    ].join('\n');
+
+    expect(extraerVeredicto(salida)).toEqual({
+      hallazgos: 'El badge del timeline queda a 12 px, pero su padding horizontal es 8px.',
+      dudas: [],
+    });
+  });
+
+  it('el resumen enumerado o con negritas llega limpio (regresión de #20, 3-oct)', () => {
+    expect(extraerResumen('2. **RESUMEN:** Implementado el historial con su agregación.**')).toBe(
+      'Implementado el historial con su agregación.',
+    );
+  });
+
   it('el resumen con negritas llega sin marcadores', () => {
     expect(extraerResumen('**RESUMEN:** Movidos los estilos a `lino.css`.**')).toBe(
       'Movidos los estilos a `lino.css`.',
