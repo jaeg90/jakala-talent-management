@@ -60,7 +60,7 @@
 8. `EdiciónDe1to1`: 1-to-1, autor, fecha, lista de cambios `{parte (nota de tema | acuerdo), tipo (reescrito | añadido | quitado), antes, después}`. El servidor rechaza ediciones fuera de plazo o de otro manager.
 9. `Incidencia`: la fecha de apertura la elige el manager (≤ hoy), no es la de creación del registro.
 10. `Objetivo`: edición de título, descripción y fecha límite solo en estado en curso; fecha límite ≥ hoy.
-11. `Tema propio`: alta, retirada y reactivación fuera de un 1-to-1 (endpoint propio por mentee).
+11. `Tema propio`: alta, retirada y reactivación fuera de un 1-to-1 (endpoint propio por mentee). Con estado **vigente/retirado** (como la plantilla: `desde`, `retiradoEl`; retirada por `POST …/temas/:id/retirar`, sin borrado físico — «Puedes volver a usarlo cuando quieras») y validación de duplicados por nombre sin mayúsculas ni tildes, contra otros propios (vigentes y retirados) y contra los genéricos vigentes de la plantilla: las notas de 1-to-1 se persisten por nombre (`UNIQUE (onetoone_id, tema)`), el duplicado es imposible por contrato. Los 1-to-1s ya registrados no cambian al retirar un tema.
 12. `Mentee`–`Proyecto` pasa a ser **muchos a muchos**: `Asignación {mentee, proyecto, desde, motivoEntrada, hasta?, motivoSalida?}`. El evento «Cambio de proyecto» se sustituye por «Entra en proyecto» y «Sale de proyecto». El nº de mentees por proyecto (Ajustes → Proyectos) cuenta asignaciones vigentes; la regla «solo se retira sin mentees» no cambia. El endpoint de Mi equipo devuelve la lista de proyectos vigentes.
 
 ## Responsive y foco (P5)
