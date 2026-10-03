@@ -54,9 +54,9 @@ Nav de ajustes (grupos gap 18px; título de grupo 12px/700 secundario):
   - «Temas propios» **[v2]**: fila título 700 a la izquierda + enlace **«Gestionar temas propios»** (14px/600 primario-texto, → `/mentees/:id/ajustes#temas-propios`) a la derecha. Chips de **solo lectura**. Vacío [v2]: «Sin temas propios. Añádelos en Ajustes de la mentee o al registrar un 1-to-1.» (el enlace se mantiene).
   - «Del último 1-to-1 · 20 sept»: cita de la primera nota no vacía, 15px, interlineado 1.55, color oklch(0.36 0.02 50), entre «». Enlace «Ver 1-to-1 completo» → §11 (`/mentees/:id/1-to-1s/:unoAUnoId`).
 - **Derecha** (gap 14px), tarjetas compactas (padding 18px):
-  - **«Proyectos actuales» [v2]** (13px secundario) → una fila por proyecto, orden alfabético, gap 10px: nombre 16px/700 + «desde marzo 2025» 13px secundario. Vacío: «Sin proyectos. Añádela a uno en Ajustes de la mentee.»
+  - **«Proyectos actuales» [v2]** (13px secundario) → una fila por proyecto, orden alfabético, gap 10px: nombre 16px/700 + «desde mar 2025» 13px secundario. Vacío: «Sin proyectos. Añádela a uno en Ajustes de la mentee.»
   - Incidencias abiertas (tarjeta atención, solo si hay): «1 incidencia abierta» → descripción 15px → «hace 17 días».
-  - «Objetivos en curso» → título 15px/600 + «hasta junio 2027» 13px. Vacío: «Sin objetivos en curso.» + acción «Nuevo objetivo» (abre el diálogo de §13 sobre Objetivos: navega a `/mentees/:id/objetivos?nuevo=1`).
+  - «Objetivos en curso» → título 15px/600 + «hasta jun 2027» 13px. Vacío: «Sin objetivos en curso.» + acción «Nuevo objetivo» (abre el diálogo de §13 sobre Objetivos: navega a `/mentees/:id/objetivos?nuevo=1`).
 
 ## 04 · Registrar 1-to-1 [2a-04]
 Pantalla completa, sin sidebar.
