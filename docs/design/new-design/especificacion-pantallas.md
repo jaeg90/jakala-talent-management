@@ -67,6 +67,7 @@ Pantalla completa, sin sidebar.
   3. **«3 · Acuerdos nuevos»**: input (placeholder «p. ej. Revisar la carga con el líder antes del 15 oct») + «Añadir acuerdo» (secundario). Los añadidos se listan encima como filas con acción «Quitar».
 - Columna «Contexto de Ana» (padding 28px 24px, borde izquierdo 1px `--color-borde`, gap 16px): último 1-to-1 (fecha + cita) · objetivos en curso · incidencia abierta (tarjeta atención, radio 14px).
 - Validación: al menos una nota o un acuerdo para guardar; si no, «Escribe al menos una nota o un acuerdo antes de guardar.» Fecha no futura. Puede haber varios 1-to-1s el mismo día.
+- **Descartar y salida con borrador** (mismo `alertdialog` para ambas vías, patrón §11b adaptado al borrador nuevo): con cambios sin guardar, «Descartar» y cualquier salida de la pantalla — navegación in-app (enlace «← {nombre}» o cambio de ruta) o historial/recarga del navegador — abren la confirmación **«¿Descartar el 1-to-1?»** / «Lo que has escrito no se guardará.» / «Seguir escribiendo» (foco inicial) + **«Descartar»**. Sin cambios, «Descartar» vuelve sin confirmación y la salida es libre.
 - Tras guardar → Resumen con aviso de éxito «1-to-1 del 29 sept guardado.» **[v2]** Desde ese momento corre el plazo de edición de 7 días (§11).
 
 ## 05 · Objetivos [2a-05]
