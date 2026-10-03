@@ -41,6 +41,21 @@ export function fechaConAnio(fecha: string): string {
   return CON_ANIO.format(parseFecha(fecha));
 }
 
+const MES_ANIO = new Intl.DateTimeFormat('es-ES', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+/**
+ * «mar 2025» — compacto «mes año» sin día (componentes.md §Fechas: mes abreviado,
+ * año siempre). Sirve para «desde mar 2025» (proyectos) y «hasta jun 2027»
+ * (objetivos en curso).
+ */
+export function fechaMesAnio(fecha: string): string {
+  return MES_ANIO.format(parseFecha(fecha));
+}
+
 /**
  * «20 sept» o «18 nov 2024» — el año solo si no es el actual.
  * Para el atributo `datetime` de `<time>` usa `fechaISO`.

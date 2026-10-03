@@ -12,6 +12,7 @@ import type {
   MiembrosPorProyecto,
   NuevaAsignacion,
   NuevoCambioProyecto,
+  ProyectoActual,
   ProyectoRepository,
   SalidaDeProyecto,
   SituacionProyecto,
@@ -187,6 +188,26 @@ export class SqliteProyectoRepository implements ProyectoRepository {
     return [...groups.values()].sort((a, b) =>
       (a.projectName ?? '').localeCompare(b.projectName ?? ''),
     );
+  }
+
+  async proyectosActualesDe(managerId: ManagerId, menteeId: string): Promise<ProyectoActual[]> {
+    if (this.menteeOf(managerId, menteeId) === null) {
+      throw new Error(`Mentee ${menteeId} no pertenece al manager`);
+    }
+    const rows = this.db
+      .prepare(
+        `SELECT p.id AS id, p.name AS name, a.desde AS desde
+         FROM asignaciones a
+         JOIN projects p ON p.id = a.proyecto_id
+         WHERE a.mentee_id = ? AND a.hasta IS NULL`,
+      )
+      .all(menteeId) as { id: string; name: string; desde: string }[];
+    // Orden alfabético con la colación del runtime (no la binaria de SQLite):
+    // mayúsculas/minúsculas y diacríticos siguen el orden esperado (como en
+    // SqliteTeamRepository, que lee los proyectos con `localeCompare(..., 'es')`).
+    return rows
+      .map((row) => ({ id: row.id, name: row.name, desde: row.desde }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
   }
 
   async entrarEnProyecto(

@@ -89,6 +89,42 @@
   --duracion-rapida: 120ms;
   --duracion-media: 200ms;
   --curva: cubic-bezier(0.2, 0, 0, 1);
+
+  /* — Añadidos #18 (Ficha de mentee y Resumen): valores exactos del diseño que no
+     están en la escala base. Se tokenizan para cumplir «valores solo de tokens.css»
+     (componentes.md «Todos consumen tokens.css»). — */
+
+  /* Color */
+  --color-cita: oklch(0.36 0.02 50);            /* cita del último 1-to-1 (spec §03) */
+  --color-borde-checkbox: oklch(0.75 0.03 310); /* borde del checkbox (componentes.md §Checkbox) */
+  --color-marca-check: #ffffff;                 /* ✓ del checkbox marcado, siempre blanco (componentes.md §Checkbox) */
+
+  /* Tipografía */
+  --texto-detalle: 0.875rem;           /* 14 · subtítulos, meta y enlaces de acción */
+  --texto-proyecto: 1rem;              /* 16 · nombre de proyecto (Resumen) */
+  --texto-nombre-ficha: 1.1875rem;     /* 19 · nombre en el sidebar de ficha */
+  --interlineado-cita: 1.55;           /* cita del último 1-to-1 */
+
+  /* Bordes */
+  --borde-fino: 1px;                   /* borde superior del pie de ficha (separador) */
+  --borde-checkbox: 2px;               /* borde del checkbox de acuerdo (componentes.md §Checkbox) */
+
+  /* Espaciado y tamaños fuera de la base 4 */
+  --esp-hueco: 2px;                    /* hueco entre líneas de una fila */
+  --esp-chip: 5px;                     /* padding vertical del chip */
+  --esp-margen: 10px;                  /* margen del nombre · hueco entre proyectos · padding nav */
+  --esp-boton-cabecera-y: 13px;        /* padding vertical del botón en cabecera de sección */
+  --esp-tarjeta-compacta: 18px;        /* padding de tarjeta compacta · lado del checkbox */
+  --esp-boton-cabecera-x: 22px;        /* padding horizontal del botón en cabecera de sección */
+  --esp-columna: 14px;                 /* gap de la columna derecha del Resumen (spec §03) */
+  --avatar-ficha: 52px;                /* avatar del sidebar de ficha */
+  --alto-esqueleto-cabecera: 64px;     /* skeleton del Resumen: cabecera */
+  --alto-esqueleto-tarjeta: 240px;     /* skeleton del Resumen: tarjeta */
+  --ancho-esqueleto-volver: 96px;      /* skeleton del shell: barra «← Mi equipo» */
+  --ancho-esqueleto-nombre: 136px;     /* skeleton del shell: barra del nombre */
+  --alto-esqueleto-nav: 40px;          /* skeleton del shell: ítem de nav */
+  --alto-objetivo-tactil: 44px;        /* alto mínimo táctil (P5) */
+  --alto-ficha: 100vh;                 /* alto mínimo del shell de ficha y su skeleton */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -120,6 +156,9 @@
   --color-neutro-texto: oklch(0.82 0.01 60);
   --color-error: oklch(0.75 0.13 25);
   --color-error-fondo: oklch(0.3 0.05 25);
+  /* Añadidos #18: cita y borde del checkbox en Tueste (captura oscuro-03-resumen.png). */
+  --color-cita: oklch(0.84 0.012 65);
+  --color-borde-checkbox: oklch(0.55 0.06 310);
   --color-velo: rgba(0, 0, 0, 0.55);
   --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.3);
   --sombra-2: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);

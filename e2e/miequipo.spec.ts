@@ -209,9 +209,10 @@ test('contrato de accesibilidad: caption oculto, th scope y enlace en el nombre'
     expect(await th.getAttribute('scope')).toBe('col');
   }
 
-  // Cada fila navega vía el enlace del nombre (nombre accesible = nombre).
+  // Cada fila navega vía el enlace del nombre → abre la ficha (Resumen con sidebar).
   await tabla.getByRole('link', { name: 'David Duarte' }).click();
-  await expect(page.getByRole('heading', { name: 'David Duarte' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Secciones de David Duarte' })).toBeVisible();
 });
 
 test('un solo entry en el historial: el enlace no redispara la navegación de la fila', async ({

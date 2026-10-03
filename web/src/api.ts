@@ -112,6 +112,13 @@ export interface SituacionProyecto {
   cambios: CambioProyecto[];
 }
 
+/** Proyecto vigente de una mentee con la fecha de entrada (Resumen · «Proyectos actuales»). */
+export interface ProyectoActual {
+  id: string;
+  name: string;
+  desde: string;
+}
+
 export interface Traspaso {
   id: string;
   menteeId: string;
@@ -227,6 +234,9 @@ export const api = {
   },
   situacionProyecto(menteeId: string): Promise<SituacionProyecto> {
     return request(`/api/mentees/${menteeId}/cambios-proyecto`);
+  },
+  proyectosActuales(menteeId: string): Promise<{ proyectos: ProyectoActual[] }> {
+    return request(`/api/mentees/${menteeId}/proyectos`);
   },
   registrarCambioProyecto(
     menteeId: string,

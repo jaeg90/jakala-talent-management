@@ -47,38 +47,47 @@ test('contraseña temporal → Perfil y contraseña', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Ajustes' })).toBeVisible();
 });
 
-test('registro un 1-to-1 con acuerdos y marco uno cumplido', async ({ page }) => {
+test('registro un 1-to-1 con acuerdos y marco uno cumplido desde el Resumen', async ({ page, request }) => {
+  // Registro vía API (la pantalla Registrar 1-to-1 es #19): dos notas y un acuerdo.
+  await request.post('/api/login', { data: { email: EMAIL, password: PASSWORD } });
+  const alta = await request.post('/api/mentees/me-ana/onetoones', {
+    data: {
+      date: '2026-09-27',
+      notas: [
+        { tema: '¿Cómo estás?', nota: 'Animada, con ganas' },
+        { tema: '¿Qué tal el proyecto?', nota: 'Atlas Bank va bien' },
+      ],
+      acuerdos: [{ text: 'Preparar dossier de Atlas Bank' }],
+    },
+  });
+  expect(alta.status()).toBe(201);
+
   await iniciarSesion(page);
 
   await page.getByRole('link', { name: 'Ana Alonso' }).click();
-  await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
-  await expect(page.getByText('Todavía no hay 1-to-1s registrados.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
 
-  await page.getByLabel('Fecha', { exact: true }).fill('2026-09-27');
-  await page.getByLabel('¿Cómo estás?').fill('Animada, con ganas');
-  await page.getByLabel('¿Qué tal el proyecto?', { exact: true }).fill('Atlas Bank va bien');
-  await page.getByLabel('Nuevo acuerdo').fill('Preparar dossier de Atlas Bank');
-  await page.getByRole('button', { name: 'Añadir acuerdo' }).click();
-  await page.getByRole('button', { name: 'Registrar 1-to-1' }).click();
-
-  await expect(page.getByRole('heading', { name: '2026-09-27' })).toBeVisible();
-  await expect(page.getByText('Animada, con ganas')).toBeVisible();
+  // El acuerdo pendiente aparece en el Resumen con su fecha.
   const pendientes = page.getByRole('region', { name: 'Acuerdos pendientes' });
   await expect(pendientes.getByText('Preparar dossier de Atlas Bank')).toBeVisible();
+  await expect(pendientes.getByText('del 27 sept')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Marcar cumplido' }).click();
-  await expect(page.getByText('Sin acuerdos pendientes.')).toBeVisible();
-  const historial = page.getByRole('region', { name: 'Historial de 1-to-1s' });
-  await expect(historial.getByText('✓ Preparar dossier de Atlas Bank')).toBeVisible();
+  // Marcar el acuerdo desde el Resumen lo cumple: el checkbox queda deshabilitado
+  // (conservado) y se anuncia «Cumplido» (accesibilidad.md §Checkbox de acuerdo).
+  const checkbox = pendientes.getByRole('checkbox');
+  await checkbox.click();
+  await expect(checkbox).toBeChecked();
+  await expect(checkbox).toBeDisabled();
+  await expect(page.getByRole('status')).toHaveText('Cumplido');
 });
 
 test('rutas navegables: deep-link, recarga, redirecciones', async ({ page }) => {
   await iniciarSesion(page);
 
   await page.goto('/mentees/me-ana/objetivos');
-  await expect(page.getByRole('heading', { name: 'Objetivos' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Objetivos', exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Objetivos' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Objetivos', exact: true })).toBeVisible();
 
   await page.goto('/ajustes');
   await expect(page).toHaveURL(/\/ajustes\/perfil$/);

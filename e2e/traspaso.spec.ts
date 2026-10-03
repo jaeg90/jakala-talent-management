@@ -10,17 +10,30 @@ async function iniciarSesion(page: Page, email: string) {
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 }
 
-test('traspaso una mentee entre dos managers y el destino hereda su historial', async ({ page }) => {
-  // Diego registra un 1-to-1 de Elena antes de traspasarla.
+test('traspaso una mentee entre dos managers y el destino hereda su historial', async ({
+  page,
+  request,
+}) => {
+  // Diego registra un 1-to-1 de Elena vía API (la pantalla Registrar 1-to-1 es #19).
+  await request.post('/api/login', { data: { email: 'diego@jakala.example', password: PASSWORD } });
+  const alta = await request.post('/api/mentees/me-elena/onetoones', {
+    data: {
+      date: '2026-09-27',
+      notas: [{ tema: '¿Cómo estás?', nota: 'Animada, con ganas' }],
+      acuerdos: [],
+    },
+  });
+  expect(alta.status()).toBe(201);
+
+  // Traspaso desde Ajustes de la mentee.
   await iniciarSesion(page, 'diego@jakala.example');
   await page.getByRole('link', { name: 'Elena Estévez' }).click();
-  await expect(page.getByRole('heading', { name: 'Elena Estévez' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Secciones de Elena Estévez' })
+    .getByRole('link', { name: 'Ajustes de la mentee' })
+    .click();
 
-  await page.getByLabel('¿Cómo estás?').fill('Animada, con ganas');
-  await page.getByRole('button', { name: 'Registrar 1-to-1' }).click();
-  await expect(page.getByText('Animada, con ganas')).toBeVisible();
-
-  // Traspaso desde la ficha: fecha, manager de destino y motivo.
   const traspaso = page.getByRole('region', { name: 'Traspaso' });
   await expect(traspaso.getByText('Sin traspasos registrados.')).toBeVisible();
 
@@ -41,9 +54,13 @@ test('traspaso una mentee entre dos managers y el destino hereda su historial', 
 
   // Abre la ficha: hereda el historial íntegro (1-to-1) y ve el traspaso registrado.
   await page.getByRole('link', { name: 'Elena Estévez' }).click();
-  await expect(page.getByRole('heading', { name: 'Elena Estévez' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
   await expect(page.getByText('Animada, con ganas')).toBeVisible();
 
+  await page
+    .getByRole('navigation', { name: 'Secciones de Elena Estévez' })
+    .getByRole('link', { name: 'Ajustes de la mentee' })
+    .click();
   const traspasoLucia = page.getByRole('region', { name: 'Traspaso' });
   await expect(traspasoLucia.getByText('Diego Domínguez → Lucía López')).toBeVisible();
   await expect(traspasoLucia.getByText('Reorganización del equipo')).toBeVisible();

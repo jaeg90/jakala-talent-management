@@ -115,6 +115,21 @@ async function situacion(menteeId: string, email: string): Promise<{ project: Pr
   return (await res.json()) as { project: ProyectoApi | null; cambios: CambioApi[] };
 }
 
+interface ProyectoActualApi {
+  id: string;
+  name: string;
+  desde: string;
+}
+
+async function proyectosActuales(menteeId: string, email: string): Promise<ProyectoActualApi[]> {
+  const res = await fetch(`${baseUrl}/api/mentees/${menteeId}/proyectos`, {
+    headers: { cookie: await login(email) },
+  });
+  expect(res.status).toBe(200);
+  const body = (await res.json()) as { proyectos: ProyectoActualApi[] };
+  return body.proyectos;
+}
+
 async function registrar(menteeId: string, email: string, body: { fecha: string; destinoId: string | null; motivo: string }): Promise<Response> {
   return fetch(`${baseUrl}/api/mentees/${menteeId}/cambios-proyecto`, {
     method: 'POST',
@@ -366,6 +381,32 @@ describe('API nueva: entrar y salir de proyectos', () => {
     const equipo = await team(LUCIA);
     const hugo = equipo.find((m) => m.id === HUGO);
     expect(hugo?.proyectos).toEqual([]);
+  });
+});
+
+describe('API nueva: leer proyectos actuales con desde', () => {
+  it('devuelve los proyectos vigentes de la mentee en orden alfabético con desde', async () => {
+    // Ana entra además en Retail Nova, para ver dos proyectos ordenados por nombre.
+    await entrar(ANA, MARTA, { proyecto: 'pr-nova', desde: '2026-09-01', motivoEntrada: 'Apoyo' });
+
+    const proyectos = await proyectosActuales(ANA, MARTA);
+    expect(proyectos).toEqual([
+      { id: 'pr-atlas', name: 'Atlas Bank', desde: expect.any(String) },
+      { id: 'pr-nova', name: 'Retail Nova', desde: '2026-09-01' },
+    ]);
+    // El `desde` de Amelia (entrada de la semilla) es una fecha ISO yyyy-mm-dd.
+    expect(proyectos[0]!.desde).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('sin asignaciones vigentes devuelve una lista vacía', async () => {
+    expect(await proyectosActuales('me-hugo', LUCIA)).toEqual([]);
+  });
+
+  it('la mentee de otro manager no es visible', async () => {
+    const res = await fetch(`${baseUrl}/api/mentees/${ANA}/proyectos`, {
+      headers: { cookie: await login(DIEGO) },
+    });
+    expect(res.status).toBe(404);
   });
 });
 

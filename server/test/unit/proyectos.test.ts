@@ -115,6 +115,11 @@ describe('ProyectoService', () => {
         expect(managerId).toBe('m-1');
         return [{ projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] }];
       },
+      async proyectosActualesDe(managerId, menteeId) {
+        expect(managerId).toBe('m-1');
+        expect(menteeId).toBe('me-1');
+        return [{ id: 'pr-atlas', name: 'Atlas Bank', desde: '2026-09-01' }];
+      },
       async entrarEnProyecto(managerId, menteeId, entrada) {
         expect(managerId).toBe('m-1');
         expect(menteeId).toBe('me-1');
@@ -196,6 +201,14 @@ describe('ProyectoService', () => {
 
     await expect(service.miembrosPorProyecto(manager)).resolves.toEqual([
       { projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] },
+    ]);
+  });
+
+  it('lee los proyectos actuales de una mentee delegando en el repositorio', async () => {
+    const service = new ProyectoService(fakeRepository());
+
+    await expect(service.proyectosActuales(manager, 'me-1')).resolves.toEqual([
+      { id: 'pr-atlas', name: 'Atlas Bank', desde: '2026-09-01' },
     ]);
   });
 

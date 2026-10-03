@@ -4,30 +4,27 @@ import { expect, test } from '@playwright/test';
 const EMAIL = 'manager@jakala.example';
 const PASSWORD = 'secreta123';
 
-test('añado un tema propio, lo veo en el formulario y lo retiro', async ({ page }) => {
-  await page.goto('/');
+test('los temas propios aparecen como chips de solo lectura en el Resumen', async ({ page, request }) => {
+  // Alta de un tema propio por API (la gestión en UI llega con #32).
+  const login = await request.post('/api/login', { data: { email: EMAIL, password: PASSWORD } });
+  expect(login.status()).toBe(200);
+  const alta = await request.post('/api/mentees/me-ana/temas', { data: { tema: 'Formación en curso' } });
+  expect(alta.status()).toBe(201);
+
+  await page.goto('/login');
   await page.getByLabel('Email').fill(EMAIL);
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-  // Abro la ficha de Ana Alonso
   await page.getByRole('link', { name: 'Ana Alonso' }).click();
-  await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
 
-  const temasPropios = page.getByRole('region', { name: 'Temas propios' });
-  await expect(temasPropios.getByText('Sin temas propios.')).toBeVisible();
+  // Chips de solo lectura en la sección «Temas propios» del Resumen.
+  const temas = page.getByRole('region', { name: 'Temas propios' });
+  await expect(temas.getByText('Formación en curso')).toBeVisible();
 
-  // Alta de un tema propio
-  await temasPropios.getByLabel('Nuevo tema propio').fill('formación en curso');
-  await temasPropios.getByRole('button', { name: 'Añadir tema' }).click();
-
-  // Aparece en la lista y en el formulario del 1-to-1, junto a los temas genéricos
-  await expect(temasPropios.getByText('formación en curso')).toBeVisible();
-  await expect(page.getByLabel('formación en curso')).toBeVisible();
-  await expect(page.getByLabel('¿Cómo estás?')).toBeVisible();
-
-  // Baja del tema propio: desaparece de la lista y del formulario
-  await temasPropios.getByRole('button', { name: 'Retirar' }).click();
-  await expect(temasPropios.getByText('Sin temas propios.')).toBeVisible();
-  await expect(page.getByLabel('formación en curso')).toHaveCount(0);
+  // El enlace «Gestionar temas propios» navega a Ajustes de la mentee.
+  await temas.getByRole('link', { name: 'Gestionar temas propios' }).click();
+  await expect(page).toHaveURL(/\/mentees\/me-ana\/ajustes#temas-propios$/);
+  await expect(page.getByRole('heading', { name: 'Ajustes de la mentee' })).toBeVisible();
 });

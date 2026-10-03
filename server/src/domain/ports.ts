@@ -158,6 +158,14 @@ export interface SituacionProyecto {
   cambios: CambioProyecto[];
 }
 
+/** Proyecto vigente de una mentee con la fecha de su entrada. */
+export interface ProyectoActual {
+  id: string;
+  name: string;
+  /** Fecha ISO (YYYY-MM-DD) de entrada en el proyecto. */
+  desde: string;
+}
+
 /**
  * Puerto del catálogo de proyectos y de los cambios de proyecto de una mentee.
  * Las operaciones sobre una mentee se acotan por manager (aislamiento).
@@ -173,6 +181,8 @@ export interface ProyectoRepository {
   registrarCambio(managerId: ManagerId, menteeId: string, cambio: NuevoCambioProyecto): Promise<CambioProyecto>;
   /** Mentees del manager agrupados por su proyecto vigente (una mentee aparece en cada uno). */
   miembrosPorProyecto(managerId: ManagerId): Promise<MiembrosPorProyecto[]>;
+  /** Proyectos vigentes de una mentee (con la fecha de entrada), en orden alfabético. */
+  proyectosActualesDe(managerId: ManagerId, menteeId: string): Promise<ProyectoActual[]>;
   /** Entra a una mentee en un proyecto; lanza si ya tiene una asignación vigente al mismo. */
   entrarEnProyecto(managerId: ManagerId, menteeId: string, entrada: NuevaAsignacion): Promise<Asignacion>;
   /** Cierra la asignación vigente de una mentee a un proyecto (salida con fecha y motivo). */

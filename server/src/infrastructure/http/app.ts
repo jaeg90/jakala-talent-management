@@ -441,6 +441,16 @@ export function createApp(deps: AppDeps): express.Express {
     }
   }));
 
+  // Proyectos vigentes de una mentee (con la fecha de entrada), en orden alfabético.
+  app.get('/api/mentees/:menteeId/proyectos', requireSession(deps.sessions, async (req, res, manager) => {
+    try {
+      const proyectos = await deps.proyectos.proyectosActuales(manager, param(req, 'menteeId'));
+      res.json({ proyectos });
+    } catch (err) {
+      responderProyectoError(res, err, 'Error al leer los proyectos de la mentee');
+    }
+  }));
+
   // Entrar en un proyecto: alta de asignación (proyecto, desde, motivoEntrada).
   app.post('/api/mentees/:menteeId/proyectos', requireSession(deps.sessions, async (req, res, manager) => {
     const body = (req.body ?? {}) as { proyecto?: unknown; desde?: unknown; motivoEntrada?: unknown };

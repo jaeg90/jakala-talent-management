@@ -10,6 +10,7 @@ import type {
   MiembrosPorProyecto,
   NuevaAsignacion,
   NuevoCambioProyecto,
+  ProyectoActual,
   ProyectoRepository,
   SalidaDeProyecto,
   SituacionProyecto,
@@ -59,6 +60,11 @@ export class ProyectoService {
   /** Mentees del manager agrupados por su proyecto vigente. */
   async miembrosPorProyecto(manager: Manager): Promise<MiembrosPorProyecto[]> {
     return this.repository.miembrosPorProyecto(manager.id);
+  }
+
+  /** Proyectos vigentes de una mentee (solo si es del manager). */
+  async proyectosActuales(manager: Manager, menteeId: string): Promise<ProyectoActual[]> {
+    return this.repository.proyectosActualesDe(manager.id, menteeId);
   }
 
   /** Entra a una mentee en un proyecto validando fecha y motivo. */

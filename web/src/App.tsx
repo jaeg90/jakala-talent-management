@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   BrowserRouter,
   Navigate,
@@ -6,16 +5,14 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate,
-  useParams,
 } from 'react-router';
-import type { Mentee } from './api';
-import { api } from './api';
 import { AjustesLayout, Perfil } from './Ajustes';
 import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
 import { Login } from './Login';
-import { MenteeDetail } from './MenteeDetail';
+import { PuenteAjustes, PuenteIncidencias, PuenteLista1to1, PuenteObjetivos } from './puentes';
+import { Resumen } from './Resumen';
+import { ShellFicha } from './ShellFicha';
 
 /** Router de JTM: rutas del mapa de `decisiones.md`. Sesión y rutas dirigen; sin estado interno de vista. */
 export function App() {
@@ -26,14 +23,17 @@ export function App() {
           <Route path="/login" element={<Login />} />
           <Route element={<RutaPrivada />}>
             <Route path="/equipo" element={<Equipo />} />
-            <Route path="/mentees/:id" element={<MenteeDetailRoute />} />
-            <Route path="/mentees/:id/1-to-1s" element={<PantallaEnConstruccion titulo="1-to-1s" />} />
-            <Route path="/mentees/:id/1-to-1s/nuevo" element={<PantallaEnConstruccion titulo="Registrar 1-to-1" />} />
-            <Route path="/mentees/:id/1-to-1s/:unoAUnoId" element={<PantallaEnConstruccion titulo="Detalle de 1-to-1" />} />
-            <Route path="/mentees/:id/objetivos" element={<PantallaEnConstruccion titulo="Objetivos" />} />
-            <Route path="/mentees/:id/incidencias" element={<PantallaEnConstruccion titulo="Incidencias" />} />
-            <Route path="/mentees/:id/historial" element={<PantallaEnConstruccion titulo="Historial" />} />
-            <Route path="/mentees/:id/ajustes" element={<PantallaEnConstruccion titulo="Ajustes de la mentee" />} />
+            <Route path="/mentees/:id" element={<FichaMenteeRoute />}>
+              <Route index element={<Resumen />} />
+              <Route path="1-to-1s" element={<PuenteLista1to1 />} />
+              {/* Detalle de 1-to-1 (#31): stub «lista temporal hasta #31». */}
+              <Route path="1-to-1s/:unoAUnoId" element={<PuenteLista1to1 />} />
+              <Route path="objetivos" element={<PuenteObjetivos />} />
+              <Route path="incidencias" element={<PuenteIncidencias />} />
+              <Route path="historial" element={<PantallaEnConstruccionFicha titulo="Historial" />} />
+              <Route path="ajustes" element={<PuenteAjustes />} />
+            </Route>
+            <Route path="/mentees/:id/1-to-1s/nuevo" element={<Navigate to="/equipo" replace />} />
             <Route path="/ajustes" element={<AjustesLayout />}>
               <Route index element={<Navigate to="/ajustes/perfil" replace />} />
               <Route path="perfil" element={<Perfil />} />
@@ -65,28 +65,9 @@ function RutaPrivada() {
   return <Outlet />;
 }
 
-/** Ficha actual montada en su ruta futura (`/mentees/:id`): resuelve el nombre de la mentee. */
-function MenteeDetailRoute() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { manager } = useAuth();
-  const [mentee, setMentee] = useState<Mentee | null>(null);
-
-  useEffect(() => {
-    api.team().then(({ mentees }) => setMentee(mentees.find((m) => m.id === id) ?? null));
-  }, [id]);
-
-  if (manager === null || id === undefined) return null;
-  if (mentee === null) return <PantallaCargando />;
-
-  return (
-    <MenteeDetail
-      menteeId={id}
-      menteeName={mentee.name}
-      manager={manager}
-      onBack={() => navigate('/equipo')}
-    />
-  );
+/** Ficha de mentee: el `ShellFicha` resuelve la mentee por `:id` y monta las pantallas. */
+function FichaMenteeRoute() {
+  return <ShellFicha />;
 }
 
 /** Pantalla mínima compartida para URLs sin pantalla propia todavía. */
@@ -96,6 +77,18 @@ function PantallaEnConstruccion({ titulo }: { titulo: string }) {
       <h1>{titulo}</h1>
       <p>Pantalla en construcción.</p>
     </main>
+  );
+}
+
+/** Stub de una pantalla de ficha aún sin construir: vive dentro del `main` del shell. */
+function PantallaEnConstruccionFicha({ titulo }: { titulo: string }) {
+  return (
+    <div className="puente">
+      <header className="ficha__cabecera">
+        <h1>{titulo}</h1>
+      </header>
+      <p className="estado__mensaje">Pantalla en construcción.</p>
+    </div>
   );
 }
 

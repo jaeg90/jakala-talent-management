@@ -10,9 +10,10 @@ test('registro una incidencia desde la ficha', async ({ page }) => {
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-  // Alta desde la ficha de Ana Alonso.
+  // Abro la ficha de Ana Alonso y navego a Incidencias desde el sidebar.
   await page.getByRole('link', { name: 'Ana Alonso' }).click();
-  await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Secciones de Ana Alonso' }).getByRole('link', { name: 'Incidencias' }).click();
 
   const incidencias = page.getByRole('region', { name: 'Incidencias' });
   await expect(incidencias.getByText('Sin incidencias.')).toBeVisible();

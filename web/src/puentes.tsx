@@ -1,189 +1,199 @@
 import { useEffect, useState } from 'react';
-import {
-  api,
-  type AcuerdoView,
-  type Incidencia,
-  type Manager,
-  type ManagerAutenticado,
-  type Objetivo,
-  type ObjetivoFields,
-  type OneToOne,
-  type Project,
-  type SituacionProyecto,
-  type TemaPlantilla,
-  type TemaPropio,
-  type Traspaso,
+import { useNavigate, useParams } from 'react-router';
+import type {
+  Incidencia,
+  Manager,
+  ManagerAutenticado,
+  Objetivo,
+  ObjetivoFields,
+  OneToOne,
+  Project,
+  SituacionProyecto,
+  TemaPropio,
+  Traspaso,
 } from './api';
+import { api } from './api';
+import { useAuth } from './auth';
 
-interface Props {
-  menteeId: string;
-  menteeName: string;
-  manager: ManagerAutenticado;
-  onBack: () => void;
+/**
+ * Puentes temporales (ADR-0011): las secciones de la ficha que aún no tienen
+ * pantalla Lino se montan en sus rutas futuras dentro del shell. Cada puente
+ * muere en su ticket (objetivos #21, incidencias #22, temas propios #32, etc.).
+ */
+
+/** Lista temporal de 1-to-1s (puente; la pantalla §10 llega con su ticket). */
+export function PuenteLista1to1() {
+  const { id } = useParams();
+  const [history, setHistory] = useState<OneToOne[] | null>(null);
+
+  useEffect(() => {
+    if (id === undefined) return;
+    api.ficha(id).then((ficha) => setHistory(ficha.history));
+  }, [id]);
+
+  return (
+    <section className="puente" aria-label="1-to-1s">
+      <header className="ficha__cabecera">
+        <h1>1-to-1s</h1>
+      </header>
+      {history === null ? (
+        <p className="status">Cargando…</p>
+      ) : history.length === 0 ? (
+        <p className="empty">Todavía no hay 1-to-1s registrados.</p>
+      ) : (
+        <ol className="historial">
+          {history.map((o) => (
+            <li key={o.id}>
+              <h3>{o.date}</h3>
+              <ul className="notas">
+                {o.notas.map((n) => (
+                  <li key={n.tema}>
+                    <strong>{n.tema}</strong> {n.nota}
+                  </li>
+                ))}
+              </ul>
+              {o.acuerdos.length > 0 && (
+                <ul className="acuerdos-historial">
+                  {o.acuerdos.map((a) => (
+                    <li key={a.id} className={a.done ? 'cumplido' : ''}>
+                      {a.done ? '✓ ' : '○ '}{a.text}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
 }
 
-interface Ficha {
-  history: OneToOne[];
-  pending: AcuerdoView[];
-}
-
-/** Ficha de una mentee: historial de 1-to-1s, acuerdos pendientes y registro de 1-to-1s. */
-export function MenteeDetail({ menteeId, menteeName, manager, onBack }: Props) {
-  const [ficha, setFicha] = useState<Ficha | null>(null);
-  const [temas, setTemas] = useState<TemaPropio[]>([]);
-  const [plantilla, setPlantilla] = useState<TemaPlantilla[]>([]);
-  const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
-  const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
+/** Objetivos anuales de una mentee (puente; la pantalla §05 llega con su ticket). */
+export function PuenteObjetivos() {
+  const { id } = useParams();
+  const [objetivos, setObjetivos] = useState<Objetivo[] | null>(null);
 
   function reload() {
-    api.ficha(menteeId).then(setFicha);
-  }
-
-  function reloadTemas() {
-    api.temasPropios(menteeId).then(({ temas }) => setTemas(temas));
-  }
-
-  function reloadPlantilla() {
-    api.plantilla().then(({ temas: t }) => setPlantilla(t));
-  }
-
-  function reloadObjetivos() {
-    api.objetivos(menteeId).then(({ objetivos: o }) => setObjetivos(o));
-  }
-
-  function reloadIncidencias() {
-    api.incidenciasDe(menteeId).then(({ incidencias: list }) => setIncidencias(list));
+    if (id === undefined) return;
+    api.objetivos(id).then(({ objetivos: o }) => setObjetivos(o));
   }
 
   useEffect(() => {
     reload();
-    reloadTemas();
-    reloadPlantilla();
-    reloadObjetivos();
-    reloadIncidencias();
-  }, [menteeId]);
-
-  async function marcarCumplido(acuerdoId: string) {
-    await api.completeAgreement(acuerdoId);
-    reload();
-  }
-
-  async function altaTema(nombre: string) {
-    await api.addTemaPropio(menteeId, nombre);
-    reloadTemas();
-  }
-
-  async function bajaTema(temaPropioId: string) {
-    await api.removeTemaPropio(menteeId, temaPropioId);
-    reloadTemas();
-  }
-
-  async function altaObjetivo(fields: ObjetivoFields) {
-    await api.addObjetivo(menteeId, fields);
-    reloadObjetivos();
-  }
-
-  async function cambiarEstadoObjetivo(objetivoId: string, estado: 'cumplido' | 'no cumplido') {
-    await api.cambiarEstadoObjetivo(objetivoId, estado);
-    reloadObjetivos();
-  }
-
-  async function editarObjetivo(objetivoId: string, fields: ObjetivoFields) {
-    await api.updateObjetivo(objetivoId, fields);
-    reloadObjetivos();
-  }
-
-  async function altaIncidencia(descripcion: string) {
-    await api.addIncidencia(menteeId, descripcion);
-    reloadIncidencias();
-  }
+  }, [id]);
 
   return (
-    <main className="detail">
-      <header>
-        <button className="link" onClick={onBack}>← Mi equipo</button>
-        <h1>{menteeName}</h1>
+    <div className="puente">
+      <header className="ficha__cabecera">
+        <h1>Objetivos</h1>
       </header>
-
-      {ficha === null ? (
+      {objetivos === null ? (
         <p className="status">Cargando…</p>
       ) : (
-        <>
-          <section aria-label="Acuerdos pendientes">
-            <h2>Acuerdos pendientes</h2>
-            {ficha.pending.length === 0 ? (
-              <p className="empty">Sin acuerdos pendientes.</p>
-            ) : (
-              <ul className="pendientes">
-                {ficha.pending.map((a) => (
-                  <li key={a.id}>
-                    <span>{a.text}</span>
-                    <button onClick={() => void marcarCumplido(a.id)}>Marcar cumplido</button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <TemasPropios temas={temas} onAlta={altaTema} onBaja={bajaTema} />
-
-          <Objetivos
-            objetivos={objetivos}
-            onAdd={altaObjetivo}
-            onCambiarEstado={cambiarEstadoObjetivo}
-            onUpdate={editarObjetivo}
-          />
-
-          <Incidencias incidencias={incidencias} onAdd={altaIncidencia} />
-
-          <CambiosProyecto menteeId={menteeId} />
-
-          <Traspasos menteeId={menteeId} manager={manager} onTraspasado={onBack} />
-
-          <NuevoOneToOneForm
-            menteeId={menteeId}
-            temasGenericos={plantilla.filter((t) => t.estado === 'vigente').map((t) => t.tema)}
-            temasPropios={temas}
-            onSaved={reload}
-          />
-
-          <section aria-label="Historial de 1-to-1s">
-            <h2>Historial de 1-to-1s</h2>
-            {ficha.history.length === 0 ? (
-              <p className="empty">Todavía no hay 1-to-1s registrados.</p>
-            ) : (
-              <ol className="historial">
-                {ficha.history.map((o) => (
-                  <li key={o.id}>
-                    <h3>{o.date}</h3>
-                    <ul className="notas">
-                      {o.notas.map((n) => (
-                        <li key={n.tema}>
-                          <strong>{n.tema}</strong> {n.nota}
-                        </li>
-                      ))}
-                    </ul>
-                    {o.acuerdos.length > 0 && (
-                      <ul className="acuerdos-historial">
-                        {o.acuerdos.map((a) => (
-                          <li key={a.id} className={a.done ? 'cumplido' : ''}>
-                            {a.done ? '✓ ' : '○ '}{a.text}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </>
+        <Objetivos
+          objetivos={objetivos}
+          onAdd={async (fields) => {
+            if (id === undefined) return;
+            await api.addObjetivo(id, fields);
+            reload();
+          }}
+          onCambiarEstado={async (objetivoId, estado) => {
+            await api.cambiarEstadoObjetivo(objetivoId, estado);
+            reload();
+          }}
+          onUpdate={async (objetivoId, fields) => {
+            await api.updateObjetivo(objetivoId, fields);
+            reload();
+          }}
+        />
       )}
-    </main>
+    </div>
   );
 }
 
-/** Alta y baja de temas propios de una mentee. */
+/** Incidencias de una mentee (puente; la pantalla §06 llega con #22). */
+export function PuenteIncidencias() {
+  const { id } = useParams();
+  const [incidencias, setIncidencias] = useState<Incidencia[] | null>(null);
+
+  function reload() {
+    if (id === undefined) return;
+    api.incidenciasDe(id).then(({ incidencias: list }) => setIncidencias(list));
+  }
+
+  useEffect(() => {
+    reload();
+  }, [id]);
+
+  return (
+    <div className="puente">
+      <header className="ficha__cabecera">
+        <h1>Incidencias</h1>
+      </header>
+      {incidencias === null ? (
+        <p className="status">Cargando…</p>
+      ) : (
+        <Incidencias
+          incidencias={incidencias}
+          onAdd={async (descripcion) => {
+            if (id === undefined) return;
+            await api.addIncidencia(id, descripcion);
+            reload();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Ajustes de la mentee (puente: temas propios, proyectos y traspaso; las pantallas §08 llegan con sus tickets). */
+export function PuenteAjustes() {
+  const { id } = useParams();
+  const { manager } = useAuth();
+  const navigate = useNavigate();
+  const [temas, setTemas] = useState<TemaPropio[] | null>(null);
+
+  function reloadTemas() {
+    if (id === undefined) return;
+    api.temasPropios(id).then(({ temas: t }) => setTemas(t));
+  }
+
+  useEffect(() => {
+    reloadTemas();
+  }, [id]);
+
+  if (manager === null) return null;
+
+  return (
+    <div className="puente">
+      <header className="ficha__cabecera">
+        <h1>Ajustes de la mentee</h1>
+      </header>
+      {temas === null ? (
+        <p className="status">Cargando…</p>
+      ) : (
+        <TemasPropios
+          temas={temas}
+          onAlta={async (nombre) => {
+            if (id === undefined) return;
+            await api.addTemaPropio(id, nombre);
+            reloadTemas();
+          }}
+          onBaja={async (temaPropioId) => {
+            if (id === undefined) return;
+            await api.removeTemaPropio(id, temaPropioId);
+            reloadTemas();
+          }}
+        />
+      )}
+      {id !== undefined && <CambiosProyecto menteeId={id} />}
+      {id !== undefined && <Traspasos menteeId={id} manager={manager} onTraspasado={() => navigate('/equipo')} />}
+    </div>
+  );
+}
+
+/** Alta y baja de temas propios de una mentee (legacy; muere en #32). */
 function TemasPropios({
   temas,
   onAlta,
@@ -234,97 +244,6 @@ function TemasPropios({
         </label>
         {error !== null && <p className="error">{error}</p>}
         <button type="submit">Añadir tema</button>
-      </form>
-    </section>
-  );
-}
-
-/** Formulario de registro de un 1-to-1: temas de la plantilla del manager + propios con nota por tema + acuerdos. */
-function NuevoOneToOneForm({
-  menteeId,
-  temasGenericos,
-  temasPropios,
-  onSaved,
-}: {
-  menteeId: string;
-  temasGenericos: string[];
-  temasPropios: TemaPropio[];
-  onSaved: () => void;
-}) {
-  const temas = [...temasGenericos, ...temasPropios.map((t) => t.tema)];
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [notas, setNotas] = useState<Record<string, string>>({});
-  const [acuerdoTexto, setAcuerdoTexto] = useState('');
-  const [acuerdos, setAcuerdos] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  function addAcuerdo() {
-    const text = acuerdoTexto.trim();
-    if (text === '') return;
-    setAcuerdos([...acuerdos, text]);
-    setAcuerdoTexto('');
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      await api.saveOneToOne(menteeId, {
-        date,
-        notas: temas.filter((t) => notas[t]?.trim() !== '').map((t) => ({
-          tema: t,
-          nota: notas[t] ?? '',
-        })),
-        acuerdos: acuerdos.map((text) => ({ text })),
-      });
-      setNotas({});
-      setAcuerdos([]);
-      onSaved();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error inesperado');
-    }
-  }
-
-  return (
-    <section aria-label="Registrar 1-to-1">
-      <h2>Registrar 1-to-1</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Fecha
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-        </label>
-        {temas.map((tema) => (
-          <label key={tema}>
-            {tema}
-            <input
-              type="text"
-              value={notas[tema] ?? ''}
-              onChange={(e) => setNotas({ ...notas, [tema]: e.target.value })}
-              placeholder="Nota (opcional)"
-            />
-          </label>
-        ))}
-        <div className="acuerdos-input">
-          <label>
-            Nuevo acuerdo
-            <input
-              type="text"
-              value={acuerdoTexto}
-              onChange={(e) => setAcuerdoTexto(e.target.value)}
-              placeholder="Compromiso que nace de este 1-to-1"
-            />
-          </label>
-          <button type="button" onClick={addAcuerdo}>Añadir acuerdo</button>
-        </div>
-        {acuerdos.length > 0 && (
-          <ul className="acuerdos-nuevos">
-            {acuerdos.map((text, i) => (
-              <li key={i}>{text}</li>
-            ))}
-          </ul>
-        )}
-        {error !== null && <p className="error">{error}</p>}
-        <button type="submit">Registrar 1-to-1</button>
       </form>
     </section>
   );

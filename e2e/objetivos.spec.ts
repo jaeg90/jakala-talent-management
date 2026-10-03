@@ -10,9 +10,11 @@ test('creo un objetivo anual y lo marco cumplido', async ({ page }) => {
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-  // Abro la ficha de Ana Alonso
+  // Abro la ficha de Ana Alonso y navego a Objetivos desde el sidebar.
   await page.getByRole('link', { name: 'Ana Alonso' }).click();
-  await expect(page.getByRole('heading', { name: 'Ana Alonso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumen' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Secciones de Ana Alonso' }).getByRole('link', { name: 'Objetivos' }).click();
+  await expect(page.getByRole('heading', { name: 'Objetivos', exact: true })).toBeVisible();
 
   const objetivos = page.getByRole('region', { name: 'Objetivos anuales' });
   await expect(objetivos.getByText('Sin objetivos.')).toBeVisible();
