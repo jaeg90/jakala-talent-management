@@ -158,7 +158,7 @@ export function createApp(deps: AppDeps): express.Express {
     res.json({ history, pending });
   }));
 
-  // Temas propios vigentes de una mentee.
+  // Temas propios de una mentee: vigentes y retirados, con su estado y fechas.
   app.get('/api/mentees/:menteeId/temas', requireSession(deps.sessions, async (req, res, manager) => {
     const temas = await deps.temasPropios.temasPropiosOf(manager, param(req, 'menteeId'));
     res.json({ temas });
@@ -181,9 +181,14 @@ export function createApp(deps: AppDeps): express.Express {
     }
   }));
 
-  // Baja de un tema propio (no borra los temas tratados en 1-to-1s ya registrados).
-  app.delete('/api/mentees/:menteeId/temas/:temaPropioId', requireSession(deps.sessions, async (req, res, manager) => {
-    const ok = await deps.temasPropios.removeTemaPropio(manager, param(req, 'temaPropioId'));
+  // Retira un tema propio (sin borrado físico: queda retirado y los 1-to-1s ya
+  // registrados no cambian). Ancla al patrón POST /api/plantilla/temas/:id/retirar.
+  app.post('/api/mentees/:menteeId/temas/:temaPropioId/retirar', requireSession(deps.sessions, async (req, res, manager) => {
+    const ok = await deps.temasPropios.retirarTemaPropio(
+      manager,
+      param(req, 'menteeId'),
+      param(req, 'temaPropioId'),
+    );
     if (!ok) {
       res.status(404).json({ error: 'Tema propio no encontrado' });
       return;

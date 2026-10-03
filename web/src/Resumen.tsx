@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import type {
   AcuerdoView,
   Incidencia,
@@ -17,6 +17,10 @@ import { fechaCorta, fechaISO, fechaMesAnio, fechaRelativa } from './lib/fechas'
  */
 export function Resumen() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  // Aviso de éxito tras registrar un 1-to-1 (spec §04: «1-to-1 del 29 sept guardado.»);
+  // llega como `?guardado=YYYY-MM-DD` desde Registrar 1-to-1.
+  const guardado = searchParams.get('guardado');
   const [ultimaFecha, setUltimaFecha] = useState<string | null>(null);
   const [cita, setCita] = useState<string | null>(null);
   const [ultimoId, setUltimoId] = useState<string | null>(null);
@@ -63,7 +67,7 @@ export function Resumen() {
         setUltimoId(ultimo?.id ?? null);
         setCita(ultimo ? primeraNota(ultimo.notas.map((n) => n.nota)) : null);
         setPendientes(ficha.pending);
-        setTemas(temasResp.temas);
+        setTemas(temasResp.temas.filter((t) => t.estado === 'vigente'));
         setProyectos(proyectosResp.proyectos);
         setIncidencias(incidenciasResp.incidencias);
         setObjetivos(objetivosResp.objetivos);
@@ -121,6 +125,12 @@ export function Resumen() {
           Registrar 1-to-1
         </Link>
       </header>
+
+      {guardado !== null && (
+        <div className="aviso aviso--exito" role="status">
+          1-to-1 del <time dateTime={fechaISO(guardado)}>{fechaCorta(guardado)}</time> guardado.
+        </div>
+      )}
 
       <div className="resumen__grid">
         <section className="tarjeta resumen__proximo" aria-label="Para vuestro siguiente 1-to-1">

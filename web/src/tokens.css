@@ -49,7 +49,7 @@
   --texto-s: 0.8125rem;  /* 13 · etiquetas, badges */
   --texto-m: 0.9375rem;  /* 15 · cuerpo de interfaz */
   --texto-l: 1.0625rem;  /* 17 · títulos de tarjeta */
-  --texto-xl: 1.25rem;   /* 20 · diálogos */
+  --texto-xl: 1.3125rem; /* 21 · título de diálogo (componentes.md §Diálogo) */
   --texto-2xl: 1.875rem; /* 30 · título de sección de ficha */
   --texto-3xl: 2.25rem;  /* 36 · título de página */
   --interlineado: 1.5;
@@ -125,6 +125,7 @@
   --alto-esqueleto-nav: 40px;          /* skeleton del shell: ítem de nav */
   --alto-objetivo-tactil: 44px;        /* alto mínimo táctil (P5) */
   --alto-ficha: 100vh;                 /* alto mínimo del shell de ficha y su skeleton */
+  --radio-atencion: 14px;              /* radio de la tarjeta de atención (spec §04 contexto) */
 }
 
 @media (prefers-reduced-motion: reduce) {

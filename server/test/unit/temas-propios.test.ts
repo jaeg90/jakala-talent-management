@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { validarNombreTemaPropio } from '../../src/domain/temas-propios.js';
+import { validarNombreTemaPropio, validarSinDuplicadosTemaPropio } from '../../src/domain/temas-propios.js';
 import { TemaPropioService } from '../../src/application/tema_propio_service.js';
-import type { TemaPropioRepository } from '../../src/domain/ports.js';
-import type { Manager, TemaPropio } from '../../src/domain/model.js';
+import type { PlantillaRepository, TemaPropioRepository } from '../../src/domain/ports.js';
+import type { Manager, TemaPropio, TemaPlantilla } from '../../src/domain/model.js';
 
 const manager: Manager = { id: 'm-1', email: 'manager@jakala.example', name: 'Marta Manager', debeCambiarContraseña: false };
 
@@ -16,11 +16,58 @@ describe('validarNombreTemaPropio', () => {
   });
 });
 
+describe('validarSinDuplicadosTemaPropio', () => {
+  const propio = (tema: string, estado: 'vigente' | 'retirado' = 'vigente'): TemaPropio => ({
+    id: tema,
+    menteeId: 'me-1',
+    tema,
+    desde: '2026-10-01',
+    estado,
+    retiradoEl: estado === 'retirado' ? '2026-10-02' : null,
+  });
+
+  it('no lanza con un nombre sin colisiones', () => {
+    expect(() =>
+      validarSinDuplicadosTemaPropio('carga', [propio('formación')], [{ tema: '¿Cómo estás?' }], 'Ana'),
+    ).not.toThrow();
+  });
+
+  it('lanza contra otro tema propio vigente (sin mayúsculas ni tildes)', () => {
+    expect(() =>
+      validarSinDuplicadosTemaPropio('FORMACIÓN', [propio('formación')], [], 'Ana'),
+    ).toThrow('Ana ya tiene un tema propio con ese nombre.');
+  });
+
+  it('lanza contra un tema propio retirado', () => {
+    expect(() =>
+      validarSinDuplicadosTemaPropio('formación', [propio('formación', 'retirado')], [], 'Ana'),
+    ).toThrow('Ya lo tienes en retirados. Pulsa «Volver a usar».');
+  });
+
+  it('lanza contra un tema genérico vigente de la plantilla', () => {
+    expect(() =>
+      validarSinDuplicadosTemaPropio('¿Cómo estás?', [], [{ tema: '¿Cómo estás?' }], 'Ana'),
+    ).toThrow('Tu plantilla ya tiene un tema con ese nombre.');
+  });
+});
+
 describe('TemaPropioService', () => {
-  const temaPropio: TemaPropio = { id: 'tp-1', menteeId: 'me-1', tema: 'formación en curso' };
+  const temaPropio: TemaPropio = {
+    id: 'tp-1',
+    menteeId: 'me-1',
+    tema: 'formación en curso',
+    desde: '2026-10-01',
+    estado: 'vigente',
+    retiradoEl: null,
+  };
 
   function fakeRepository(): TemaPropioRepository {
     return {
+      async nombreDeMentee(managerId, menteeId) {
+        expect(managerId).toBe('m-1');
+        expect(menteeId).toBe('me-1');
+        return 'Ana Alonso';
+      },
       async temasPropiosOf(managerId, menteeId) {
         expect(managerId).toBe('m-1');
         expect(menteeId).toBe('me-1');
@@ -29,27 +76,53 @@ describe('TemaPropioService', () => {
       async addTemaPropio(managerId, menteeId, tema) {
         expect(managerId).toBe('m-1');
         expect(menteeId).toBe('me-1');
-        return { id: 'tp-1', menteeId, tema };
+        return { ...temaPropio, tema };
       },
-      async removeTemaPropio(managerId, temaPropioId) {
+      async retirarTemaPropio(managerId, menteeId, temaPropioId) {
         expect(managerId).toBe('m-1');
+        expect(menteeId).toBe('me-1');
         return temaPropioId === 'tp-1';
       },
     };
   }
 
+  function fakePlantilla(temas: TemaPlantilla[] = []): PlantillaRepository {
+    return {
+      async plantillaOf() {
+        return temas;
+      },
+      async addTema() {
+        throw new Error('no usado');
+      },
+      async editarTema() {
+        throw new Error('no usado');
+      },
+      async moverTema() {
+        throw new Error('no usado');
+      },
+      async retirarTema() {
+        throw new Error('no usado');
+      },
+      async reactivarTema() {
+        throw new Error('no usado');
+      },
+      async restablecerPlantilla() {
+        throw new Error('no usado');
+      },
+    };
+  }
+
   it('lista los temas propios de la mentee del manager', async () => {
-    const service = new TemaPropioService(fakeRepository());
+    const service = new TemaPropioService(fakeRepository(), fakePlantilla());
 
     await expect(service.temasPropiosOf(manager, 'me-1')).resolves.toEqual([temaPropio]);
   });
 
   it('da de alta un tema recortado y validado', async () => {
-    const service = new TemaPropioService(fakeRepository());
+    const service = new TemaPropioService(fakeRepository(), fakePlantilla());
 
     await expect(service.addTemaPropio(manager, 'me-1', '  formación  ')).resolves.toEqual({
-      id: 'tp-1',
-      menteeId: 'me-1',
+      ...temaPropio,
       tema: 'formación',
     });
   });
@@ -57,6 +130,9 @@ describe('TemaPropioService', () => {
   it('rechaza un tema vacío sin llegar al repositorio', async () => {
     let llamado = false;
     const repo: TemaPropioRepository = {
+      async nombreDeMentee() {
+        return 'Ana Alonso';
+      },
       async temasPropiosOf() {
         return [];
       },
@@ -64,20 +140,20 @@ describe('TemaPropioService', () => {
         llamado = true;
         return temaPropio;
       },
-      async removeTemaPropio() {
+      async retirarTemaPropio() {
         return false;
       },
     };
-    const service = new TemaPropioService(repo);
+    const service = new TemaPropioService(repo, fakePlantilla());
 
     await expect(service.addTemaPropio(manager, 'me-1', '   ')).rejects.toThrow();
     expect(llamado).toBe(false);
   });
 
-  it('da de baja un tema y devuelve si lo encontró', async () => {
-    const service = new TemaPropioService(fakeRepository());
+  it('retira un tema y devuelve si lo encontró', async () => {
+    const service = new TemaPropioService(fakeRepository(), fakePlantilla());
 
-    await expect(service.removeTemaPropio(manager, 'tp-1')).resolves.toBe(true);
-    await expect(service.removeTemaPropio(manager, 'tp-otro')).resolves.toBe(false);
+    await expect(service.retirarTemaPropio(manager, 'me-1', 'tp-1')).resolves.toBe(true);
+    await expect(service.retirarTemaPropio(manager, 'me-1', 'tp-otro')).resolves.toBe(false);
   });
 });

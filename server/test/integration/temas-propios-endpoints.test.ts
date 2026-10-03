@@ -37,7 +37,10 @@ beforeAll(async () => {
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
-    temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
+    temasPropios: new TemaPropioService(
+      new SqliteTemaPropioRepository(db),
+      new SqlitePlantillaRepository(db),
+    ),
     objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
@@ -72,11 +75,17 @@ async function login(email: string): Promise<string> {
 
 const ANA_MARTA = 'me-ana';
 const DAVID_DIEGO = 'me-david';
+// Beatriz es también de Marta: para verificar que la retirada acota por mentee
+// (una URL que identifica a otra mentee no retira temas ajenos).
+const BEA_MARTA = 'me-bea';
 
 interface TemaPropioApi {
   id: string;
   menteeId: string;
   tema: string;
+  desde: string;
+  estado: 'vigente' | 'retirado';
+  retiradoEl: string | null;
 }
 
 async function temasDe(menteeId: string, email: string): Promise<TemaPropioApi[]> {
@@ -95,22 +104,30 @@ async function alta(menteeId: string, email: string, tema: string): Promise<Resp
   });
 }
 
+async function retirar(menteeId: string, email: string, temaPropioId: string): Promise<Response> {
+  return fetch(`${baseUrl}/api/mentees/${menteeId}/temas/${temaPropioId}/retirar`, {
+    method: 'POST',
+    headers: { cookie: await login(email) },
+  });
+}
+
 describe('temas propios de una mentee', () => {
-  it('parte sin temas y los da de alta y de baja', async () => {
+  it('parte sin temas y los da de alta y retira (sin borrado)', async () => {
     expect(await temasDe(ANA_MARTA, MARTA)).toEqual([]);
 
     const res = await alta(ANA_MARTA, MARTA, 'formación en curso');
     expect(res.status).toBe(201);
     const tema = (await res.json()) as TemaPropioApi;
     expect(tema.tema).toBe('formación en curso');
+    expect(tema.estado).toBe('vigente');
+    expect(tema.retiradoEl).toBeNull();
     expect(await temasDe(ANA_MARTA, MARTA)).toEqual([tema]);
 
-    const baja = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/temas/${tema.id}`, {
-      method: 'DELETE',
-      headers: { cookie: await login(MARTA) },
-    });
+    const baja = await retirar(ANA_MARTA, MARTA, tema.id);
     expect(baja.status).toBe(204);
-    expect(await temasDe(ANA_MARTA, MARTA)).toEqual([]);
+    const despues = await temasDe(ANA_MARTA, MARTA);
+    expect(despues).toHaveLength(1);
+    expect(despues[0]).toMatchObject({ id: tema.id, estado: 'retirado', retiradoEl: expect.any(String) });
   });
 
   it('rechaza un nombre vacío', async () => {
@@ -118,11 +135,33 @@ describe('temas propios de una mentee', () => {
     expect(res.status).toBe(400);
   });
 
-  it('rechaza un tema repetido', async () => {
-    await alta(ANA_MARTA, MARTA, 'formación en curso');
-    const res = await alta(ANA_MARTA, MARTA, 'formación en curso');
+  it('rechaza un tema propio vigente repetido (copy §14)', async () => {
+    await alta(ANA_MARTA, MARTA, 'plan de crecimiento');
+    const res = await alta(ANA_MARTA, MARTA, 'PLAN DE CRECIMIENTO');
     expect(res.status).toBe(400);
-    expect(((await res.json()) as { error: string }).error).toContain('Ya existe');
+    expect(((await res.json()) as { error: string }).error).toBe(
+      'Ana ya tiene un tema propio con ese nombre.',
+    );
+  });
+
+  it('rechaza un tema propio retirado con el copy «Volver a usar»', async () => {
+    const altaRes = await alta(ANA_MARTA, MARTA, 'formación en certificaciones');
+    const tema = (await altaRes.json()) as TemaPropioApi;
+    await retirar(ANA_MARTA, MARTA, tema.id);
+
+    const res = await alta(ANA_MARTA, MARTA, 'FORMACIÓN EN CERTIFICACIONES');
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe(
+      'Ya lo tienes en retirados. Pulsa «Volver a usar».',
+    );
+  });
+
+  it('rechaza un tema genérico vigente de la plantilla (copy §14)', async () => {
+    const res = await alta(ANA_MARTA, MARTA, '¿Cómo estás?');
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe(
+      'Tu plantilla ya tiene un tema con ese nombre.',
+    );
   });
 
   it('aislamiento: Marta no da de alta temas para la mentee de Diego', async () => {
@@ -130,16 +169,26 @@ describe('temas propios de una mentee', () => {
     expect(res.status).toBe(404);
   });
 
-  it('aislamiento: Diego no da de baja un tema de la mentee de Marta', async () => {
-    const res = await alta(ANA_MARTA, MARTA, 'formación en curso');
+  it('aislamiento: Diego no retira un tema de la mentee de Marta', async () => {
+    const res = await alta(ANA_MARTA, MARTA, 'adaptación al equipo');
     const tema = (await res.json()) as TemaPropioApi;
 
-    const baja = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/temas/${tema.id}`, {
-      method: 'DELETE',
-      headers: { cookie: await login(DIEGO) },
-    });
+    const baja = await retirar(ANA_MARTA, DIEGO, tema.id);
     expect(baja.status).toBe(404);
     // El tema sigue vigente para Marta.
-    expect(await temasDe(ANA_MARTA, MARTA)).toHaveLength(1);
+    const temas = await temasDe(ANA_MARTA, MARTA);
+    expect(temas.find((t) => t.id === tema.id)).toMatchObject({ estado: 'vigente' });
+  });
+
+  it('no retira un tema de Ana por la URL de otra mentee (acota por mentee)', async () => {
+    const res = await alta(ANA_MARTA, MARTA, 'plan de carrera');
+    const tema = (await res.json()) as TemaPropioApi;
+
+    // Marta gestiona a Ana y a Beatriz; retirar el tema de Ana por la URL de Beatriz
+    // debe fallar (404) y el tema seguir vigente para Ana.
+    const baja = await retirar(BEA_MARTA, MARTA, tema.id);
+    expect(baja.status).toBe(404);
+    const temas = await temasDe(ANA_MARTA, MARTA);
+    expect(temas.find((t) => t.id === tema.id)).toMatchObject({ estado: 'vigente' });
   });
 });

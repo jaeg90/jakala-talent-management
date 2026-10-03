@@ -8,6 +8,8 @@ interface OneToOneRow {
   id: string;
   mentee_id: string;
   date: string;
+  registrado_por: string;
+  registrado_en: string;
 }
 
 interface NotaRow {
@@ -39,7 +41,9 @@ export class SqliteOneToOneRepository implements OneToOneRepository {
   async historyOf(managerId: ManagerId, menteeId: string): Promise<OneToOne[]> {
     if (this.menteeOf(managerId, menteeId) === null) return [];
     const rows = this.db
-      .prepare('SELECT id, mentee_id, date FROM onetoones WHERE mentee_id = ? ORDER BY date, id')
+      .prepare(
+        'SELECT id, mentee_id, date, registrado_por, registrado_en FROM onetoones WHERE mentee_id = ? ORDER BY date, registrado_en, id',
+      )
       .all(menteeId) as OneToOneRow[];
     return rows.map((row) => this.hydrate(row));
   }
@@ -49,8 +53,11 @@ export class SqliteOneToOneRepository implements OneToOneRepository {
       throw new Error(`Mentee ${nuevo.menteeId} no pertenece al manager`);
     }
     const id = randomUUID();
+    // `registradoPor` es el manager autenticado y `registradoEn` el instante del
+    // registro (base del plazo de edición de 7 días, ADR-0009 / decisiones.md §7).
+    const registradoEn = new Date().toISOString();
     const insertOneToOne = this.db.prepare(
-      'INSERT INTO onetoones (id, mentee_id, date) VALUES (?, ?, ?)',
+      'INSERT INTO onetoones (id, mentee_id, date, registrado_por, registrado_en) VALUES (?, ?, ?, ?, ?)',
     );
     const insertNota = this.db.prepare(
       'INSERT INTO notas_por_tema (onetoone_id, tema, nota) VALUES (?, ?, ?)',
@@ -60,7 +67,7 @@ export class SqliteOneToOneRepository implements OneToOneRepository {
     );
 
     this.db.transaction(() => {
-      insertOneToOne.run(id, nuevo.menteeId, nuevo.date);
+      insertOneToOne.run(id, nuevo.menteeId, nuevo.date, managerId, registradoEn);
       for (const { tema, nota } of nuevo.notas) {
         insertNota.run(id, tema, nota);
       }
@@ -70,7 +77,13 @@ export class SqliteOneToOneRepository implements OneToOneRepository {
       }
     })();
 
-    return this.hydrate({ id, mentee_id: nuevo.menteeId, date: nuevo.date });
+    return this.hydrate({
+      id,
+      mentee_id: nuevo.menteeId,
+      date: nuevo.date,
+      registrado_por: managerId,
+      registrado_en: registradoEn,
+    });
   }
 
   async pendingAgreementsOf(managerId: ManagerId, menteeId: string): Promise<Acuerdo[]> {
@@ -120,6 +133,8 @@ export class SqliteOneToOneRepository implements OneToOneRepository {
         date: a.date,
         done: a.done === 1,
       })),
+      registradoPor: row.registrado_por,
+      registradoEn: row.registrado_en,
     };
   }
 }

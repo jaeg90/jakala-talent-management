@@ -52,6 +52,11 @@ export interface TemaPropio {
   id: string;
   menteeId: string;
   tema: string;
+  /** Fecha ISO (YYYY-MM-DD) del alta. */
+  desde: string;
+  estado: 'vigente' | 'retirado';
+  /** Fecha ISO (YYYY-MM-DD) del retiro; null mientras está vigente. */
+  retiradoEl: string | null;
 }
 
 export type EstadoObjetivo = 'en curso' | 'cumplido' | 'no cumplido';
@@ -181,8 +186,8 @@ export const api = {
       body: JSON.stringify({ tema }),
     });
   },
-  removeTemaPropio(menteeId: string, temaPropioId: string): Promise<void> {
-    return request(`/api/mentees/${menteeId}/temas/${temaPropioId}`, { method: 'DELETE' });
+  retirarTemaPropio(menteeId: string, temaPropioId: string): Promise<void> {
+    return request(`/api/mentees/${menteeId}/temas/${temaPropioId}/retirar`, { method: 'POST' });
   },
   objetivos(menteeId: string): Promise<{ objetivos: Objetivo[] }> {
     return request(`/api/mentees/${menteeId}/objetivos`);
@@ -280,4 +285,8 @@ export interface OneToOne {
   date: string;
   notas: NotaPorTema[];
   acuerdos: (AcuerdoView & { done: boolean })[];
+  /** Manager que lo registró; base del plazo de edición de 7 días (ADR-0009). */
+  registradoPor: string;
+  /** Timestamp (ISO 8601) del registro; base del plazo de edición de 7 días (ADR-0009). */
+  registradoEn: string;
 }

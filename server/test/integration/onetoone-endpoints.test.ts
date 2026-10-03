@@ -37,7 +37,10 @@ beforeAll(async () => {
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
-    temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
+    temasPropios: new TemaPropioService(
+      new SqliteTemaPropioRepository(db),
+      new SqlitePlantillaRepository(db),
+    ),
     objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),
@@ -73,6 +76,9 @@ async function login(email: string): Promise<string> {
 /** Ana es de Marta; David es de Diego. */
 const ANA_MARTA = 'me-ana';
 const DAVID_DIEGO = 'me-david';
+// Beatriz es de Marta y no participa en las demás aserciones de esta suite:
+// se usa para los 1-to-1s del mismo día sin contaminar el historial de Ana.
+const BEA_MARTA = 'me-bea';
 
 const ONETOONE_ANA = {
   date: '2026-09-20',
@@ -97,10 +103,50 @@ describe('POST /api/mentees/:id/onetoones', () => {
       date: string;
       notas: { tema: string; nota: string }[];
       acuerdos: { text: string; done: boolean }[];
+      registradoPor: string;
+      registradoEn: string;
     };
     expect(saved.date).toBe('2026-09-20');
     expect(saved.notas).toHaveLength(3);
     expect(saved.acuerdos).toEqual([{ id: expect.any(String), text: 'Preparar dossier de Atlas Bank', date: '2026-09-20', done: false }]);
+    // Persistencia [v2]: guarda quién lo registró y cuándo (base del plazo de #35).
+    expect(saved.registradoPor).toBe('seed-manager-1');
+    expect(saved.registradoEn).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
+  it('permite varios 1-to-1s el mismo día (los identifica el id, no la fecha)', async () => {
+    const cookie = await login(MARTA);
+    const cuerpo = {
+      date: '2026-10-03',
+      notas: [{ tema: '¿Cómo estás?', nota: 'Primero del día' }],
+      acuerdos: [{ text: 'Acuerdo del primero' }],
+    };
+    const primero = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify(cuerpo),
+    });
+    const segundo = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({
+        ...cuerpo,
+        notas: [{ tema: '¿Cómo estás?', nota: 'Segundo del día' }],
+        acuerdos: [{ text: 'Acuerdo del segundo' }],
+      }),
+    });
+    expect(primero.status).toBe(201);
+    expect(segundo.status).toBe(201);
+    const idA = ((await primero.json()) as { id: string }).id;
+    const idB = ((await segundo.json()) as { id: string }).id;
+    expect(idA).not.toBe(idB);
+
+    const ficha = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones`, {
+      headers: { cookie },
+    });
+    const { history } = (await ficha.json()) as { history: { id: string; date: string }[] };
+    const delDia = history.filter((h) => h.date === '2026-10-03');
+    expect(delDia).toHaveLength(2);
   });
 
   it('aislamiento: Marta no puede registrar un 1-to-1 para la mentee de Diego', async () => {
@@ -129,6 +175,68 @@ describe('POST /api/mentees/:id/onetoones', () => {
 
     expect(res.status).toBe(400);
     expect(((await res.json()) as { error: string }).error).toContain('duplicado');
+  });
+
+  it('rechaza una fecha vacía', async () => {
+    const res = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
+      body: JSON.stringify({
+        date: '',
+        notas: [{ tema: '¿Cómo estás?', nota: 'Bien' }],
+        acuerdos: [],
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe('Elige una fecha.');
+  });
+
+  it('rechaza una fecha no ISO', async () => {
+    const res = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
+      body: JSON.stringify({
+        date: '2026-02-30',
+        notas: [{ tema: '¿Cómo estás?', nota: 'Bien' }],
+        acuerdos: [],
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toContain('ISO');
+  });
+
+  it('rechaza una fecha futura', async () => {
+    const res = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
+      body: JSON.stringify({
+        date: '2999-12-31',
+        notas: [{ tema: '¿Cómo estás?', nota: 'Bien' }],
+        acuerdos: [],
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe('La fecha no puede ser futura.');
+  });
+
+  it('rechaza un 1-to-1 sin notas ni acuerdos', async () => {
+    const res = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
+      body: JSON.stringify({
+        date: '2026-09-28',
+        notas: [{ tema: '¿Cómo estás?', nota: '   ' }],
+        acuerdos: [],
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe(
+      'Escribe al menos una nota o un acuerdo antes de guardar.',
+    );
   });
 });
 

@@ -32,7 +32,10 @@ export function buildApp() {
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
-    temasPropios: new TemaPropioService(new SqliteTemaPropioRepository(db)),
+    temasPropios: new TemaPropioService(
+      new SqliteTemaPropioRepository(db),
+      new SqlitePlantillaRepository(db),
+    ),
     objetivos: new ObjetivoService(new SqliteObjetivoRepository(db)),
     incidencias: new IncidenciaService(new SqliteIncidenciaRepository(db)),
     proyectos: new ProyectoService(new SqliteProyectoRepository(db)),

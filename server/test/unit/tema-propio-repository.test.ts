@@ -24,24 +24,40 @@ function repos(): { temas: SqliteTemaPropioRepository; onetoones: SqliteOneToOne
   return { temas: new SqliteTemaPropioRepository(db), onetoones: new SqliteOneToOneRepository(db) };
 }
 
-describe('vigencia de los temas propios (alta y baja)', () => {
+describe('vigencia de los temas propios (alta y retirada)', () => {
   it('un tema dado de alta aparece entre los vigentes', async () => {
     const { temas } = repos();
 
     const alta = await temas.addTemaPropio(MARTA, ANA, 'formación en curso');
 
-    expect(alta).toEqual({ id: expect.any(String), menteeId: ANA, tema: 'formación en curso' });
+    expect(alta).toEqual({
+      id: expect.any(String),
+      menteeId: ANA,
+      tema: 'formación en curso',
+      desde: expect.any(String),
+      estado: 'vigente',
+      retiradoEl: null,
+    });
     await expect(temas.temasPropiosOf(MARTA, ANA)).resolves.toEqual([
-      { id: alta.id, menteeId: ANA, tema: 'formación en curso' },
+      {
+        id: alta.id,
+        menteeId: ANA,
+        tema: 'formación en curso',
+        desde: expect.any(String),
+        estado: 'vigente',
+        retiradoEl: null,
+      },
     ]);
   });
 
-  it('la baja retira el tema de los vigentes', async () => {
+  it('la retirada pasa el tema a retirado (sin borrado físico)', async () => {
     const { temas } = repos();
     const alta = await temas.addTemaPropio(MARTA, ANA, 'formación en curso');
 
-    expect(await temas.removeTemaPropio(MARTA, alta.id)).toBe(true);
-    await expect(temas.temasPropiosOf(MARTA, ANA)).resolves.toEqual([]);
+    expect(await temas.retirarTemaPropio(MARTA, ANA, alta.id)).toBe(true);
+    const todos = await temas.temasPropiosOf(MARTA, ANA);
+    expect(todos).toHaveLength(1);
+    expect(todos[0]).toMatchObject({ id: alta.id, estado: 'retirado', retiradoEl: expect.any(String) });
   });
 
   it('rechaza un nombre repetido para la misma mentee', async () => {
@@ -59,12 +75,23 @@ describe('vigencia de los temas propios (alta y baja)', () => {
     );
   });
 
-  it('la baja de un tema ajeno devuelve false', async () => {
+  it('la retirada de un tema ajeno devuelve false', async () => {
     const { temas } = repos();
     const alta = await temas.addTemaPropio(MARTA, ANA, 'formación');
 
     // David es de Diego, no de Marta.
-    expect(await temas.removeTemaPropio('seed-manager-2', alta.id)).toBe(false);
+    expect(await temas.retirarTemaPropio('seed-manager-2', ANA, alta.id)).toBe(false);
+  });
+
+  it('no retira un tema propio por la URL de otra mentee', async () => {
+    const { temas } = repos();
+    const alta = await temas.addTemaPropio(MARTA, ANA, 'formación');
+
+    // El tema de Ana identificado por una mentee distinta: no se retira.
+    expect(await temas.retirarTemaPropio(MARTA, 'me-bea', alta.id)).toBe(false);
+    // Sigue vigente para Ana.
+    const todos = await temas.temasPropiosOf(MARTA, ANA);
+    expect(todos.find((t) => t.id === alta.id)).toMatchObject({ estado: 'vigente' });
   });
 });
 
@@ -80,7 +107,7 @@ describe('persistencia de temas tratados en 1-to-1s ya registrados', () => {
       acuerdos: [],
     });
 
-    await temas.removeTemaPropio(MARTA, alta.id);
+    await temas.retirarTemaPropio(MARTA, ANA, alta.id);
 
     const historial = await onetoones.historyOf(MARTA, ANA);
     expect(historial).toHaveLength(1);

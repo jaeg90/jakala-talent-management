@@ -1,7 +1,11 @@
 import type { Acuerdo, Manager, OneToOne } from '../domain/model.js';
 import type { NuevoOneToOne, OneToOneRepository } from '../domain/ports.js';
 import { crearAcuerdoPendiente } from '../domain/agreements.js';
-import { validarNotasPorTema } from '../domain/onetoonetopics.js';
+import {
+  validarContenidoOneToOne,
+  validarFechaOneToOne,
+  validarNotasPorTema,
+} from '../domain/onetoonetopics.js';
 
 /** Caso de uso: registrar y consultar 1-to-1s de una mentee. */
 export class OneToOneService {
@@ -13,9 +17,13 @@ export class OneToOneService {
   }
 
   /**
-   * Registra un 1-to-1: valida una nota por tema y crea los acuerdos pendientes.
+   * Registra un 1-to-1: valida la fecha (presente, ISO y no futura), que haya
+   * al menos una nota o un acuerdo, una nota por tema y crea los acuerdos
+   * pendientes. `hoy` se inyecta para que los tests sean deterministas.
    */
-  async save(manager: Manager, nuevo: NuevoOneToOne): Promise<OneToOne> {
+  async save(manager: Manager, nuevo: NuevoOneToOne, hoy: string = hoyISO()): Promise<OneToOne> {
+    validarFechaOneToOne(nuevo.date, hoy);
+    validarContenidoOneToOne(nuevo.notas, nuevo.acuerdos);
     validarNotasPorTema(nuevo.notas);
     return this.repository.save(manager.id, nuevo);
   }
@@ -29,6 +37,11 @@ export class OneToOneService {
   async completeAgreement(manager: Manager, acuerdoId: string): Promise<boolean> {
     return this.repository.completeAgreement(manager.id, acuerdoId);
   }
+}
+
+/** Hoy en ISO (YYYY-MM-DD), para que la validación de fecha no futura sea determinista en tests. */
+function hoyISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 export { crearAcuerdoPendiente };

@@ -71,15 +71,24 @@ export interface Traspaso {
   motivo: string;
 }
 
+/** Estado de un tema propio: vigente (aparece en el formulario) o retirado. */
+export type EstadoTemaPropio = 'vigente' | 'retirado';
+
 /**
- * Tema propio añadido por un manager a una mentee. Persiste entre 1-to-1s hasta
- * que se retira (la baja no borra los temas ya tratados en 1-to-1s registrados).
- * Ver "Tema" en CONTEXT.md.
+ * Tema propio añadido por un manager a una mentee. Persiste entre 1-to-1s; la
+ * retirada es real y sin borrado físico: el tema queda retirado (deja de aparecer
+ * en el formulario, se puede «Volver a usar») y los 1-to-1s ya registrados no
+ * cambian. Ver "Tema" en CONTEXT.md.
  */
 export interface TemaPropio {
   id: string;
   menteeId: string;
   tema: string;
+  /** Fecha ISO (YYYY-MM-DD) del alta del tema propio. */
+  desde: string;
+  estado: EstadoTemaPropio;
+  /** Fecha ISO (YYYY-MM-DD) del retiro; null mientras está vigente. */
+  retiradoEl: string | null;
 }
 
 /** Proyecto de cliente en el que trabaja una mentee. Catálogo compartido. */
@@ -122,10 +131,14 @@ export interface NotaPorTema {
 export interface OneToOne {
   id: string;
   menteeId: string;
-  /** Fecha ISO (YYYY-MM-DD). */
+  /** Fecha ISO (YYYY-MM-DD). Puede haber varios el mismo día. */
   date: string;
   notas: NotaPorTema[];
   acuerdos: Acuerdo[];
+  /** Manager que lo registró; base del plazo de edición de 7 días (ADR-0009). */
+  registradoPor: ManagerId;
+  /** Timestamp (ISO 8601) del registro; base del plazo de edición de 7 días (ADR-0009). */
+  registradoEn: string;
 }
 
 /** Estado de un tema de la plantilla de 1-to-1 de un manager. */

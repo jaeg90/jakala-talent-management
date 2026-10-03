@@ -36,6 +36,15 @@ body {
   box-shadow: var(--sombra-2);
 }
 
+/* Tarjeta de atención (componentes.md §Tarjeta de atención): fondo de atención,
+   sin sombra y radio 14px (—radio-atencion—), usado por la incidencia abierta del
+   contexto de Registrar 1-to-1 (§04) y del Resumen (§03). */
+.tarjeta--atencion {
+  background: var(--color-atencion-fondo);
+  border-radius: var(--radio-atencion);
+  box-shadow: none;
+}
+
 /* Tarjeta del Login: 420px de ancho total (box-sizing: border-box: el padding 40px
    va dentro), radio --radio-xxl y gap 20px. §01 manda sobre el padding 24px de .tarjeta. */
 .tarjeta--login {
@@ -1428,5 +1437,602 @@ body {
      `.check` crece a 44px (el control 18×18 se mantiene centrado). */
   .check {
     min-height: var(--alto-objetivo-tactil);
+  }
+}
+
+/* — Badges de estado (componentes.md §Badge, mapeo al final de tokens.css) — */
+
+.badge--propio {
+  background: var(--color-primario-suave);
+  color: var(--color-primario-texto);
+}
+
+.badge--cumplido {
+  background: var(--color-exito-badge);
+  color: var(--color-exito-texto);
+}
+
+/* Enlace de acción tenue (componentes.md §Enlace de acción, variante «Retirar»). */
+.accion--tenue {
+  color: var(--color-texto-secundario);
+}
+
+/* — Diálogo modal (componentes.md §Diálogo) — */
+
+.dialogo {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  background: var(--color-superficie);
+  border: none;
+  border-radius: var(--radio-xxl);
+  /* componentes.md §Diálogo: padding 28px (literal de pantalla, fuera de la base 4). */
+  padding: 28px;
+  box-shadow: var(--sombra-3);
+  color: var(--color-texto);
+}
+
+.dialogo::backdrop {
+  background: var(--color-velo);
+}
+
+.dialogo__titulo {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-titulo);
+}
+
+.dialogo__cuerpo {
+  /* componentes.md §Diálogo: separación título–cuerpo de 14–16px. */
+  margin: var(--esp-4) 0 0;
+  font-size: var(--texto-m);
+  line-height: var(--interlineado);
+}
+
+.dialogo__cuerpo p {
+  margin: 0;
+}
+
+.dialogo__acciones {
+  margin-top: var(--esp-4);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+}
+
+/* — Registrar 1-to-1 (spec §04), #19 — */
+
+/* Pantalla completa, sin sidebar; barra superior + cuerpo en grid. */
+.registro-1to1 {
+  margin: 0;
+  max-width: none;
+  min-height: 100vh;
+  padding: 0;
+  background: var(--color-fondo);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra superior: 72px, fondo superficie, --sombra-1, padding 0 40px, gap 20px. */
+.registro-1to1__barra {
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-5);
+  padding: 0 var(--esp-10);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.registro-1to1__volver {
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.registro-1to1__titulo {
+  margin: 0;
+  font-size: var(--texto-nombre-ficha);
+  font-weight: var(--peso-titulo);
+}
+
+/* Estado del borrador a la derecha: 13px secundario, empuja al final. */
+.registro-1to1__estado {
+  margin-left: auto;
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+}
+
+/* Grupo de acciones de la barra (Descartar + Guardar), mismo gap 20px de la barra. */
+.registro-1to1__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-5);
+}
+
+/* Selector de fecha con aspecto de chip (componentes.md §Selector de fecha):
+   label visible «Fecha» + chip que pinta el formato «29 sept 2026»; el input
+   nativo queda encima, transparente, para conservar el picker y el teclado. */
+.registro-1to1__fecha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__fecha-etiqueta {
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  color: var(--color-texto-secundario);
+}
+
+.campo-fecha {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.campo-fecha__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.campo-fecha__texto {
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: 9px 12px;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.campo-fecha:focus-within .campo-fecha__texto {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+}
+
+/* Cuerpo: grid `1fr 320px`. */
+.registro-1to1__cuerpo {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+}
+
+/* Columna principal: padding 20px 56px, gap 14px. */
+.registro-1to1__principal {
+  padding: var(--esp-5) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+  min-width: 0;
+}
+
+/* Tarjeta numerada: padding 20px 22px. */
+.registro-1to1__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-5) 22px;
+}
+
+/* Etiqueta numerada 13px/700 primario-texto. */
+.registro-1to1__etiqueta {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-primario-texto);
+}
+
+/* — Tarjeta 1 · acuerdos del último 1-to-1 — */
+.registro-1to1__acuerdos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__acuerdo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__acuerdo-texto {
+  flex: 1;
+  font-size: var(--texto-m);
+}
+
+.registro-1to1__tachado {
+  text-decoration: line-through;
+  color: var(--color-texto-secundario);
+}
+
+.registro-1to1__marcar {
+  white-space: nowrap;
+}
+
+/* — Tarjeta 2 · temas — */
+.registro-1to1__tema {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__tema-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__pregunta {
+  font-size: var(--texto-m);
+  font-weight: var(--peso-negrita);
+  flex: 1;
+}
+
+.registro-1to1__retirar {
+  /* spec §04: «Retirar tema» 13px/600 secundario (no 14px como «Añadir tema»). */
+  font-size: var(--texto-s);
+  white-space: nowrap;
+}
+
+.registro-1to1__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88px;
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--texto-m);
+  line-height: var(--interlineado);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  resize: vertical;
+}
+
+.registro-1to1__textarea:focus-visible {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+.registro-1to1__añadir-tema {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  color: var(--color-primario-texto);
+}
+
+/* — Tarjeta 2 · alta inline de tema propio — */
+.registro-1to1__alta-tema {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex-wrap: wrap;
+}
+
+/* El input de «Nuevo tema propio» va dentro de un `<label>` envolvente (accesibilidad.md
+   §Campos); la etiqueta ocupa el hueco flexible del input. */
+.registro-1to1__alta-tema label {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.registro-1to1__alta-tema input {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: 10px 12px;
+  font-size: var(--texto-m);
+  font-family: inherit;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+}
+
+.registro-1to1__alta-tema input:focus-visible {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+/* — Tarjeta 3 · acuerdos nuevos — */
+.registro-1to1__acuerdos-nuevos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__acuerdo-nuevo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: var(--texto-m);
+}
+
+.registro-1to1__acuerdo-nuevo > span {
+  flex: 1;
+}
+
+.registro-1to1__nuevo-acuerdo {
+  display: flex;
+  gap: var(--esp-2);
+}
+
+/* El input de «Nuevo acuerdo» va dentro de un `<label>` envolvente (accesibilidad.md
+   §Campos); la etiqueta ocupa el hueco flexible del input. */
+.registro-1to1__nuevo-acuerdo label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.registro-1to1__nuevo-acuerdo input {
+  flex: 1;
+  margin: 0;
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: 10px 12px;
+  font-size: var(--texto-m);
+  font-family: inherit;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+}
+
+.registro-1to1__nuevo-acuerdo input:focus-visible {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+/* — Columna de contexto — */
+.registro-1to1__contexto {
+  padding: 28px 24px;
+  box-sizing: border-box;
+  border-left: 1px solid var(--color-borde);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+/* El contexto es una columna fija en escritorio (`h2`) y un `details`/`summary`
+   desplegable en móvil (elegido en React por ancho de viewport). En escritorio el
+   título no es interactivo; el `summary` solo existe en móvil. */
+.registro-1to1__contexto-titulo {
+  margin: 0;
+  font-size: var(--texto-m);
+  font-weight: var(--peso-semi);
+  list-style: none;
+  cursor: default;
+}
+
+.registro-1to1__contexto-titulo::-webkit-details-marker {
+  display: none;
+}
+
+.registro-1to1__contexto-titulo:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+.registro-1to1__bloque {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.registro-1to1__etiqueta-contexto {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+.registro-1to1__cita {
+  margin: 0;
+  font-size: var(--texto-m);
+  line-height: var(--interlineado-cita);
+  color: var(--color-cita);
+}
+
+.registro-1to1__vacio {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+.registro-1to1__lista-contexto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  font-size: var(--texto-m);
+}
+
+.registro-1to1__titulo-atencion {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-atencion-texto);
+}
+
+.registro-1to1__incidencia {
+  margin: var(--esp-2) 0 0;
+  font-size: var(--texto-m);
+}
+
+.registro-1to1__incidencia-fecha {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* Foco visible en los enlaces y botones textuales del formulario. */
+.registro-1to1__volver:focus-visible,
+.registro-1to1__marcar:focus-visible,
+.registro-1to1__retirar:focus-visible,
+.registro-1to1__añadir-tema:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+/* — Skeleton de Registrar 1-to-1 (P4 §Estados «Cargando»): la forma final —
+   barra de 72px + cuerpo en grid 1fr 320px con tres tarjetas y la columna —. */
+.registro-1to1__skeleton-barra,
+.registro-1to1__skeleton-tarjeta,
+.registro-1to1__skeleton-contexto {
+  border-radius: var(--radio-l);
+  background: var(--color-superficie-hundida);
+  opacity: 1;
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
+.registro-1to1__skeleton-barra {
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.registro-1to1__skeleton-cuerpo {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+}
+
+.registro-1to1__skeleton-principal {
+  padding: var(--esp-5) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+  min-width: 0;
+}
+
+.registro-1to1__skeleton-tarjeta {
+  height: var(--alto-esqueleto-tarjeta);
+}
+
+.registro-1to1__skeleton-contexto {
+  margin: 28px 24px;
+  border-radius: var(--radio-l);
+}
+
+/* — Responsive (decisiones.md §Responsive y foco): en móvil el contexto pasa a
+   un desplegable encima del formulario y Guardar/Descartar quedan en una barra
+   inferior fija. — */
+@media (max-width: 639px) {
+  .registro-1to1__barra {
+    height: auto;
+    padding: var(--esp-2) var(--esp-4);
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+  }
+
+  /* El estado del borrador sale de la barra (queda el grupo de acciones fijo). */
+  .registro-1to1__estado {
+    margin-left: 0;
+  }
+
+  /* Barra inferior fija: Descartar + Guardar 1-to-1 siempre a mano. */
+  .registro-1to1__acciones {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-left: unset;
+    padding: var(--esp-2) var(--esp-4);
+    box-sizing: border-box;
+    background: var(--color-superficie);
+    box-shadow: var(--sombra-1);
+    z-index: 10;
+  }
+
+  .registro-1to1__acciones .boton {
+    flex: 1;
+  }
+
+  /* Hueco inferior para que la barra fija no tape el contenido. */
+  .registro-1to1 {
+    padding-bottom: 64px;
+  }
+
+  .registro-1to1__cuerpo,
+  .registro-1to1__skeleton-cuerpo {
+    grid-template-columns: 1fr;
+  }
+
+  .registro-1to1__principal {
+    padding: var(--esp-4);
+  }
+
+  /* El desplegable «Contexto» pasa encima del formulario (decisiones.md §Responsive). */
+  .registro-1to1__contexto {
+    order: -1;
+    padding: 0 var(--esp-4);
+    border-left: none;
+    border-top: none;
+    border-bottom: 1px solid var(--color-borde);
+    gap: var(--esp-3);
+  }
+
+  /* En móvil el `summary` se vuelve un disparador colapsable (objetivo táctil). */
+  .registro-1to1__contexto-titulo {
+    cursor: pointer;
+    padding: var(--esp-3) 0;
+    min-height: var(--alto-objetivo-tactil);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Objetivo táctil para el resumen colapsado del contexto. */
+  .registro-1to1__contexto-titulo::after {
+    content: '▾';
+    margin-left: auto;
+    font-size: var(--texto-s);
+    color: var(--color-texto-secundario);
+  }
+
+  .registro-1to1__contexto[open] .registro-1to1__contexto-titulo::after {
+    content: '▴';
+  }
+
+  .registro-1to1__skeleton-contexto {
+    margin: var(--esp-4);
+  }
+
+  /* Objetivo táctil ≥ 44px para «+ Añadir tema propio» (accesibilidad.md §Globales). */
+  .registro-1to1__añadir-tema {
+    min-height: var(--alto-objetivo-tactil);
+    display: inline-flex;
+    align-items: center;
   }
 }

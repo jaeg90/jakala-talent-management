@@ -34,7 +34,9 @@ export function openDatabase(path: string): Database.Database {
     CREATE TABLE IF NOT EXISTS onetoones (
       id TEXT PRIMARY KEY,
       mentee_id TEXT NOT NULL REFERENCES mentees(id),
-      date TEXT NOT NULL
+      date TEXT NOT NULL,
+      registrado_por TEXT NOT NULL REFERENCES managers(id),
+      registrado_en TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS notas_por_tema (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,6 +56,9 @@ export function openDatabase(path: string): Database.Database {
       id TEXT PRIMARY KEY,
       mentee_id TEXT NOT NULL REFERENCES mentees(id),
       tema TEXT NOT NULL,
+      desde TEXT NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'vigente',
+      retirado_el TEXT,
       UNIQUE (mentee_id, tema)
     );
     CREATE TABLE IF NOT EXISTS plantilla (
@@ -98,5 +103,98 @@ export function openDatabase(path: string): Database.Database {
       motivo TEXT NOT NULL
     );
   `);
+  migrarOnetoones(db);
+  migrarTemasPropios(db);
   return db;
+}
+
+/**
+ * Migración de la tabla `onetoones` a ADR-0009 (Cambios de dominio 7): los
+ * 1-to-1s se identifican por id y registran `registrado_por`/`registrado_en`.
+ * Una base creada antes de este cambio ya tiene la tabla (el `CREATE TABLE IF
+ * NOT EXISTS` no le añade las columnas), así que se amplía con `ALTER TABLE` y se
+ * rellena con el autor y un timestamp de respaldo.
+ *
+ * Autoría histórica: el historial pertenece a la mentee y se hereda completo
+ * (CONTEXT.md «Historial»), así que un 1-to-1 se atribuye a quien gestionaba a la
+ * mentee en su fecha — reconstruido desde la cronología de traspasos —, no al
+ * `manager_id` actual, que tras un traspaso podría no haberlo registrado
+ * (contrato de autoría de ADR-0009). Sin traspasos registrados, el manager actual
+ * es la única referencia disponible.
+ */
+function migrarOnetoones(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(onetoones)').all() as { name: string }[];
+  if (columnas.some((c) => c.name === 'registrado_por')) return;
+  db.exec(`
+    ALTER TABLE onetoones ADD COLUMN registrado_por TEXT REFERENCES managers(id);
+    ALTER TABLE onetoones ADD COLUMN registrado_en TEXT;
+  `);
+
+  const filas = db.prepare('SELECT id, mentee_id, date FROM onetoones ORDER BY date').all() as {
+    id: string;
+    mentee_id: string;
+    date: string;
+  }[];
+  // `ORDER BY fecha, rowid`: con varios traspasos el mismo día manda el de mayor
+  // orden de inserción (el dueño a fin de día); los `id` son aleatorios y no ordenan.
+  const traspasos = db
+    .prepare('SELECT mentee_id, origen_id, destino_id, fecha FROM traspasos ORDER BY fecha, rowid')
+    .all() as { mentee_id: string; origen_id: string; destino_id: string; fecha: string }[];
+  const managerActual = db.prepare('SELECT manager_id FROM mentees WHERE id = ?');
+  const setAutor = db.prepare('UPDATE onetoones SET registrado_por = ? WHERE id = ?');
+
+  db.transaction(() => {
+    for (const fila of filas) {
+      const autor = managerEn(fila.mentee_id, fila.date, traspasos, managerActual);
+      setAutor.run(autor, fila.id);
+    }
+  })();
+
+  db.exec(`
+    UPDATE onetoones
+    SET registrado_en = date || 'T00:00:00.000Z'
+    WHERE registrado_en IS NULL
+  `);
+}
+
+/**
+ * Migración de la tabla `temas_propios` al estado vigente/retirado (ADR-0009 /
+ * spec §14): una base creada antes del cambio no tiene `desde`/`estado`/
+ * `retirado_el`; se amplía con `ALTER TABLE` y los registros existentes quedan
+ * vigentes, con `desde` rellenado con la fecha del día de la migración (valor
+ * canónico de respaldo; no hay temas propios en la semilla).
+ */
+function migrarTemasPropios(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(temas_propios)').all() as { name: string }[];
+  if (columnas.some((c) => c.name === 'desde')) return;
+  db.exec(`
+    ALTER TABLE temas_propios ADD COLUMN desde TEXT NOT NULL DEFAULT '';
+    ALTER TABLE temas_propios ADD COLUMN estado TEXT NOT NULL DEFAULT 'vigente';
+    ALTER TABLE temas_propios ADD COLUMN retirado_el TEXT;
+  `);
+  const hoy = new Date().toISOString().slice(0, 10);
+  db.prepare("UPDATE temas_propios SET desde = ? WHERE desde = ''").run(hoy);
+}
+
+/** Manager que gestionaba a una mentee en una fecha, por la cronología de traspasos:
+ *  la comparación es inclusiva (`t.fecha <= fecha`): un traspaso rige desde el
+ *  inicio de su fecha, así que un 1-to-1 del MISMO día pertenece al manager de
+ *  DESTINO. El último traspaso anterior o contemporáneo manda (su destino); sin
+ *  ninguno, el origen del primer traspaso; sin traspasos, el manager actual. */
+function managerEn(
+  menteeId: string,
+  fecha: string,
+  traspasos: { mentee_id: string; origen_id: string; destino_id: string; fecha: string }[],
+  managerActual: { get: (id: string) => unknown },
+): string {
+  const propios = traspasos.filter((t) => t.mentee_id === menteeId);
+  if (propios.length === 0) {
+    const actual = managerActual.get(menteeId) as { manager_id: string } | undefined;
+    return actual?.manager_id ?? '';
+  }
+  const ultimoAnterior = propios.filter((t) => t.fecha <= fecha).at(-1);
+  if (ultimoAnterior !== undefined) {
+    return ultimoAnterior.destino_id;
+  }
+  return propios[0]?.origen_id ?? '';
 }

@@ -56,16 +56,21 @@ export interface OneToOneRepository {
 }
 
 /**
- * Puerto de temas propios de una mentee: alta, baja y consulta de los vigentes.
- * Las operaciones se acotan por manager (aislamiento).
+ * Puerto de temas propios de una mentee: alta, retirada (sin borrado físico) y
+ * consulta de vigentes y retirados. Las operaciones se acotan por manager
+ * (aislamiento).
  */
 export interface TemaPropioRepository {
-  /** Temas propios vigentes de una mentee (solo si es del manager). */
+  /** Nombre de una mentee (solo si es del manager); null si no pertenece. */
+  nombreDeMentee(managerId: ManagerId, menteeId: string): Promise<string | null>;
+  /** Temas propios de una mentee, vigentes y retirados (solo si es del manager). */
   temasPropiosOf(managerId: ManagerId, menteeId: string): Promise<TemaPropio[]>;
-  /** Da de alta un tema propio; lanza si el nombre está vacío o repetido. */
+  /** Da de alta un tema propio (vigente); lanza si el nombre está vacío o repetido. */
   addTemaPropio(managerId: ManagerId, menteeId: string, tema: string): Promise<TemaPropio>;
-  /** Da de baja un tema propio; devuelve false si no existe o no pertenece al manager. */
-  removeTemaPropio(managerId: ManagerId, temaPropioId: string): Promise<boolean>;
+  /** Retira un tema propio de una mentee; devuelve false si no existe, no
+   *  pertenece a la mentee indicada o no es del manager. La mentee acota la
+   *  retirada para que una URL de otra mentee no retire un tema ajeno. */
+  retirarTemaPropio(managerId: ManagerId, menteeId: string, temaPropioId: string): Promise<boolean>;
 }
 
 /**

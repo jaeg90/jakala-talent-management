@@ -156,7 +156,7 @@ export function PuenteAjustes() {
 
   function reloadTemas() {
     if (id === undefined) return;
-    api.temasPropios(id).then(({ temas: t }) => setTemas(t));
+    api.temasPropios(id).then(({ temas: t }) => setTemas(t.filter((x) => x.estado === 'vigente')));
   }
 
   useEffect(() => {
@@ -182,7 +182,7 @@ export function PuenteAjustes() {
           }}
           onBaja={async (temaPropioId) => {
             if (id === undefined) return;
-            await api.removeTemaPropio(id, temaPropioId);
+            await api.retirarTemaPropio(id, temaPropioId);
             reloadTemas();
           }}
         />
