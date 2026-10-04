@@ -26,7 +26,7 @@ function enCurso(): Objetivo {
 describe('validación del objetivo', () => {
   it('recorta el título y la fecha límite', () => {
     expect(validarTituloObjetivo('  Certificar en AWS  ')).toBe('Certificar en AWS');
-    expect(validarFechaLimite('  2026-12-31  ')).toBe('2026-12-31');
+    expect(validarFechaLimite('  2026-12-31  ', '2026-01-01')).toBe('2026-12-31');
   });
 
   it('rechaza un título en blanco', () => {
@@ -34,7 +34,23 @@ describe('validación del objetivo', () => {
   });
 
   it('rechaza una fecha límite en blanco', () => {
-    expect(() => validarFechaLimite('   ')).toThrow();
+    expect(() => validarFechaLimite('   ', '2026-01-01')).toThrow();
+  });
+
+  it('rechaza una fecha límite que no es una fecha ISO válida', () => {
+    expect(() => validarFechaLimite('zzzz', '2026-10-04')).toThrow(/no es una fecha válida/);
+    expect(() => validarFechaLimite('2026-02-30', '2026-10-04')).toThrow(/no es una fecha válida/);
+    expect(() => validarFechaLimite('2026-13-01', '2026-10-04')).toThrow(/no es una fecha válida/);
+  });
+
+  it('admite una fecha límite igual a hoy (fecha límite ≥ hoy)', () => {
+    expect(validarFechaLimite('2026-10-04', '2026-10-04')).toBe('2026-10-04');
+  });
+
+  it('rechaza una fecha límite en el pasado (fecha límite ≥ hoy)', () => {
+    expect(() => validarFechaLimite('2026-10-03', '2026-10-04')).toThrow(
+      /no puede estar en el pasado/,
+    );
   });
 });
 
@@ -201,5 +217,64 @@ describe('ObjetivoService', () => {
     await expect(service.cambiarEstado(manager, 'o-1', 'cumplido')).resolves.toMatchObject({
       estado: 'cumplido',
     });
+  });
+
+  it('rechaza dar de alta un objetivo con la fecha límite en el pasado', async () => {
+    let llamado = false;
+    const repo: ObjetivoRepository = {
+      async objetivosOf() {
+        return [];
+      },
+      async addObjetivo() {
+        llamado = true;
+        return objetivo;
+      },
+      async updateObjetivo() {
+        return objetivo;
+      },
+      async cambiarEstado() {
+        return objetivo;
+      },
+    };
+    const service = new ObjetivoService(repo);
+
+    await expect(
+      service.addObjetivo(
+        manager,
+        { menteeId: 'me-1', titulo: 'Certificar en AWS', descripcion: '', fechaLimite: '2026-10-03' },
+        '2026-10-04',
+      ),
+    ).rejects.toThrow(/no puede estar en el pasado/);
+    expect(llamado).toBe(false);
+  });
+
+  it('rechaza editar un objetivo con la fecha límite en el pasado', async () => {
+    let llamado = false;
+    const repo: ObjetivoRepository = {
+      async objetivosOf() {
+        return [];
+      },
+      async addObjetivo() {
+        return objetivo;
+      },
+      async updateObjetivo() {
+        llamado = true;
+        return objetivo;
+      },
+      async cambiarEstado() {
+        return objetivo;
+      },
+    };
+    const service = new ObjetivoService(repo);
+
+    await expect(
+      service.updateObjetivo(
+        manager,
+        'o-1',
+        { titulo: 'Certificar en AWS', descripcion: '', fechaLimite: '2026-09-30' },
+        '2026-10-04',
+      ),
+    ).rejects.toThrow(/no puede estar en el pasado/);
+    expect(llamado).toBe(false);
   });
 });

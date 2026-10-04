@@ -2305,3 +2305,264 @@ body {
     align-items: center;
   }
 }
+
+/* — Objetivos (spec §05) y diálogos §13 (#21) — */
+
+.objetivos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+/* Grupo (En curso / Cumplidos / No cumplidos): etiqueta + tarjetas, gap 10px. */
+.objetivos__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-margen);
+}
+
+/* Etiqueta de grupo con contador: 13px/700 secundario (spec §05). */
+.objetivos__etiqueta {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+.objetivos__grupo-vacio {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+/* Vacío de la pantalla (spec §05): frase + CTA. */
+.objetivos__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-3);
+}
+
+.objetivos__vacio-texto {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+/* Tarjeta de un objetivo en curso (spec §05): grid `minmax(0,1fr) auto`,
+   gap 6px 24px, padding 18px 22px (referencia `JTM Lino.dc.html` §05). */
+.objetivo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px var(--esp-6);
+  padding: var(--esp-tarjeta-compacta) 22px;
+  background: var(--color-superficie);
+  border-radius: var(--radio-xl);
+  box-shadow: var(--sombra-2);
+}
+
+/* Título de objetivo: 17px/700 (spec §05). */
+.objetivo__titulo {
+  font-size: var(--texto-l);
+  font-weight: var(--peso-negrita);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Badge a tamaño completo en las tarjetas de objetivos (componentes.md §Badge
+   «padding 4px 11px»; el `.badge` base usa el compacto 2px 9px de Mi equipo). */
+.objetivos .badge {
+  padding: 4px 11px;
+}
+
+.objetivo__badge {
+  align-self: start;
+}
+
+.objetivo__descripcion {
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+.objetivo__fecha {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+  text-align: right;
+}
+
+/* «hasta … · quedan n meses» en --color-atencion-texto 600 (spec §05). */
+.objetivo__fecha--atencion {
+  color: var(--color-atencion-texto);
+  font-weight: var(--peso-semi);
+}
+
+/* Fila de acciones: gap 8px, margen 10px (spec §05). */
+.objetivo__acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-top: var(--esp-margen);
+}
+
+/* Acción de la tarjeta: tamaño compacto (padding 8px 14px, radio 10px, 14px/600;
+   componentes.md §Botón de éxito suave y spec §05). «Marcar no cumplido», al ser
+   secundario, sobreescribe la medida con la del §Botón secundario. */
+.objetivo__accion {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--esp-2) var(--esp-columna);
+  border-radius: var(--radio-m);
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.objetivo__accion--cumplido {
+  border: none;
+  background: var(--color-exito-badge);
+  color: var(--color-exito-texto);
+}
+
+/* «Marcar no cumplido» (secundario, spec §05): componente §Botón secundario
+   (borde interior 1.5px, padding 11px 18px, radio --radio-l — componentes.md). */
+.objetivo__accion--no-cumplido {
+  border: 1.5px solid var(--color-borde-campo);
+  background: transparent;
+  color: var(--color-texto);
+  padding: 11px 18px;
+  border-radius: var(--radio-l);
+}
+
+.objetivo__accion--editar {
+  border: none;
+  background: none;
+  color: var(--color-primario-texto);
+}
+
+/* Neutraliza el `button`/`button:hover` de styles.css (fondo #4338ca / #3730a3):
+   cada variante define su propio fondo de hover. */
+.objetivo__accion--cumplido:hover:not(:disabled) {
+  background: var(--color-exito-badge);
+}
+
+.objetivo__accion--no-cumplido:hover:not(:disabled) {
+  background: var(--color-superficie-hundida);
+}
+
+.objetivo__accion--editar:hover {
+  background: none;
+}
+
+.objetivo__accion:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+/* Tarjeta plana de un objetivo cerrado (spec §05; componentes.md §Tarjeta
+   archivada con borde interior 1px): padding 14px 22px, radio 14px, flex. */
+.objetivo--plana {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-columna) 22px;
+  border-radius: var(--radio-atencion);
+  box-shadow: inset 0 0 0 1px var(--color-borde);
+  font-size: var(--texto-m);
+}
+
+.objetivo--plana__titulo {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-texto);
+}
+
+/* — Diálogo Nuevo/Editar objetivo (spec §13; componentes.md §Diálogo con formulario) — */
+
+/* El diálogo con formulario apila título–subtítulo, campos y acciones con gap 16px. */
+.dialogo--formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+/* Título y subtítulo juntos: gap 4px (componentes.md §Diálogo con formulario). */
+.dialogo__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.dialogo__subtitulo {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+/* El formulario interno apila los campos con gap 16px. */
+.dialogo__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+
+/* Las acciones del diálogo ya tienen su gap; no heredan el margen del `.dialogo`
+   base (que asume diálogos sin formulario). */
+.dialogo--formulario .dialogo__acciones {
+  margin-top: 0;
+}
+
+/* Textarea obligatorio/opcional (componentes.md §Campo y spec §13 «Descripción»:
+   min 72px, interlineado 1.5). Reutiliza borde 1.5px y padding 10px 12px del input. */
+.campo textarea {
+  margin: 0;
+  border: 1.5px solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: 10px 12px;
+  font-size: var(--texto-m);
+  font-weight: var(--peso-regular);
+  font-family: inherit;
+  line-height: var(--interlineado);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  min-height: 72px;
+  resize: vertical;
+}
+
+.campo textarea[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.campo textarea:focus-visible {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+/* Campo «Fecha límite»: etiqueta 14px/700 con gap 6px (componentes.md §Campo),
+   pero con el chip de fecha en lugar del input. */
+.objetivo-dialogo__fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-negrita);
+}
+
+/* Fecha límite inválida: el chip pinta su borde de error (spec §13 «error por campo»). */
+.campo-fecha__texto--error {
+  border-color: var(--color-error);
+}
+
+/* Objetivo táctil ≥ 44px en móvil (< 640px) para las acciones de la tarjeta
+   (accesibilidad.md §Globales; regla ya presente, se amplía el alcance). */
+@media (max-width: 639px) {
+  .objetivo__accion {
+    min-height: var(--alto-objetivo-tactil);
+  }
+}

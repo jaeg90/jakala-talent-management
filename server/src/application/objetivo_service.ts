@@ -11,10 +11,13 @@ export class ObjetivoService {
     return this.repository.objetivosOf(manager.id, menteeId);
   }
 
-  /** Da de alta un objetivo anual con título y fecha límite validados. */
-  async addObjetivo(manager: Manager, nuevo: NuevoObjetivo): Promise<Objetivo> {
+  /**
+   * Da de alta un objetivo anual con título y fecha límite validados. `hoy` se
+   * inyecta para validar la regla «fecha límite ≥ hoy» de forma determinista.
+   */
+  async addObjetivo(manager: Manager, nuevo: NuevoObjetivo, hoy: string = hoyISO()): Promise<Objetivo> {
     const titulo = validarTituloObjetivo(nuevo.titulo);
-    const fechaLimite = validarFechaLimite(nuevo.fechaLimite);
+    const fechaLimite = validarFechaLimite(nuevo.fechaLimite, hoy);
     const descripcion = nuevo.descripcion.trim();
     return this.repository.addObjetivo(manager.id, {
       menteeId: nuevo.menteeId,
@@ -24,14 +27,18 @@ export class ObjetivoService {
     });
   }
 
-  /** Edita un objetivo en curso con título y fecha límite validados. */
+  /**
+   * Edita un objetivo en curso con título y fecha límite validados. `hoy` se
+   * inyecta para validar la regla «fecha límite ≥ hoy» de forma determinista.
+   */
   async updateObjetivo(
     manager: Manager,
     objetivoId: string,
     cambios: EditarObjetivo,
+    hoy: string = hoyISO(),
   ): Promise<Objetivo> {
     const titulo = validarTituloObjetivo(cambios.titulo);
-    const fechaLimite = validarFechaLimite(cambios.fechaLimite);
+    const fechaLimite = validarFechaLimite(cambios.fechaLimite, hoy);
     const descripcion = cambios.descripcion.trim();
     return this.repository.updateObjetivo(manager.id, objetivoId, {
       titulo,
@@ -48,4 +55,9 @@ export class ObjetivoService {
   ): Promise<Objetivo> {
     return this.repository.cambiarEstado(manager.id, objetivoId, estado);
   }
+}
+
+/** Hoy en ISO (YYYY-MM-DD), para que la validación «fecha límite ≥ hoy» sea determinista en tests. */
+function hoyISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }

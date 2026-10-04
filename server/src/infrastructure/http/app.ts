@@ -603,7 +603,7 @@ function responderObjetivoError(res: Response, err: unknown, fallback: string): 
   const msg = err instanceof Error ? err.message : '';
   const status =
     msg.includes('no encontrado') || msg.includes('no pertenece') ? 404
-    : msg.includes('no puede') ? 409
+    : msg.includes('no puede cambiar') || msg.includes('no puede editarse') ? 409
     : 400;
   res.status(status).json({ error: msg === '' ? fallback : msg });
 }

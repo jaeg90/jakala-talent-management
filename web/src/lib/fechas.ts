@@ -71,6 +71,30 @@ export function fechaISO(fecha: string): string {
   return parseFecha(fecha).toISOString().slice(0, 10);
 }
 
+/** Hoy en ISO (YYYY-MM-DD), la misma convención UTC del backend (`hoyISO`). */
+export function hoyISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Meses naturales restantes hasta la fecha límite, redondeados HACIA ARRIBA
+ * (spec §05: «hasta 31 dic 2026 · quedan 3 meses» — a principios de octubre
+ * quedan 2 meses y pico → 3). Suma la diferencia de meses de calendario y un
+ * «pico» si el día del límite cae después del día de hoy (el aniversario mensual
+ * aún no se ha cumplido). «hoy» en ISO UTC, convención `hoyISO()` del paquete.
+ */
+export function mesesHasta(fechaLimite: string, hoy: string = hoyISO()): number {
+  const anioHoy = Number(hoy.slice(0, 4));
+  const mesHoy = Number(hoy.slice(5, 7));
+  const diaHoy = Number(hoy.slice(8, 10));
+  const anioLimite = Number(fechaLimite.slice(0, 4));
+  const mesLimite = Number(fechaLimite.slice(5, 7));
+  const diaLimite = Number(fechaLimite.slice(8, 10));
+  let meses = (anioLimite - anioHoy) * 12 + (mesLimite - mesHoy);
+  if (diaLimite > diaHoy) meses += 1;
+  return meses;
+}
+
 const MES_COMPLETO = new Intl.DateTimeFormat('es-ES', {
   month: 'long',
   timeZone: 'UTC',

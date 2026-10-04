@@ -160,6 +160,18 @@ describe('objetivos anuales de una mentee', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rechaza una fecha límite en el pasado (fecha límite ≥ hoy)', async () => {
+    const res = await alta(ANA_MARTA, MARTA, {
+      titulo: 'Certificar en AWS',
+      descripcion: '',
+      fechaLimite: '2000-01-01',
+    });
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe(
+      'La fecha límite no puede estar en el pasado',
+    );
+  });
+
   it('rechaza un estado de destino no válido', async () => {
     const res = await alta(ANA_MARTA, MARTA, OBJETIVO_ANA);
     const objetivo = (await res.json()) as ObjetivoApi;

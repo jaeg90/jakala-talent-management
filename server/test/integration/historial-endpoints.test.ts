@@ -129,14 +129,15 @@ describe('historial unificado de una mentee', () => {
       headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
       body: JSON.stringify({ descripcion: 'Conflicto de prioridades' }),
     });
-    // Objetivo cerrado (cumplido), fecha límite pasada.
+    // Objetivo cerrado (cumplido). La fecha límite debe ser ≥ hoy (regla de #21);
+    // se usa una fecha lejana para ubicar el evento sin depender del reloj.
     const objetivo = await fetch(`${baseUrl}/api/mentees/${ANA}/objetivos`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
       body: JSON.stringify({
         titulo: 'Certificación Azure',
         descripcion: '',
-        fechaLimite: '2026-03-15',
+        fechaLimite: '2099-12-31',
       }),
     });
     const objetivoId = ((await objetivo.json()) as { id: string }).id;
