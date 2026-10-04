@@ -11,7 +11,7 @@ const CONFIG = {
 };
 
 function ticket(numero: number, titulo: string, bloqueadoPor: number[] = []): Ticket {
-  return { numero, titulo, cuerpo: `Spec de ${titulo}.`, estado: 'lista', bloqueadoPor };
+  return { numero, titulo, cuerpo: `Spec de ${titulo}.`, estado: 'lista', bloqueadoPor, tipo: null };
 }
 
 describe('Pasada: el loop completo contra puertos simulados', () => {

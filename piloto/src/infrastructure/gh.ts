@@ -47,6 +47,12 @@ function ticketsDesdeIssues(issues: IssueGh[], etiquetas: Etiquetas): Ticket[] {
   return tickets;
 }
 
+/** El tipo que declara el cuerpo del issue: la línea «**Tipo:** pantalla» (ADR-0011); null si no la hay. */
+function tipoDe(cuerpo: string | null): string | null {
+  const m = (cuerpo ?? '').match(/^\*\*Tipo:\*\*[ \t]*(\S+)/m);
+  return m?.[1] ?? null;
+}
+
 function aTicket(issue: IssueGh, estado: Ticket['estado']): Ticket {
   return {
     numero: issue.number,
@@ -54,6 +60,7 @@ function aTicket(issue: IssueGh, estado: Ticket['estado']): Ticket {
     cuerpo: issue.body ?? '',
     estado,
     bloqueadoPor: bloqueadosDe(issue.body),
+    tipo: tipoDe(issue.body),
   };
 }
 

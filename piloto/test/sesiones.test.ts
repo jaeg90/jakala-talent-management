@@ -4,6 +4,7 @@ import {
   extraerDevolucion,
   extraerResumen,
   extraerVeredicto,
+  modeloDe,
   promptImplementadora,
   promptReparadora,
   promptRevisora,
@@ -30,6 +31,7 @@ function ticketDePrueba(): Ticket {
     cuerpo: '## Criterios\n- Router con el mapa de URLs.',
     estado: 'lista',
     bloqueadoPor: [],
+    tipo: null,
   };
 }
 
@@ -257,6 +259,65 @@ describe('Sesiones: resumen', () => {
   it('el resumen del diff es la última línea RESUMEN', () => {
     expect(extraerResumen('RESUMEN: Primera versión.\nRESUMEN: Versión que vale.')).toBe(
       'Versión que vale.',
+    );
+  });
+});
+
+describe('Sesiones: modelo por tipo (ADR-0013)', () => {
+  it('la cadena plana se usa tal cual', () => {
+    expect(modeloDe('openrouter/openai/gpt-6-luna-pro', 'pantalla')).toBe(
+      'openrouter/openai/gpt-6-luna-pro',
+    );
+  });
+
+  it('el tipo declarado en el cuerpo encamina a su modelo y el resto al defecto', () => {
+    const papel = {
+      defecto: 'openrouter/~deepseek/deepseek-pro-latest',
+      porTipo: { pantalla: 'openrouter/openai/gpt-6.1-sol-pro' },
+    };
+    expect(modeloDe(papel, 'pantalla')).toBe('openrouter/openai/gpt-6.1-sol-pro');
+    expect(modeloDe(papel, 'dominio')).toBe('openrouter/~deepseek/deepseek-pro-latest');
+    expect(modeloDe(papel, null)).toBe('openrouter/~deepseek/deepseek-pro-latest');
+  });
+});
+
+describe('Sesiones: recuperación de párrafo corrido (regresión de #22, 4-oct)', () => {
+  it('el veredicto entero en un párrafo sin saltos de línea viaja igual, sin caer al fallback de 500', () => {
+    // Formato verbatim de la clase: la revisora de la ronda 3 de #22 separó los
+    // veredictos con saltos simples; un paso más allá, todo en una línea, los
+    // regexes ^-anclados no ven nada y la máquina degrada al fallback.
+    const salida = [
+      'CRITERIO 1: OK — El ciclo completo funciona. ',
+      'CRITERIO 2: OK — Los diálogos cubren foco, Esc y descarte. ',
+      'CRITERIO 3: HALLAZGO — Una respuesta obsoleta puede sobrescribir la lista local.',
+    ].join('');
+
+    const veredicto = extraerVeredicto(salida);
+    expect(veredicto.hallazgos).toBe(
+      'Una respuesta obsoleta puede sobrescribir la lista local.',
+    );
+    expect(veredicto.dudas).toEqual([]);
+  });
+
+  it('la DUDA en párrafo corrido también viaja (la devolución no se pierde)', () => {
+    const salida =
+      'He revisado el diff. CRITERIO 1: OK — Bien. DUDA 1: El cuerpo no fija el formato de la fecha.';
+    const veredicto = extraerVeredicto(salida);
+    expect(veredicto.dudas).toEqual(['El cuerpo no fija el formato de la fecha.']);
+    expect(veredicto.hallazgos).toBeNull();
+  });
+
+  it('la prosa que cita el contrato sin emitir veredicto no matchea ni en la recuperación', () => {
+    const salida =
+      'El diff cumple. Según el cuerpo, «DUDA n:» solo procede ante ambigüedades reales; no hay ninguna.';
+    const veredicto = extraerVeredicto(salida);
+    expect(veredicto.hallazgos).not.toBeNull(); // fallback de 500: ambigüedad nunca es verde
+    expect(veredicto.dudas).toEqual([]);
+  });
+
+  it('dudas legibles sin la línea «DEVOLVER» también son devolución (nunca diff entregado)', () => {
+    expect(extraerDevolucion('Antes de adivinar, devuelvo: DUDA 1: ¿píxeles CSS o puntos de código?')).toBe(
+      '¿píxeles CSS o puntos de código?',
     );
   });
 });

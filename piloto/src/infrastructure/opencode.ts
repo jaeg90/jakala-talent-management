@@ -30,11 +30,33 @@ export interface ConfigSesiones {
   tiempoMaxMinutos: number;
 }
 
+/**
+ * Modelo por papel: una cadena única, o por tipo de ticket (ADR-0013) — la
+ * métrica por tipo de ADR-0011 disparó tres veces en «pantalla» (#14, #18, #22:
+ * escalados por acumulación de hallazgos finos); ese tipo va a un modelo
+ * superior y el resto al defecto. El coste por sesión es igual o menor que el
+ * del modelo barato: las sesiones son lectura de caché dominante (24M de
+ * re-lecturas frente a 0.4M nuevos en la #22) y los premium descuentan la
+ * caché 10-20×, mientras deepseek la cobra a precio completo.
+ */
+export interface ModeloPorTipo {
+  defecto: string;
+  /** Modelo por tipo declarado en el cuerpo («**Tipo:** pantalla»). */
+  porTipo?: Record<string, string>;
+}
+
 export interface Modelos {
-  implementadora: string;
-  reparadora: string;
+  implementadora: string | ModeloPorTipo;
+  reparadora: string | ModeloPorTipo;
   revisora: string;
 }
+
+/** El modelo de un papel para un ticket: la cadena plana, o el mapa por tipo con su defecto (ADR-0013). */
+export const modeloDe = (papel: string | ModeloPorTipo, tipo: string | null): string => {
+  if (typeof papel === 'string') return papel;
+  const porTipo = tipo === null ? undefined : papel.porTipo?.[tipo];
+  return porTipo ?? papel.defecto;
+};
 
 interface LlamadaSesion {
   modelo: string;
@@ -101,7 +123,9 @@ export const promptRevisora = (ticket: Ticket): string =>
     '   o «CRITERIO n: HALLAZGO — <qué falla y por qué>» si no.',
     '   Formato plano: empieza cada línea de veredicto por «CRITERIO n:» (o la',
     '   palabra clave), sin numeración de lista delante ni paréntesis tras el',
-    '   número — el extractor lee líneas, no prosa.',
+    '   número — el extractor lee líneas, no prosa: un veredicto por línea física',
+    '   separada por saltos de línea, nunca un párrafo corrido ni bloques resumen',
+    '   (nada de «Criterios auditados:»), y sin reagrupar los criterios del ticket.',
     '3. Si el diff incumple algo que no es criterio del ticket (estándares del repo), añade',
     '   «HALLAZGO n: <qué falla y por qué>» por cada problema.',
     '4. Si un criterio depende de un valor o de un contrato que el cuerpo del ticket NO',
@@ -184,22 +208,47 @@ const RE_DUDA = new RegExp(
   String.raw`^${APERTURA}${CRITERIO}[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)$`,
   'gm',
 );
+
+/**
+ * Recuperación de párrafo corrido (regresión de #22, 4-oct): la revisora puede
+ * emitir el veredicto entero en un solo párrafo sin saltos de línea — los
+ * regexes ^-anclados no ven nada y la máquina degradaría al fallback de 500.
+ * Solo cuando el pase anclado no encuentra NADA se reintenta sin el ancla: el
+ * propio patrón (palabra clave + separador de veredicto) filtra la prosa que
+ * cita el contrato sin emitir veredicto, y cualquier lectura que sale de aquí
+ * es mejor que la cola truncada.
+ */
+const RE_HALLAZGO_SIN_ANCLA = new RegExp(
+  String.raw`${APERTURA}${CRITERIO}[*_ \t]*HALLAZGO(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)`,
+  'g',
+);
+const RE_DUDA_SIN_ANCLA = new RegExp(
+  String.raw`${APERTURA}${CRITERIO}[*_ \t]*DUDA(?:[ \t]+\d+)?[*_ \t]*(?::|—)[ \t]*${CIERRE}(.+)`,
+  'g',
+);
+
 const RE_DEVOLVER = new RegExp(String.raw`^${APERTURA}[*_ \t]*DEVOLVER[*_ \t]*:?[ \t]*${CIERRE}$`, 'm');
+
+const extraer = (salida: string, anclada: RegExp, sinAncla: RegExp): string[] => {
+  const conLineas = [...salida.matchAll(anclada)]
+    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
+    .filter((t) => t !== '');
+  if (conLineas.length > 0) return conLineas;
+  return [...salida.matchAll(sinAncla)]
+    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
+    .filter((t) => t !== '');
+};
 
 /** Las dudas numeradas de una respuesta: «DUDA n: …», compartidas por implementadora y revisora (ADR-0012). */
 export function extraerDudas(salida: string): string[] {
-  return [...salida.matchAll(RE_DUDA)]
-    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
-    .filter((duda) => duda !== '');
+  return extraer(salida, RE_DUDA, RE_DUDA_SIN_ANCLA);
 }
 
 export function extraerVeredicto(salida: string): Veredicto {
   // Una línea por hallazgo — «HALLAZGO n: …» de siempre (ADR-0010) o
   // «CRITERIO n: HALLAZGO — …» del contrato por criterio —, con o sin énfasis
   // markdown alrededor; todos viajan juntos a la reparadora en un solo ciclo.
-  const hallazgos = [...salida.matchAll(RE_HALLAZGO)]
-    .map((m) => sinMarcasDeCierre(m[1]?.trim() ?? ''))
-    .filter((hallazgo) => hallazgo !== '');
+  const hallazgos = extraer(salida, RE_HALLAZGO, RE_HALLAZGO_SIN_ANCLA);
   const dudas = extraerDudas(salida);
   if (hallazgos.length === 0 && dudas.length === 0 && /SIN HALLAZGOS/.test(salida)) {
     return { hallazgos: null, dudas: [] };
@@ -214,10 +263,15 @@ export function extraerVeredicto(salida: string): Veredicto {
 
 /** La devolución de la implementadora (ADR-0012): null = entregó el diff; string = dudas para el grill. */
 export function extraerDevolucion(salida: string): string | null {
-  if (!RE_DEVOLVER.test(salida)) return null;
   const dudas = extraerDudas(salida);
-  // Devolvió sin dudas legibles: se devuelve igual — nunca se trata como diff listo.
-  return dudas.length > 0 ? dudas.join('\n') : 'La implementadora devolvió el ticket sin dudas legibles.';
+  if (RE_DEVOLVER.test(salida)) {
+    return dudas.length > 0 ? dudas.join('\n') : 'La implementadora devolvió el ticket sin dudas legibles.';
+  }
+  // Recuperación de párrafo corrido (regresión de #22, 4-oct): dudas legibles
+  // sin la línea «DEVOLVER» también son una devolución — un ciclo que devolvió
+  // dudas jamás se trata como diff entregado.
+  if (dudas.length > 0) return dudas.join('\n');
+  return null;
 }
 
 export function crearSesiones(
@@ -230,7 +284,7 @@ export function crearSesiones(
       const salida = await ejecutar(
         config.comando,
         argsSesion({
-          modelo: modelos.implementadora,
+          modelo: modeloDe(modelos.implementadora, ticket.tipo),
           prompt: promptImplementadora(ticket, puertas),
           titulo: `Piloto · implementadora · #${ticket.numero}`,
           auto: true,
@@ -258,7 +312,7 @@ export function crearSesiones(
       await ejecutar(
         config.comando,
         argsSesion({
-          modelo: modelos.reparadora,
+          modelo: modeloDe(modelos.reparadora, ticket.tipo),
           prompt: promptReparadora(ticket, error, puertas),
           titulo: `Piloto · reparadora · #${ticket.numero} · reintento ${reintento}`,
           auto: true,

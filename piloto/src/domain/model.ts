@@ -25,6 +25,8 @@ export interface Ticket {
   cuerpo: string;
   estado: EstadoTicket;
   bloqueadoPor: number[];
+  /** Tipo que declara el cuerpo («**Tipo:** pantalla»); null si no lo declara. Encamina el modelo del papel (ADR-0013). */
+  tipo: string | null;
 }
 
 /** El error en mano que provoca un rojo y viaja a la reparadora. */

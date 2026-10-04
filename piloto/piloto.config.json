@@ -3,8 +3,14 @@
   "reintentos": 3,
   "modoEntrega": "main",
   "modelos": {
-    "implementadora": "openrouter/~deepseek/deepseek-pro-latest",
-    "reparadora": "openrouter/~deepseek/deepseek-pro-latest",
+    "implementadora": {
+      "defecto": "openrouter/~deepseek/deepseek-pro-latest",
+      "porTipo": { "pantalla": "openrouter/openai/gpt-6.1-sol-pro" }
+    },
+    "reparadora": {
+      "defecto": "openrouter/~deepseek/deepseek-pro-latest",
+      "porTipo": { "pantalla": "openrouter/openai/gpt-6.1-sol-pro" }
+    },
     "revisora": "openrouter/openai/gpt-6-luna-pro"
   },
   "sesiones": {

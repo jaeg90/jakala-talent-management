@@ -34,12 +34,12 @@ function puertosReales(config: ConfigPiloto): Puertos {
 /** La frontera de esta mañana (la del prototipo): para ensayar el loop sin tocar nada. */
 function ticketsDeSimulacion(): Ticket[] {
   return [
-    { numero: 3, titulo: 'Ticket 2: Mi equipo', cuerpo: '', estado: 'cerrado', bloqueadoPor: [] },
-    { numero: 4, titulo: 'Ticket 3: Ficha de mentee y 1-to-1s', cuerpo: 'Spec del ticket 3.', estado: 'lista', bloqueadoPor: [] },
-    { numero: 5, titulo: 'Ticket 4: Temas propios', cuerpo: 'Spec del ticket 4.', estado: 'lista', bloqueadoPor: [4] },
-    { numero: 6, titulo: 'Ticket 5: Objetivos anuales', cuerpo: 'Spec del ticket 5.', estado: 'lista', bloqueadoPor: [4] },
-    { numero: 7, titulo: 'Ticket 6: Incidencias', cuerpo: 'Spec del ticket 6.', estado: 'lista', bloqueadoPor: [4] },
-    { numero: 8, titulo: 'Ticket 7: Catálogo de proyectos', cuerpo: 'Spec del ticket 7.', estado: 'lista', bloqueadoPor: [3] },
+    { numero: 3, titulo: 'Ticket 2: Mi equipo', cuerpo: '', estado: 'cerrado', bloqueadoPor: [], tipo: null },
+    { numero: 4, titulo: 'Ticket 3: Ficha de mentee y 1-to-1s', cuerpo: 'Spec del ticket 3.', estado: 'lista', bloqueadoPor: [], tipo: 'pantalla' },
+    { numero: 5, titulo: 'Ticket 4: Temas propios', cuerpo: 'Spec del ticket 4.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
+    { numero: 6, titulo: 'Ticket 5: Objetivos anuales', cuerpo: 'Spec del ticket 5.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
+    { numero: 7, titulo: 'Ticket 6: Incidencias', cuerpo: 'Spec del ticket 6.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
+    { numero: 8, titulo: 'Ticket 7: Catálogo de proyectos', cuerpo: 'Spec del ticket 7.', estado: 'lista', bloqueadoPor: [3], tipo: 'pantalla' },
   ];
 }
 
