@@ -24,6 +24,20 @@ Single-context: `CONTEXT.md` en la raíz + `docs/adr/`. Ver `docs/agents/domain.
 
 Todo ticket lleva su sección «Alcance» (Aplica a / Fuera de alcance) y cita verbatim su porción de spec: las sesiones de contexto fresco del Piloto solo ven el cuerpo del issue (ADR-0011). Al crear, reescribir o partir tickets, ver `.agents/skills/writing-tickets`.
 
+## Sesiones del Piloto
+
+Las sesiones del ciclo (implementadora, reparadora, revisora) leen este archivo. Reglas del paquete Lino, destiladas de los escalados por acumulación (#18 el 3-oct, #22 el 4-oct): el patrón fue hallazgos finos que aparecían en serie, uno por ronda. Estas reglas atajan las clases recurrentes.
+
+**Implementadora y reparadora:**
+
+- **Helpers existentes antes que nuevos**: antes de definir un helper (fechas, nombres, formateos), grepea el repo; si existe uno equivalente, impórtalo. Las copias duplicadas (`hoyISO` ×3, `fechaHace` ×2 en #22) son hallazgo.
+- **Estado asíncrono compartido**: si una petición actualiza estado que vive en otra vista (punto terracota del sidebar, contadores), usa el mecanismo de descarte del contenedor (token/`solicitud`); una respuesta atrasada nunca puede sobrescribir el estado de otra mentee.
+- **Acciones que vacían listas**: toda acción que quita un elemento (Resolver, Retirar, Marcar) cubre en E2E el elemento en medio, el último y la lista que queda vacía, con el destino de foco verificado en cada caso.
+- **CTAs en estados de carga/error**: un botón que no puede completar su acción durante skeleton o error va deshabilitado (o no se renderiza); nunca habilitado e inerte.
+- **La cascada no degrada lo pintado**: los valores que la spec pinta (min-heights, paddings) deben ganar la cascada; cuando el componente compite con una regla genérica (`.campo textarea` vs la clase propia), verifica el computed style en E2E.
+
+**Revisora** (además del contrato de veredicto por criterio): audita en CADA diff de pantalla las clases transversales desde la primera ronda, no cuando el diff ya esté limpio — foco tras desmontar el disparador, CTAs en estados de carga/error, cascada CSS contra los valores pintados, carreras de peticiones al cambiar de mentee, duplicación de helpers, y que cada E2E nuevo verifique lo que dice verificar. Las clases conocidas no se descubren una por ronda.
+
 ## Arnés de calidad
 
 Además de las puertas (typecheck, lint, tests, E2E), el repo tiene un arnés de calidad determinista (ADR-0005). El comando que lo ejecuta todo y resume el estado es:
