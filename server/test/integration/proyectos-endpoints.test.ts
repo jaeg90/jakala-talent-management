@@ -99,21 +99,9 @@ interface CambioApi {
   motivo: string;
 }
 
-interface GrupoApi {
-  projectId: string | null;
-  projectName: string | null;
-  mentees: { id: string; name: string }[];
-}
-
 async function catalogo(email: string): Promise<ProyectoApi[]> {
   const res = await fetch(`${baseUrl}/api/proyectos`, { headers: { cookie: await login(email) } });
   const body = (await res.json()) as { proyectos: ProyectoApi[] };
-  return body.proyectos;
-}
-
-async function miembros(email: string): Promise<GrupoApi[]> {
-  const res = await fetch(`${baseUrl}/api/proyectos/miembros`, { headers: { cookie: await login(email) } });
-  const body = (await res.json()) as { proyectos: GrupoApi[] };
   return body.proyectos;
 }
 
@@ -169,9 +157,22 @@ describe('GET/POST /api/proyectos', () => {
     const res = await fetch(`${baseUrl}/api/proyectos`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
-      body: JSON.stringify({ name: 'Atlas Bank' }),
+      body: JSON.stringify({ name: '  Atlas Bank  ' }),
     });
     expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Ya existe un proyecto con ese nombre.' });
+  });
+
+  it('el nombre retirado sigue ocupado y el catálogo expone su recuento', async () => {
+    const nuevo = await addProyecto('Nombre reservado', MARTA);
+    expect((await retirar(nuevo.id, MARTA)).status).toBe(200);
+    const res = await fetch(`${baseUrl}/api/proyectos`, {
+      method: 'POST', headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
+      body: JSON.stringify({ name: ' Nombre reservado ' }),
+    });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Ya existe un proyecto con ese nombre.' });
+    expect(await catalogo(MARTA)).toContainEqual(expect.objectContaining({ id: nuevo.id, numMentees: 0, estado: 'retirado' }));
   });
 
   it('rechaza un alta sin nombre', async () => {
@@ -184,26 +185,10 @@ describe('GET/POST /api/proyectos', () => {
   });
 });
 
-describe('vista "quién está en cada proyecto"', () => {
-  it('agrupa los mentees del manager por proyecto (estado inicial)', async () => {
-    const grupos = await miembros(MARTA);
-
-    expect(grupos).toEqual([
-      { projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-ana', name: 'Ana Alonso' }] },
-      { projectId: 'pr-aurora', projectName: 'Aurora Health', mentees: [{ id: 'me-carla', name: 'Carla Cano' }] },
-      { projectId: 'pr-nova', projectName: 'Retail Nova', mentees: [{ id: 'me-bea', name: 'Beatriz Blanco' }] },
-    ]);
-  });
-
-  it('tras un cambio, la mentee aparece en el proyecto nuevo', async () => {
-    await registrar(ANA, MARTA, { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: 'Rotación' });
-
-    const grupos = await miembros(MARTA);
-
-    // Atlas Bank queda sin mentees de Marta (Ana era la única).
-    expect(grupos.find((g) => g.projectName === 'Atlas Bank')).toBeUndefined();
-    const nova = grupos.find((g) => g.projectName === 'Retail Nova');
-    expect(nova?.mentees.map((m) => m.name)).toContain('Ana Alonso');
+describe('eliminación de la vista global de proyectos', () => {
+  it('la antigua ruta de miembros ya no existe', async () => {
+    const res = await fetch(`${baseUrl}/api/proyectos/miembros`, { headers: { cookie: await login(MARTA) } });
+    expect(res.status).toBe(404);
   });
 });
 
@@ -246,12 +231,10 @@ describe('aislamiento por manager', () => {
   });
 
   it('Diego no ve la situación de la mentee de Marta', async () => {
-    await registrar(ANA, MARTA, { fecha: '2026-09-27', destinoId: 'pr-atlas', motivo: 'Rotación' });
+    await registrar(ANA, MARTA, { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: 'Rotación' });
 
     await expect(situacion(ANA, DIEGO)).resolves.toEqual({ project: null, cambios: [] });
-    const gruposDiego = await miembros(DIEGO);
-    const ids = gruposDiego.flatMap((g) => g.mentees.map((m) => m.id));
-    expect(ids).not.toContain(ANA);
+    expect((await registrar(ANA, MARTA, { fecha: '2026-09-27', destinoId: 'pr-atlas', motivo: 'Restaurar' })).status).toBe(201);
   });
 });
 
@@ -332,7 +315,7 @@ describe('API nueva: GET /api/proyectos con estado', () => {
   it('devuelve todos los proyectos con estado y fechaRetirada', async () => {
     const proyectos = await catalogos(MARTA);
     const atlas = proyectos.find((p) => p.id === 'pr-atlas');
-    expect(atlas).toEqual({ id: 'pr-atlas', name: 'Atlas Bank', estado: 'vigente', fechaRetirada: null });
+    expect(atlas).toEqual({ id: 'pr-atlas', name: 'Atlas Bank', estado: 'vigente', fechaRetirada: null, numMentees: 3 });
   });
 });
 

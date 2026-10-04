@@ -35,6 +35,7 @@ export interface Project {
 /** GET /api/proyectos incluye también los retirados (contrato de #39). */
 export interface ProyectoCatalogo extends Project {
   fechaRetirada: string | null;
+  numMentees: number;
 }
 
 export interface Mentee {
@@ -97,17 +98,6 @@ export interface Incidencia {
 
 export interface IncidenciaConMentee extends Incidencia {
   menteeName: string;
-}
-
-export interface MiembroDeProyecto {
-  id: string;
-  name: string;
-}
-
-export interface MiembrosPorProyecto {
-  projectId: string | null;
-  projectName: string | null;
-  mentees: MiembroDeProyecto[];
 }
 
 /** Proyecto vigente de una mentee con la fecha de entrada (Resumen · «Proyectos actuales»). */
@@ -265,8 +255,11 @@ export const api = {
   addProyecto(name: string): Promise<Project> {
     return request('/api/proyectos', { method: 'POST', body: JSON.stringify({ name }) });
   },
-  miembrosPorProyecto(): Promise<{ proyectos: MiembrosPorProyecto[] }> {
-    return request('/api/proyectos/miembros');
+  retirarProyecto(id: string): Promise<{ fechaRetirada: string }> {
+    return request(`/api/proyectos/${id}/retirar`, { method: 'POST' });
+  },
+  reactivarProyecto(id: string): Promise<{ fechaRetirada: null }> {
+    return request(`/api/proyectos/${id}/reactivar`, { method: 'POST' });
   },
   proyectosActuales(menteeId: string): Promise<{ proyectos: ProyectoActual[] }> {
     return request(`/api/mentees/${menteeId}/proyectos`);

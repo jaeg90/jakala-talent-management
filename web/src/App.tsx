@@ -10,6 +10,7 @@ import {
 import { AjustesLayout, Perfil } from './Ajustes';
 import { AjustesApariencia } from './AjustesApariencia';
 import { AjustesMentees } from './AjustesMentees';
+import { AjustesProyectos } from './AjustesProyectos';
 import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
 import { Login } from './Login';
@@ -50,10 +51,10 @@ const router = createBrowserRouter(
           <Route path="perfil" element={<Perfil />} />
           <Route path="apariencia" element={<AjustesApariencia />} />
           <Route path="mentees" element={<AjustesMentees />} />
+          <Route path="proyectos" element={<AjustesProyectos />} />
         </Route>
         <Route path="/ajustes/plantilla" element={<PantallaEnConstruccion titulo="Plantilla de 1-to-1" />} />
         <Route path="/ajustes/managers" element={<PantallaEnConstruccion titulo="Managers + crear cuenta" />} />
-        <Route path="/ajustes/proyectos" element={<PantallaEnConstruccion titulo="Catálogo de proyectos" />} />
         <Route path="*" element={<Navigate to="/equipo" replace />} />
       </Route>
     </Route>,

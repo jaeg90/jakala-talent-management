@@ -16,9 +16,12 @@ export interface CambioProyecto {
 }
 
 /** Regla de dominio: el nombre de un proyecto, una vez recortado, no puede estar vacío. */
-export function validarNombreProyecto(name: string): string {
+export function validarNombreProyecto(name: string, catalogo: readonly { name: string }[] = []): string {
   const n = name.trim();
   if (n === '') throw new Error('El nombre del proyecto no puede estar vacío');
+  if (catalogo.some((proyecto) => proyecto.name === n)) {
+    throw new Error('Ya existe un proyecto con ese nombre.');
+  }
   return n;
 }
 

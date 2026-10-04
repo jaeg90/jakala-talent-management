@@ -1054,6 +1054,144 @@ body {
   }
 }
 
+/* §Ajustes · 3f (#29): catálogo y alta en línea, captura 09f. */
+.catalogo-proyectos {
+  padding: var(--esp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+}
+
+.catalogo-proyectos__cabecera h2 {
+  margin: 0;
+  font-size: var(--texto-titulo-tarjeta);
+  font-weight: var(--peso-titulo);
+}
+
+.catalogo-proyectos__cabecera p,
+.catalogo-proyectos__vacio {
+  margin: var(--esp-1) 0 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+.catalogo-proyectos__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-chip-casilla);
+}
+
+/* §Ajustes · 3f, captura 09f: nombre, recuento y acción alineados. */
+.catalogo-proyectos__fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ancho-recuento-proyecto) var(--ancho-accion-proyecto);
+  gap: var(--esp-columna);
+  align-items: center;
+  padding: var(--esp-fila-proyecto-y) var(--esp-columna);
+  background: var(--color-superficie-hundida);
+  border-radius: var(--radio-m);
+}
+
+/* Las acciones del catálogo no heredan el botón sólido de las vistas antiguas,
+   tampoco al pasar el puntero por encima. Conservan el foco y el mínimo táctil. */
+.catalogo-proyectos__fila .accion,
+.catalogo-proyectos__reactivacion .accion {
+  background: none;
+  padding: 0;
+  border: none;
+  border-radius: var(--radio-s);
+  box-shadow: none;
+}
+
+.catalogo-proyectos__nombre {
+  font-weight: var(--peso-semi);
+}
+
+.catalogo-proyectos__meta {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+.catalogo-proyectos__fila > :last-child {
+  justify-self: end;
+}
+
+.catalogo-proyectos__alta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--esp-margen);
+  align-items: start;
+}
+
+/* §Ajustes · 3f: el botón de alta se alinea con el input bajo su label. */
+.catalogo-proyectos__alta > .boton {
+  margin-top: calc(var(--texto-detalle) * var(--interlineado) + var(--esp-chip-casilla));
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.catalogo-proyectos__error {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.catalogo-proyectos__alta:has(.catalogo-proyectos__error) > .campo {
+  grid-row: 2;
+}
+
+.catalogo-proyectos__alta:has(.catalogo-proyectos__error) > .boton {
+  grid-row: 2;
+}
+
+.catalogo-proyectos__retirados {
+  margin-top: var(--esp-4);
+}
+
+.catalogo-proyectos__retirados h2 {
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+  margin: 0 0 var(--esp-2);
+}
+
+.catalogo-proyectos__retirado {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-margen);
+  padding: var(--esp-margen) var(--esp-4);
+  color: var(--color-texto-secundario);
+}
+
+.tarjeta--plana {
+  background: none;
+  border-radius: var(--radio-atencion);
+  box-shadow: inset 0 0 0 var(--borde-fino) var(--color-borde);
+}
+
+.badge--retirado {
+  background: var(--color-neutro-badge);
+  color: var(--color-neutro-texto);
+}
+
+.catalogo-proyectos__reactivacion {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--esp-2);
+}
+
+/* §Estados P4, #29: skeleton con la forma final de las filas del catálogo. */
+.catalogo-proyectos__skeleton {
+  min-height: var(--esp-10);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie-hundida);
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
 /* — Ficha de mentee · shell (spec §Esqueletos «Ficha de mentee [v2]», #18) — */
 
 /* Shell: fila a ancho completo, sidebar `--ancho-sidebar` y contenido flexible. */

@@ -101,6 +101,8 @@ export interface Project {
 export interface ProyectoCatalogo extends Project {
   estado: EstadoProyecto;
   fechaRetirada: string | null;
+  /** Asignaciones vigentes de todo el catálogo compartido, no solo del manager. */
+  numMentees: number;
 }
 
 /**

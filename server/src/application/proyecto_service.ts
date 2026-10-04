@@ -7,7 +7,6 @@ import type {
   ProyectoConEstado,
 } from '../domain/model.js';
 import type {
-  MiembrosPorProyecto,
   NuevaAsignacion,
   NuevoCambioProyecto,
   ProyectoActual,
@@ -22,7 +21,7 @@ import {
 } from '../domain/proyectos.js';
 import { validarFechaAsignacion, validarMotivoAsignacion } from '../domain/asignaciones.js';
 
-/** Caso de uso: catálogo de proyectos, cambios de proyecto y vista por proyecto. */
+/** Caso de uso: catálogo de proyectos y asignaciones de una mentee. */
 export class ProyectoService {
   constructor(private readonly repository: ProyectoRepository) {}
 
@@ -31,9 +30,9 @@ export class ProyectoService {
     return this.repository.proyectos();
   }
 
-  /** Da de alta un proyecto con el nombre validado (no vacío). */
+  /** Nombre recortado, no vacío y único en todo el catálogo, incluidos retirados. */
   async addProyecto(name: string): Promise<Project> {
-    const nombre = validarNombreProyecto(name);
+    const nombre = validarNombreProyecto(name, await this.repository.proyectos());
     return this.repository.addProyecto(nombre);
   }
 
@@ -55,11 +54,6 @@ export class ProyectoService {
       destinoId: cambio.destinoId,
       motivo,
     });
-  }
-
-  /** Mentees del manager agrupados por su proyecto vigente. */
-  async miembrosPorProyecto(manager: Manager): Promise<MiembrosPorProyecto[]> {
-    return this.repository.miembrosPorProyecto(manager.id);
   }
 
   /** Proyectos vigentes de una mentee (solo si es del manager). */

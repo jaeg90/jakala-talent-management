@@ -35,6 +35,12 @@ describe('validación del catálogo y de los cambios de proyecto', () => {
     expect(() => validarFechaCambio('   ')).toThrow();
     expect(() => validarMotivoCambio('   ')).toThrow();
   });
+
+  it('la unicidad es exacta, sin normalizar mayúsculas ni tildes', () => {
+    expect(validarNombreProyecto('  Átlas  ', [{ name: 'Atlas' }])).toBe('Átlas');
+    expect(validarNombreProyecto('atlas', [{ name: 'Atlas' }])).toBe('atlas');
+    expect(() => validarNombreProyecto(' Atlas ', [{ name: 'Otro' }, { name: 'Atlas' }])).toThrow('Ya existe un proyecto con ese nombre.');
+  });
 });
 
 describe('crearCambioProyecto', () => {
@@ -89,6 +95,7 @@ describe('ProyectoService', () => {
     name: 'Atlas Bank',
     estado: 'vigente',
     fechaRetirada: null,
+    numMentees: 1,
   };
   const situacion: SituacionProyecto = { project: catalogo, cambios: [cambio('pr-atlas')] };
 
@@ -110,10 +117,6 @@ describe('ProyectoService', () => {
         expect(menteeId).toBe('me-1');
         opts.registrarCambio?.();
         return { id: 'c-2', menteeId, ...cambioRecibido, origenId: 'pr-atlas' };
-      },
-      async miembrosPorProyecto(managerId) {
-        expect(managerId).toBe('m-1');
-        return [{ projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] }];
       },
       async proyectosActualesDe(managerId, menteeId) {
         expect(managerId).toBe('m-1');
@@ -163,7 +166,18 @@ describe('ProyectoService', () => {
   it('da de alta con el nombre recortado', async () => {
     const service = new ProyectoService(fakeRepository());
 
-    await expect(service.addProyecto('  Atlas Bank  ')).resolves.toMatchObject({ name: 'Atlas Bank' });
+    await expect(service.addProyecto('  Nuevo cliente  ')).resolves.toMatchObject({ name: 'Nuevo cliente' });
+  });
+
+  it('rechaza el duplicado recortado antes de escribir, también si está retirado', async () => {
+    for (const fechaRetirada of [null, '2026-06-01']) {
+      const repo = fakeRepository();
+      repo.proyectos = async () => [{ ...catalogo, fechaRetirada }];
+      let escrito = false;
+      repo.addProyecto = async (name) => { escrito = true; return { id: 'nuevo', name }; };
+      await expect(new ProyectoService(repo).addProyecto('  Atlas Bank  ')).rejects.toThrow('Ya existe un proyecto con ese nombre.');
+      expect(escrito).toBe(false);
+    }
   });
 
   it('consultar la situación de la mentee delega en el repositorio', async () => {
@@ -194,14 +208,6 @@ describe('ProyectoService', () => {
       service.registrarCambio(manager, 'me-1', { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: '   ' }),
     ).rejects.toThrow();
     expect(llamado).toBe(false);
-  });
-
-  it('lista los mentees agrupados por proyecto', async () => {
-    const service = new ProyectoService(fakeRepository());
-
-    await expect(service.miembrosPorProyecto(manager)).resolves.toEqual([
-      { projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-1', name: 'Ana' }] },
-    ]);
   });
 
   it('lee los proyectos actuales de una mentee delegando en el repositorio', async () => {

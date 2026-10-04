@@ -134,6 +134,11 @@
   --ancho-esqueleto-chip: 120px;       /* skeleton del catálogo de proyectos */
   --alto-esqueleto-chip: 34px;
 
+  /* — Añadidos #29 (Ajustes · Proyectos, captura 09f) — */
+  --ancho-recuento-proyecto: 110px;
+  --ancho-accion-proyecto: 130px;
+  --esp-fila-proyecto-y: 11px;
+
   /* — Añadidos #27 (Ajustes · Apariencia, componentes.md §Opción de apariencia
      y captura 09b): paletas fijas de las miniaturas, ajenas al tema activo. — */
   --color-miniatura-claro-fondo: oklch(0.97 0.012 70);

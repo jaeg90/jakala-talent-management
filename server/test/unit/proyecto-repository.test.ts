@@ -55,6 +55,23 @@ describe('catálogo de proyectos', () => {
 
     await expect(repo.addProyecto('Atlas Bank')).rejects.toThrow(/Ya existe/);
   });
+
+  it('cuenta cada asignación vigente, incluidas las de otros managers, sin contar salidas pasadas', async () => {
+    const repo = repos();
+    const primero = await repo.addProyecto('Recuento A');
+    const segundo = await repo.addProyecto('Recuento B');
+    const entrada = { desde: '2026-09-27', motivoEntrada: 'Prueba' };
+    await repo.entrarEnProyecto(MARTA, ANA, { ...entrada, proyecto: primero.id });
+    await repo.entrarEnProyecto(MARTA, ANA, { ...entrada, proyecto: segundo.id });
+    await repo.entrarEnProyecto(DIEGO, DAVID, { ...entrada, proyecto: primero.id });
+    await repo.entrarEnProyecto('seed-manager-3', HUGO, { ...entrada, proyecto: segundo.id });
+    await repo.salirDeProyecto('seed-manager-3', HUGO, segundo.id, { hasta: '2026-09-28', motivoSalida: 'Fin' });
+    const catalogo = await repo.proyectos();
+    expect(catalogo.find((p) => p.id === primero.id)?.numMentees).toBe(2);
+    expect(catalogo.find((p) => p.id === segundo.id)?.numMentees).toBe(1);
+    await repo.salirDeProyecto(MARTA, ANA, segundo.id, { hasta: '2026-09-28', motivoSalida: 'Fin' });
+    expect((await repo.proyectos()).find((p) => p.id === segundo.id)?.numMentees).toBe(0);
+  });
 });
 
 describe('historial y registro de cambios de proyecto', () => {
@@ -140,46 +157,6 @@ describe('historial y registro de cambios de proyecto', () => {
     const situacion = await repo.situacionDe(MARTA, ANA);
     expect(situacion.project).toEqual({ id: 'pr-atlas', name: 'Atlas Bank' });
     expect(situacion.cambios).toEqual([]);
-  });
-});
-
-describe('quién está en cada proyecto', () => {
-  it('agrupa los mentees del manager por proyecto, en orden', async () => {
-    const repo = repos();
-
-    const grupos = await repo.miembrosPorProyecto(MARTA);
-
-    expect(grupos).toEqual([
-      { projectId: 'pr-atlas', projectName: 'Atlas Bank', mentees: [{ id: 'me-ana', name: 'Ana Alonso' }] },
-      { projectId: 'pr-aurora', projectName: 'Aurora Health', mentees: [{ id: 'me-carla', name: 'Carla Cano' }] },
-      { projectId: 'pr-nova', projectName: 'Retail Nova', mentees: [{ id: 'me-bea', name: 'Beatriz Blanco' }] },
-    ]);
-  });
-
-  it('el mentee sin asignaciones vigentes no aparece en ningún grupo', async () => {
-    const repo = repos();
-
-    const grupos = await repo.miembrosPorProyecto('seed-manager-3');
-    const ids = grupos.flatMap((g) => g.mentees.map((m) => m.id));
-
-    expect(ids).toContain('me-gabriela');
-    expect(ids).not.toContain(HUGO);
-  });
-
-  it('una mentee con varias asignaciones vigentes aparece en varios proyectos', async () => {
-    const repo = repos();
-
-    await repo.entrarEnProyecto(MARTA, ANA, {
-      proyecto: 'pr-nova',
-      desde: '2026-09-01',
-      motivoEntrada: 'Apoyo',
-    });
-
-    const grupos = await repo.miembrosPorProyecto(MARTA);
-    const atlas = grupos.find((g) => g.projectId === 'pr-atlas');
-    const nova = grupos.find((g) => g.projectId === 'pr-nova');
-    expect(atlas?.mentees.map((m) => m.id)).toContain(ANA);
-    expect(nova?.mentees.map((m) => m.id)).toContain(ANA);
   });
 });
 
@@ -302,16 +279,5 @@ describe('aislamiento por manager', () => {
     await repo.registrarCambio(MARTA, ANA, { fecha: '2026-09-27', destinoId: 'pr-nova', motivo: 'Rotación' });
 
     await expect(repo.situacionDe(DIEGO, ANA)).resolves.toEqual({ project: null, cambios: [] });
-    await expect(repo.miembrosPorProyecto(DIEGO)).resolves.not.toContainEqual(
-      expect.objectContaining({ mentees: expect.arrayContaining([{ id: ANA }]) }),
-    );
-  });
-
-  it('el mentee sin proyecto (Hugo) no aparece para otra manager', async () => {
-    const repo = repos();
-
-    const grupos = await repo.miembrosPorProyecto(MARTA);
-    const ids = grupos.flatMap((g) => g.mentees.map((m) => m.id));
-    expect(ids).not.toContain(HUGO);
   });
 });

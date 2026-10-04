@@ -9,7 +9,6 @@ import type {
   ProyectoConEstado,
 } from '../../domain/model.js';
 import type {
-  MiembrosPorProyecto,
   NuevaAsignacion,
   NuevoCambioProyecto,
   ProyectoActual,
@@ -17,7 +16,7 @@ import type {
   SalidaDeProyecto,
   SituacionProyecto,
 } from '../../domain/ports.js';
-import { crearCambioProyecto } from '../../domain/proyectos.js';
+import { crearCambioProyecto, validarNombreProyecto } from '../../domain/proyectos.js';
 import {
   crearEntradaEnProyecto,
   reactivarProyecto,
@@ -50,13 +49,6 @@ interface CambioRow {
   motivo: string;
 }
 
-interface VigenteRow {
-  id: string;
-  name: string;
-  proyecto_id: string;
-  project_name: string;
-}
-
 /**
  * Adaptador SQLite del puerto de proyectos. Las operaciones sobre una mentee
  * cruzan por mentees.manager_id para garantizar el aislamiento por manager.
@@ -76,21 +68,22 @@ export class SqliteProyectoRepository implements ProyectoRepository {
 
   async proyectos(): Promise<ProyectoCatalogo[]> {
     const rows = this.db
-      .prepare('SELECT id, name, fecha_retirada FROM projects ORDER BY name')
-      .all() as ProyectoRow[];
+      .prepare(`SELECT p.id, p.name, p.fecha_retirada,
+        (SELECT COUNT(*) FROM asignaciones a WHERE a.proyecto_id = p.id AND a.hasta IS NULL) AS num_mentees
+        FROM projects p ORDER BY p.name`)
+      .all() as (ProyectoRow & { num_mentees: number })[];
     return rows.map((row) => ({
       id: row.id,
       name: row.name,
       estado: row.fecha_retirada === null ? 'vigente' : 'retirado',
       fechaRetirada: row.fecha_retirada,
+      numMentees: row.num_mentees,
     }));
   }
 
   async addProyecto(name: string): Promise<Project> {
-    const repetido = this.db.prepare('SELECT 1 FROM projects WHERE name = ?').get(name);
-    if (repetido !== undefined) {
-      throw new Error(`Ya existe el proyecto "${name}"`);
-    }
+    // Revalida de forma síncrona junto a la escritura para cubrir altas concurrentes.
+    name = validarNombreProyecto(name, this.db.prepare('SELECT name FROM projects').all() as { name: string }[]);
     const id = randomUUID();
     this.db.prepare('INSERT INTO projects (id, name, fecha_retirada) VALUES (?, ?, NULL)').run(id, name);
     return { id, name };
@@ -163,31 +156,6 @@ export class SqliteProyectoRepository implements ProyectoRepository {
       }
     })();
     return { id, menteeId, ...creado };
-  }
-
-  async miembrosPorProyecto(managerId: ManagerId): Promise<MiembrosPorProyecto[]> {
-    const rows = this.db
-      .prepare(
-        `SELECT m.id, m.name, a.proyecto_id, p.name AS project_name
-         FROM mentees m
-         JOIN asignaciones a ON a.mentee_id = m.id AND a.hasta IS NULL
-         JOIN projects p ON p.id = a.proyecto_id
-         WHERE m.manager_id = ?
-         ORDER BY p.name, m.name`,
-      )
-      .all(managerId) as VigenteRow[];
-    const groups = new Map<string, MiembrosPorProyecto>();
-    for (const row of rows) {
-      let grupo = groups.get(row.proyecto_id);
-      if (grupo === undefined) {
-        grupo = { projectId: row.proyecto_id, projectName: row.project_name, mentees: [] };
-        groups.set(row.proyecto_id, grupo);
-      }
-      grupo.mentees.push({ id: row.id, name: row.name });
-    }
-    return [...groups.values()].sort((a, b) =>
-      (a.projectName ?? '').localeCompare(b.projectName ?? ''),
-    );
   }
 
   async proyectosActualesDe(managerId: ManagerId, menteeId: string): Promise<ProyectoActual[]> {

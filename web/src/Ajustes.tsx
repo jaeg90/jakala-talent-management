@@ -34,7 +34,7 @@ export function AjustesLayout() {
             </div>
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Catálogo</span>
-              {/* Proyectos (#29) llega con su ticket. */}
+              <NavLink to="/ajustes/proyectos">Proyectos</NavLink>
             </div>
           </nav>
           <div className="ajustes__contenido">

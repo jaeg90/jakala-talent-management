@@ -158,19 +158,6 @@ export interface SalidaDeProyecto {
   motivoSalida: string;
 }
 
-/** Mentee tal y como aparece agrupada en la vista "quién está en cada proyecto". */
-export interface MiembroDeProyecto {
-  id: string;
-  name: string;
-}
-
-/** Proyecto (o el grupo "sin proyecto") con los mentees del manager que están hoy en él. */
-export interface MiembrosPorProyecto {
-  projectId: string | null;
-  projectName: string | null;
-  mentees: MiembroDeProyecto[];
-}
-
 /** Situación actual de una mentee: su proyecto actual y el historial de cambios. */
 export interface SituacionProyecto {
   project: Project | null;
@@ -198,8 +185,6 @@ export interface ProyectoRepository {
   situacionDe(managerId: ManagerId, menteeId: string): Promise<SituacionProyecto>;
   /** Registra un cambio (origen = proyecto actual); escribe doble en el histórico y en asignaciones. */
   registrarCambio(managerId: ManagerId, menteeId: string, cambio: NuevoCambioProyecto): Promise<CambioProyecto>;
-  /** Mentees del manager agrupados por su proyecto vigente (una mentee aparece en cada uno). */
-  miembrosPorProyecto(managerId: ManagerId): Promise<MiembrosPorProyecto[]>;
   /** Proyectos vigentes de una mentee (con la fecha de entrada), en orden alfabético. */
   proyectosActualesDe(managerId: ManagerId, menteeId: string): Promise<ProyectoActual[]>;
   /** Entra a una mentee en un proyecto; lanza si ya tiene una asignación vigente al mismo. */

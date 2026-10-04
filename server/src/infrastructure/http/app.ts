@@ -529,11 +529,6 @@ export function createApp(deps: AppDeps): express.Express {
     }),
   );
 
-  // Quién está hoy en cada proyecto (mentees del manager, agrupados por proyecto vigente).
-  app.get('/api/proyectos/miembros', requireSession(deps.sessions, async (_req, res, manager) => {
-    res.json({ proyectos: await deps.proyectos.miembrosPorProyecto(manager) });
-  }));
-
   // Situación de una mentee: proyecto actual e historial de cambios de proyecto.
   app.get('/api/mentees/:menteeId/cambios-proyecto', requireSession(deps.sessions, async (req, res, manager) => {
     res.json(await deps.proyectos.situacionDe(manager, param(req, 'menteeId')));
