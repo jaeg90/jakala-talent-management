@@ -379,15 +379,21 @@ export function createApp(deps: AppDeps): express.Express {
     res.json({ incidencias });
   }));
 
-  // Alta de una incidencia abierta en una mentee.
+  // Alta de una incidencia abierta en una mentee, con la fecha de apertura elegida
+  // por el manager (≤ hoy; es la que cuenta en Mi equipo y en el Historial).
   app.post('/api/mentees/:menteeId/incidencias', requireSession(deps.sessions, async (req, res, manager) => {
-    const { descripcion } = (req.body ?? {}) as { descripcion?: unknown };
-    if (typeof descripcion !== 'string') {
-      res.status(400).json({ error: 'Descripción de la incidencia requerida' });
+    const body = (req.body ?? {}) as { descripcion?: unknown; fechaApertura?: unknown };
+    if (typeof body.descripcion !== 'string' || typeof body.fechaApertura !== 'string') {
+      res.status(400).json({ error: 'Descripción y fecha de apertura de la incidencia requeridas' });
       return;
     }
     try {
-      const incidencia = await deps.incidencias.addIncidencia(manager, param(req, 'menteeId'), descripcion);
+      const incidencia = await deps.incidencias.addIncidencia(
+        manager,
+        param(req, 'menteeId'),
+        body.descripcion,
+        body.fechaApertura,
+      );
       res.status(201).json(incidencia);
     } catch (err) {
       responderIncidenciaError(res, err, 'Error al dar de alta la incidencia');

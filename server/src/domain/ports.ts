@@ -238,8 +238,14 @@ export interface IncidenciaRepository {
   abiertasDe(managerId: ManagerId): Promise<IncidenciaConMentee[]>;
   /** Historial (abiertas y resueltas) de una mentee, solo si es del manager. */
   historialDe(managerId: ManagerId, menteeId: string): Promise<Incidencia[]>;
-  /** Da de alta una incidencia abierta en una mentee; lanza si no es del manager. */
-  addIncidencia(managerId: ManagerId, menteeId: string, descripcion: string): Promise<Incidencia>;
+  /** Da de alta una incidencia abierta en una mentee con su fecha de apertura
+   *  (≤ hoy, elegida por el manager); lanza si no es del manager. */
+  addIncidencia(
+    managerId: ManagerId,
+    menteeId: string,
+    descripcion: string,
+    fechaApertura: string,
+  ): Promise<Incidencia>;
   /** Resuelve una incidencia con nota; lanza si no existe, no es del manager o ya está resuelta. */
   resolverIncidencia(managerId: ManagerId, incidenciaId: string, nota: string): Promise<Incidencia>;
 }

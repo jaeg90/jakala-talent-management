@@ -3,6 +3,7 @@ import {
   crearIncidenciaAbierta,
   resolverIncidencia,
   validarDescripcionIncidencia,
+  validarFechaApertura,
   validarNotaResolucion,
 } from '../../src/domain/incidencias.js';
 import { IncidenciaService } from '../../src/application/incidencia_service.js';
@@ -35,6 +36,17 @@ describe('validación de la incidencia', () => {
 
   it('rechaza una nota de resolución en blanco', () => {
     expect(() => validarNotaResolucion('   ')).toThrow();
+  });
+
+  it('valida la fecha de apertura: recorta, admite hoy y rechaza el futuro', () => {
+    expect(validarFechaApertura('  2026-09-27  ', '2026-10-04')).toBe('2026-09-27');
+    expect(validarFechaApertura('2026-10-04', '2026-10-04')).toBe('2026-10-04');
+    expect(() => validarFechaApertura('2026-10-05', '2026-10-04')).toThrow(/futura/);
+  });
+
+  it('rechaza una fecha de apertura en blanco o no válida', () => {
+    expect(() => validarFechaApertura('   ', '2026-10-04')).toThrow();
+    expect(() => validarFechaApertura('2026-13-99', '2026-10-04')).toThrow();
   });
 });
 
@@ -86,10 +98,10 @@ describe('IncidenciaService', () => {
         expect(menteeId).toBe('me-1');
         return [incidencia];
       },
-      async addIncidencia(managerId, menteeId, descripcion) {
+      async addIncidencia(managerId, menteeId, descripcion, fechaApertura) {
         expect(managerId).toBe('m-1');
         expect(menteeId).toBe('me-1');
-        return { ...incidencia, descripcion };
+        return { ...incidencia, descripcion, fechaAlta: fechaApertura };
       },
       async resolverIncidencia(managerId, incidenciaId, nota) {
         expect(managerId).toBe('m-1');
@@ -111,12 +123,40 @@ describe('IncidenciaService', () => {
     await expect(service.historialDe(manager, 'me-1')).resolves.toEqual([incidencia]);
   });
 
-  it('da de alta con la descripción recortada', async () => {
+  it('da de alta con la descripción recortada y la fecha de apertura', async () => {
     const service = new IncidenciaService(fakeRepository());
 
-    await expect(service.addIncidencia(manager, 'me-1', '  Baja médica  ')).resolves.toMatchObject({
+    await expect(
+      service.addIncidencia(manager, 'me-1', '  Baja médica  ', '2026-09-27'),
+    ).resolves.toMatchObject({
       descripcion: 'Baja médica',
+      fechaAlta: '2026-09-27',
     });
+  });
+
+  it('rechaza una fecha de apertura futura sin llegar al repositorio', async () => {
+    let llamado = false;
+    const repo: IncidenciaRepository = {
+      async abiertasDe() {
+        return [];
+      },
+      async historialDe() {
+        return [];
+      },
+      async addIncidencia() {
+        llamado = true;
+        return incidencia;
+      },
+      async resolverIncidencia() {
+        return incidencia;
+      },
+    };
+    const service = new IncidenciaService(repo);
+
+    await expect(
+      service.addIncidencia(manager, 'me-1', 'Baja médica', '2999-01-01', '2026-10-04'),
+    ).rejects.toThrow(/futura/);
+    expect(llamado).toBe(false);
   });
 
   it('resuelve con la nota recortada', async () => {
@@ -147,7 +187,7 @@ describe('IncidenciaService', () => {
     };
     const service = new IncidenciaService(repo);
 
-    await expect(service.addIncidencia(manager, 'me-1', '   ')).rejects.toThrow();
+    await expect(service.addIncidencia(manager, 'me-1', '   ', '2026-09-27')).rejects.toThrow();
     expect(llamado).toBe(false);
   });
 

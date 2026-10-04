@@ -12,8 +12,9 @@ import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
 import { Login } from './Login';
 import { Historial } from './Historial';
+import { Incidencias } from './Incidencias';
 import { Objetivos } from './Objetivos';
-import { PuenteAjustes, PuenteIncidencias, PuenteLista1to1 } from './puentes';
+import { PuenteAjustes, PuenteLista1to1 } from './puentes';
 import { RegistrarUnoAUno } from './RegistrarUnoAUno';
 import { Resumen } from './Resumen';
 import { ShellFicha } from './ShellFicha';
@@ -36,7 +37,7 @@ const router = createBrowserRouter(
           {/* Detalle de 1-to-1 (#31): stub «lista temporal hasta #31». */}
           <Route path="1-to-1s/:unoAUnoId" element={<PuenteLista1to1 />} />
           <Route path="objetivos" element={<Objetivos />} />
-          <Route path="incidencias" element={<PuenteIncidencias />} />
+          <Route path="incidencias" element={<Incidencias />} />
           <Route path="historial" element={<Historial />} />
           <Route path="ajustes" element={<PuenteAjustes />} />
         </Route>

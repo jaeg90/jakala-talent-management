@@ -63,7 +63,7 @@ async function prepararEquipo(api: APIRequestContext): Promise<void> {
       motivoEntrada: 'Alta en el equipo',
     });
   }
-  await post('/api/mentees/me-david/incidencias', { descripcion: 'Baja médica' });
+  await post('/api/mentees/me-david/incidencias', { descripcion: 'Baja médica', fechaApertura: fechaRelativa(0) });
   await post('/api/mentees/me-david/onetoones', {
     date: fechaRelativa(-3),
     notas: [{ tema: '¿Cómo estás?', nota: 'Con ganas' }],

@@ -2566,3 +2566,173 @@ body {
     min-height: var(--alto-objetivo-tactil);
   }
 }
+
+/* — Incidencias (spec §06) y diálogos §12 (#22) — */
+
+.incidencias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+}
+
+/* Grupo (Abiertas / Resueltas): etiqueta + tarjetas, gap 10px. */
+.incidencias__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-margen);
+}
+
+/* Etiqueta de grupo con contador: 13px/700 secundario (spec §06). */
+.incidencias__etiqueta {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+/* Vacío de la pantalla (spec §06): frase + el CTA vive en la cabecera. */
+.incidencias__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.incidencias__vacio-texto {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+/* Tarjeta de atención de una incidencia abierta (spec §06): padding 18px 22px,
+   gap 24px y radio 16px; fila espacio-entre con el botón «Resolver» a la derecha. */
+.incidencia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-6);
+  padding: var(--esp-tarjeta-compacta) 22px;
+  background: var(--color-atencion-fondo);
+  border-radius: var(--radio-xl);
+}
+
+/* Cuerpo de la tarjeta abierta: fila (badge + descripción) y meta, gap 6px (§06). */
+.incidencia__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Fila badge + descripción/título: gap 10px, centrada en vertical (§06). */
+.incidencia__fila {
+  display: flex;
+  gap: var(--esp-margen);
+  align-items: center;
+}
+
+/* Badge a tamaño completo (componentes.md §Badge «padding 4px 11px»), como en
+   las tarjetas de objetivos; el `.badge` base usa el compacto 2px 9px. */
+.incidencias .badge {
+  padding: 4px 11px;
+}
+
+/* Descripción de la incidencia abierta: 16px/700 (spec §06). */
+.incidencia__descripcion {
+  font-size: 16px;
+  font-weight: var(--peso-negrita);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.incidencia__meta {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* Botón «Resolver» (spec §06): fondo superficie, 700 y --sombra-1. El hover se
+   anula de styles.css (fondo #3730a3 hardcodeado) igual que el resto de botones. */
+.incidencia__resolver {
+  border: none;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  padding: var(--esp-margen) var(--esp-4);
+  border-radius: var(--radio-l);
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-negrita);
+  box-shadow: var(--sombra-1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.incidencia__resolver:hover {
+  background: var(--color-superficie-hundida);
+}
+
+.incidencia__resolver:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+/* Tarjeta plana de una incidencia resuelta (spec §06; componentes.md §Tarjeta
+   archivada): padding 16px 22px, radio 14px, borde interior 1px y gap 6px. */
+.incidencia--plana {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--esp-4) 22px;
+  border-radius: var(--radio-atencion);
+  box-shadow: inset 0 0 0 1px var(--color-borde);
+}
+
+.incidencia--plana__titulo {
+  font-weight: var(--peso-negrita);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* «{inicio} → {fin} · «nota»» 14px secundario (spec §06). */
+.incidencia__resolucion {
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+/* Aviso del diálogo «Resolver incidencia»: 13px secundario (spec §06). */
+.incidencia__aviso {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* Campo «Fecha de apertura»: etiqueta 14px/700 con el chip de fecha y la ayuda
+   debajo (componentes.md §Selector de fecha y accesibilidad.md §Selector de fecha;
+   gap 6px como el §Campo). */
+.incidencia-dialogo__fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-negrita);
+}
+
+/* Ayuda del selector de fecha: 13px secundario (spec §12). */
+.campo-fecha__ayuda {
+  font-size: var(--texto-s);
+  font-weight: var(--peso-regular);
+  color: var(--color-texto-secundario);
+}
+
+/* Textarea de 96px (spec §06 «Nota de resolución» y §12 «Descripción» min 96px).
+   Iguala la especificidad de `.campo textarea` (que fija 72px para el §Campo
+   genérico) para que el mínimo de esta pantalla prevalezca en la cascada. */
+.campo textarea.incidencia__textarea {
+  min-height: 96px;
+}
+
+/* Objetivo táctil ≥ 44px en móvil (< 640px) para el botón «Resolver»
+   (accesibilidad.md §Globales; regla ya presente, se amplía el alcance). */
+@media (max-width: 639px) {
+  .incidencia__resolver {
+    min-height: var(--alto-objetivo-tactil);
+  }
+}

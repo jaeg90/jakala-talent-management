@@ -123,11 +123,11 @@ describe('historial unificado de una mentee', () => {
         acuerdos: [{ text: 'A' }, { text: 'B' }],
       }),
     });
-    // Incidencia abierta.
+    // Incidencia abierta, con fecha de apertura elegida (≤ hoy).
     await fetch(`${baseUrl}/api/mentees/${ANA}/incidencias`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', cookie: await login(MARTA) },
-      body: JSON.stringify({ descripcion: 'Conflicto de prioridades' }),
+      body: JSON.stringify({ descripcion: 'Conflicto de prioridades', fechaApertura: '2026-09-20' }),
     });
     // Objetivo cerrado (cumplido). La fecha límite debe ser ≥ hoy (regla de #21);
     // se usa una fecha lejana para ubicar el evento sin depender del reloj.

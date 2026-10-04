@@ -21,10 +21,34 @@ export function ShellFicha() {
   // lectura anterior se descartan y no sobrescriben el estado de la nueva (ni la
   // mentee, ni el error, ni el punto terracota de incidencias).
   const solicitudRef = useRef(0);
+  // Generación vigente de la ficha, expuesta por el outlet context. «Incidencias»
+  // la devuelve como token de sus refrescos del punto terracota: si una operación
+  // atrasada de la mentee anterior termina después de cambiar de mentee, su token
+  // discrepa de la generación vigente y esa lectura se descarta (estado asíncrono
+  // compartido: una respuesta atrasada nunca sobrescribe el punto de otra mentee).
+  const [solicitud, setSolicitud] = useState(0);
+
+  // Recuenta las incidencias abiertas (punto terracota). Descarta la respuesta cuando
+  // el token (`token`; o la generación vigente si el contenedor se llama a sí mismo)
+  // ya no coincide con `solicitudRef` al resolver. El `id` disparado es el de la
+  // ficha en ese instante: si el token llegó atrasado, la respuesta se descarta
+  // igualmente y el punto no se sobrescribe.
+  function refrescarIncidencias(token?: number) {
+    if (id === undefined) return;
+    const vigente = token ?? solicitudRef.current;
+    api
+      .incidenciasDe(id)
+      .then(({ incidencias }) => {
+        if (vigente !== solicitudRef.current) return;
+        setIncidenciasAbiertas(incidencias.filter((i) => i.estado === 'abierta').length);
+      })
+      .catch(() => {});
+  }
 
   function cargar() {
     if (id === undefined) return;
-    const solicitud = ++solicitudRef.current;
+    const nuevaSolicitud = ++solicitudRef.current;
+    setSolicitud(nuevaSolicitud);
     setError(false);
     setMentee(null);
     setSkeleton(false);
@@ -36,29 +60,23 @@ export function ShellFicha() {
     // lo cancela y no hay flash).
     const inicio = Date.now();
     const reloj = window.setTimeout(() => {
-      if (solicitud !== solicitudRef.current) return;
+      if (nuevaSolicitud !== solicitudRef.current) return;
       if (Date.now() - inicio > 300) setSkeleton(true);
     }, 300);
     api
       .team()
       .then(({ mentees }) => {
-        if (solicitud !== solicitudRef.current) return;
+        if (nuevaSolicitud !== solicitudRef.current) return;
         window.clearTimeout(reloj);
         setMentee(mentees.find((m) => m.id === id) ?? null);
       })
       .catch(() => {
-        if (solicitud !== solicitudRef.current) return;
+        if (nuevaSolicitud !== solicitudRef.current) return;
         window.clearTimeout(reloj);
         setError(true);
       });
     // El punto terracota es una señal, no bloquea la ficha: si falla, queda sin punto.
-    api
-      .incidenciasDe(id)
-      .then(({ incidencias }) => {
-        if (solicitud !== solicitudRef.current) return;
-        setIncidenciasAbiertas(incidencias.filter((i) => i.estado === 'abierta').length);
-      })
-      .catch(() => {});
+    refrescarIncidencias();
   }
 
   useEffect(() => {
@@ -112,7 +130,7 @@ export function ShellFicha() {
       </aside>
 
       <main className="ficha__contenido">
-        <Outlet />
+        <Outlet context={{ refrescarIncidencias, solicitud }} />
       </main>
     </div>
   );

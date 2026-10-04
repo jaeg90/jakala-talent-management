@@ -68,13 +68,17 @@ export class SqliteIncidenciaRepository implements IncidenciaRepository {
     return rows.map(toIncidencia);
   }
 
-  async addIncidencia(managerId: ManagerId, menteeId: string, descripcion: string): Promise<Incidencia> {
+  async addIncidencia(
+    managerId: ManagerId,
+    menteeId: string,
+    descripcion: string,
+    fechaApertura: string,
+  ): Promise<Incidencia> {
     if (this.menteeOf(managerId, menteeId) === null) {
       throw new Error(`Mentee ${menteeId} no pertenece al manager`);
     }
     const id = randomUUID();
-    const fechaAlta = new Date().toISOString().slice(0, 10);
-    const creada = crearIncidenciaAbierta(descripcion, fechaAlta);
+    const creada = crearIncidenciaAbierta(descripcion, fechaApertura);
     this.db
       .prepare(
         `INSERT INTO incidencias (id, mentee_id, descripcion, estado, nota_resolucion, fecha_alta, fecha_resolucion)

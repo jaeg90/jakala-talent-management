@@ -84,6 +84,7 @@ export interface Incidencia {
   descripcion: string;
   estado: EstadoIncidencia;
   notaResolucion: string;
+  /** Fecha ISO (YYYY-MM-DD) de apertura (elegida por el manager, ≤ hoy). */
   fechaAlta: string;
   fechaResolucion: string | null;
 }
@@ -241,10 +242,10 @@ export const api = {
   incidenciasDe(menteeId: string): Promise<{ incidencias: Incidencia[] }> {
     return request(`/api/mentees/${menteeId}/incidencias`);
   },
-  addIncidencia(menteeId: string, descripcion: string): Promise<Incidencia> {
+  addIncidencia(menteeId: string, descripcion: string, fechaApertura: string): Promise<Incidencia> {
     return request(`/api/mentees/${menteeId}/incidencias`, {
       method: 'POST',
-      body: JSON.stringify({ descripcion }),
+      body: JSON.stringify({ descripcion, fechaApertura }),
     });
   },
   resolverIncidencia(incidenciaId: string, nota: string): Promise<Incidencia> {

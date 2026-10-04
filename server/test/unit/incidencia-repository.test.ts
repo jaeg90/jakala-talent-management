@@ -28,7 +28,7 @@ describe('incidencias de una mentee (alta, listado de equipo y resolución)', ()
   it('una incidencia dada de alta nace abierta y aparece en el equipo y el historial', async () => {
     const repo = repos();
 
-    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica');
+    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica', '2026-09-27');
 
     expect(alta).toMatchObject({
       id: expect.any(String),
@@ -47,7 +47,7 @@ describe('incidencias de una mentee (alta, listado de equipo y resolución)', ()
 
   it('resuelve una incidencia abierta con nota; queda resuelta y sale de las abiertas', async () => {
     const repo = repos();
-    const alta = await repo.addIncidencia(MARTA, ANA, 'Conflicto en el proyecto');
+    const alta = await repo.addIncidencia(MARTA, ANA, 'Conflicto en el proyecto', '2026-09-27');
 
     const resuelta = await repo.resolverIncidencia(MARTA, alta.id, 'Mediado con el equipo');
 
@@ -63,7 +63,7 @@ describe('incidencias de una mentee (alta, listado de equipo y resolución)', ()
 
   it('no resuelve una incidencia ya resuelta', async () => {
     const repo = repos();
-    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica');
+    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica', '2026-09-27');
     await repo.resolverIncidencia(MARTA, alta.id, 'Reincorporada');
 
     await expect(repo.resolverIncidencia(MARTA, alta.id, 'Otra nota')).rejects.toThrow(
@@ -76,12 +76,12 @@ describe('aislamiento por manager', () => {
   it('no da de alta una incidencia para una mentee de otro manager', async () => {
     const repo = repos();
 
-    await expect(repo.addIncidencia(MARTA, DAVID, 'Baja médica')).rejects.toThrow(/no pertenece/);
+    await expect(repo.addIncidencia(MARTA, DAVID, 'Baja médica', '2026-09-27')).rejects.toThrow(/no pertenece/);
   });
 
   it('otro manager no ve el historial de la mentee', async () => {
     const repo = repos();
-    await repo.addIncidencia(MARTA, ANA, 'Baja médica');
+    await repo.addIncidencia(MARTA, ANA, 'Baja médica', '2026-09-27');
 
     await expect(repo.historialDe(DIEGO, ANA)).resolves.toEqual([]);
     await expect(repo.abiertasDe(DIEGO)).resolves.toEqual([]);
@@ -89,7 +89,7 @@ describe('aislamiento por manager', () => {
 
   it('otro manager no puede resolver la incidencia de la mentee', async () => {
     const repo = repos();
-    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica');
+    const alta = await repo.addIncidencia(MARTA, ANA, 'Baja médica', '2026-09-27');
 
     await expect(repo.resolverIncidencia(DIEGO, alta.id, 'Intruso')).rejects.toThrow(
       /no encontrada/,

@@ -1,3 +1,5 @@
+import { esFechaISO, hoyISO } from './fechas.js';
+
 /** Estado de un objetivo anual SMART. Ver "Objetivo" en CONTEXT.md. */
 export type EstadoObjetivo = 'en curso' | 'cumplido' | 'no cumplido';
 
@@ -31,23 +33,6 @@ export function validarFechaLimite(fechaLimite: string, hoy: string = hoyISO()):
   if (!esFechaISO(f)) throw new Error('La fecha límite del objetivo no es una fecha válida');
   if (f < hoy) throw new Error('La fecha límite no puede estar en el pasado');
   return f;
-}
-
-/** ¿Es una fecha ISO real (`YYYY-MM-DD`, mes 1–12 y día válido para ese mes)? */
-function esFechaISO(fecha: string): boolean {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha);
-  if (m === null) return false;
-  const anio = Number(m[1]);
-  const mes = Number(m[2]);
-  const dia = Number(m[3]);
-  if (mes < 1 || mes > 12) return false;
-  const d = new Date(Date.UTC(anio, mes - 1, dia));
-  return d.getUTCFullYear() === anio && d.getUTCMonth() === mes - 1 && d.getUTCDate() === dia;
-}
-
-/** Hoy en ISO (YYYY-MM-DD), la convención UTC del paquete (misma que el resto de servicios). */
-function hoyISO(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /** Crea los campos de un objetivo. Regla de dominio: los objetivos nacen en curso. */

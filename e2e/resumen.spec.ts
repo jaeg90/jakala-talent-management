@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { fechaHace } from './fechas.js';
 
 // Credenciales del manager semilla (ficticias, ver README).
 const EMAIL = 'manager@jakala.example';
@@ -47,7 +48,9 @@ test('el punto terracota de Incidencias aparece con texto oculto si hay abiertas
   request,
 }) => {
   await request.post('/api/login', { data: { email: EMAIL, password: PASSWORD } });
-  await request.post('/api/mentees/me-carla/incidencias', { data: { descripcion: 'Baja médica' } });
+  await request.post('/api/mentees/me-carla/incidencias', {
+    data: { descripcion: 'Baja médica', fechaApertura: fechaHace(30) },
+  });
 
   await page.goto('/login');
   await page.getByLabel('Email').fill(EMAIL);
@@ -67,4 +70,7 @@ test('el punto terracota de Incidencias aparece con texto oculto si hay abiertas
   const abiertas = page.getByRole('region', { name: 'Incidencias abiertas' });
   await expect(abiertas.getByText('1 incidencia abierta')).toBeVisible();
   await expect(abiertas.getByText('Baja médica')).toBeVisible();
+  // La fecha de apertura elegida (hace 30 días) es la que determina la relativa del
+  // Resumen («hace {relativa}» sobre `fechaAlta`), no la fecha de creación del registro.
+  await expect(abiertas.getByText('hace 4 semanas')).toBeVisible();
 });

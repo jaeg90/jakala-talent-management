@@ -25,6 +25,7 @@ import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-pl
 import { SqliteCuentaRepository } from '../../src/infrastructure/db/sqlite-cuenta-repository.js';
 import { SqliteHistorialRepository } from '../../src/infrastructure/db/sqlite-historial-repository.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
+import { hoyISO } from '../../src/domain/fechas.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
 
 let server: Server;
@@ -105,11 +106,16 @@ async function historialDe(menteeId: string, email: string): Promise<IncidenciaA
   return body.incidencias;
 }
 
-async function alta(menteeId: string, email: string, descripcion: string): Promise<Response> {
+async function alta(
+  menteeId: string,
+  email: string,
+  descripcion: string,
+  fechaApertura: string = hoyISO(),
+): Promise<Response> {
   return fetch(`${baseUrl}/api/mentees/${menteeId}/incidencias`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', cookie: await login(email) },
-    body: JSON.stringify({ descripcion }),
+    body: JSON.stringify({ descripcion, fechaApertura }),
   });
 }
 
@@ -160,6 +166,18 @@ describe('incidencias con ciclo abierto → resuelta', () => {
 
   it('rechaza una alta sin descripción', async () => {
     const res = await alta(ANA_MARTA, MARTA, '   ');
+    expect(res.status).toBe(400);
+  });
+
+  it('persiste la fecha de apertura elegida por el manager como fecha_alta', async () => {
+    const res = await alta(ANA_MARTA, MARTA, 'Retraso en una entrega', '2026-09-12');
+    expect(res.status).toBe(201);
+    const incidencia = (await res.json()) as IncidenciaApi;
+    expect(incidencia.fechaAlta).toBe('2026-09-12');
+  });
+
+  it('rechaza una fecha de apertura futura', async () => {
+    const res = await alta(ANA_MARTA, MARTA, 'Baja médica', '2999-01-01');
     expect(res.status).toBe(400);
   });
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type {
-  Incidencia,
   Manager,
   ManagerAutenticado,
   OneToOne,
@@ -16,7 +15,7 @@ import { useAuth } from './auth';
 /**
  * Puentes temporales (ADR-0011): las secciones de la ficha que aún no tienen
  * pantalla Lino se montan en sus rutas futuras dentro del shell. Cada puente
- * muere en su ticket (objetivos #21, incidencias #22, temas propios #32, etc.).
+ * muere en su ticket (1-to-1s #31, temas propios #32, proyectos y traspaso, etc.).
  */
 
 /** Lista temporal de 1-to-1s (puente; la pantalla §10 llega con su ticket). */
@@ -64,41 +63,6 @@ export function PuenteLista1to1() {
         </ol>
       )}
     </section>
-  );
-}
-
-/** Incidencias de una mentee (puente; la pantalla §06 llega con #22). */
-export function PuenteIncidencias() {
-  const { id } = useParams();
-  const [incidencias, setIncidencias] = useState<Incidencia[] | null>(null);
-
-  function reload() {
-    if (id === undefined) return;
-    api.incidenciasDe(id).then(({ incidencias: list }) => setIncidencias(list));
-  }
-
-  useEffect(() => {
-    reload();
-  }, [id]);
-
-  return (
-    <div className="puente">
-      <header className="ficha__cabecera">
-        <h1>Incidencias</h1>
-      </header>
-      {incidencias === null ? (
-        <p className="status">Cargando…</p>
-      ) : (
-        <Incidencias
-          incidencias={incidencias}
-          onAdd={async (descripcion) => {
-            if (id === undefined) return;
-            await api.addIncidencia(id, descripcion);
-            reload();
-          }}
-        />
-      )}
-    </div>
   );
 }
 
@@ -201,71 +165,6 @@ function TemasPropios({
         <button type="submit">Añadir tema</button>
       </form>
     </section>
-  );
-}
-
-/** Incidencias de una mentee: historial (abiertas y resueltas) y alta. */
-function Incidencias({
-  incidencias,
-  onAdd,
-}: {
-  incidencias: Incidencia[];
-  onAdd: (descripcion: string) => Promise<void>;
-}) {
-  return (
-    <section aria-label="Incidencias">
-      <h2>Incidencias</h2>
-      {incidencias.length === 0 ? (
-        <p className="empty">Sin incidencias.</p>
-      ) : (
-        <ol className="historial">
-          {incidencias.map((i) => (
-            <li key={i.id}>
-              <p className="objetivo-meta">
-                {i.fechaAlta} · {i.estado === 'abierta' ? 'abierta' : `resuelta el ${i.fechaResolucion ?? ''}`}
-              </p>
-              <strong>{i.descripcion}</strong>
-              {i.estado === 'resuelta' && <p className="objetivo-descripcion">{i.notaResolucion}</p>}
-            </li>
-          ))}
-        </ol>
-      )}
-      <NuevaIncidenciaForm onAdd={onAdd} />
-    </section>
-  );
-}
-
-/** Formulario de alta de una incidencia abierta. */
-function NuevaIncidenciaForm({ onAdd }: { onAdd: (descripcion: string) => Promise<void> }) {
-  const [descripcion, setDescripcion] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      await onAdd(descripcion);
-      setDescripcion('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error inesperado');
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} aria-label="Nueva incidencia">
-      <label>
-        Descripción
-        <input
-          type="text"
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="p. ej. baja médica, conflicto, retraso…"
-          required
-        />
-      </label>
-      {error !== null && <p className="error">{error}</p>}
-      <button type="submit">Registrar incidencia</button>
-    </form>
   );
 }
 

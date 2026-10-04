@@ -83,7 +83,7 @@ test('Historial: feed agregado completo, orden canónico del mismo día y agrupa
 
   // Incidencia (se abre hoy, spec §12).
   await request.post('/api/mentees/me-hugo/incidencias', {
-    data: { descripcion: 'Conflicto de prioridades' },
+    data: { descripcion: 'Conflicto de prioridades', fechaApertura: hoy() },
   });
 
   // Entrada y salida en Atlas Bank, ambas hoy: la salida cierra la asignación.

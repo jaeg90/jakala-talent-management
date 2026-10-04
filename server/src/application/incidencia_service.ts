@@ -1,6 +1,11 @@
 import type { Incidencia, Manager } from '../domain/model.js';
 import type { IncidenciaConMentee, IncidenciaRepository } from '../domain/ports.js';
-import { validarDescripcionIncidencia, validarNotaResolucion } from '../domain/incidencias.js';
+import { hoyISO } from '../domain/fechas.js';
+import {
+  validarDescripcionIncidencia,
+  validarFechaApertura,
+  validarNotaResolucion,
+} from '../domain/incidencias.js';
 
 /** Caso de uso: alta, consulta, listado de equipo y resolución de incidencias. */
 export class IncidenciaService {
@@ -16,10 +21,21 @@ export class IncidenciaService {
     return this.repository.historialDe(manager.id, menteeId);
   }
 
-  /** Da de alta una incidencia abierta con la descripción validada. */
-  async addIncidencia(manager: Manager, menteeId: string, descripcion: string): Promise<Incidencia> {
+  /**
+   * Da de alta una incidencia abierta con la descripción y la fecha de apertura
+   * validadas. `hoy` se inyecta para validar la regla «fecha de apertura ≤ hoy»
+   * (nunca futura) de forma determinista (decisiones.md §Cambios de dominio 9).
+   */
+  async addIncidencia(
+    manager: Manager,
+    menteeId: string,
+    descripcion: string,
+    fechaApertura: string,
+    hoy: string = hoyISO(),
+  ): Promise<Incidencia> {
     const d = validarDescripcionIncidencia(descripcion);
-    return this.repository.addIncidencia(manager.id, menteeId, d);
+    const fecha = validarFechaApertura(fechaApertura, hoy);
+    return this.repository.addIncidencia(manager.id, menteeId, d, fecha);
   }
 
   /** Resuelve una incidencia con la nota de resolución validada. */
