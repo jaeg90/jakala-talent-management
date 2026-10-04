@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import type { Mentee } from './api';
 import { api } from './api';
 import { useAuth } from './auth';
@@ -15,6 +15,8 @@ import { iniciales, tonoAvatar } from './lib/avatar';
 export function Equipo() {
   const { manager } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const aviso = (location.state as { aviso?: string } | null)?.aviso;
   const [mentees, setMentees] = useState<Mentee[] | null>(null);
   const [error, setError] = useState(false);
   const [skeleton, setSkeleton] = useState(false);
@@ -61,6 +63,8 @@ export function Equipo() {
             </span>
           )}
         </div>
+
+        {aviso && <div className="aviso aviso--exito" role="status">{aviso}</div>}
 
         {error ? (
           <div className="estado" role="alert">

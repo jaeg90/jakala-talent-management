@@ -32,6 +32,11 @@ export interface Project {
   name: string;
 }
 
+/** GET /api/proyectos incluye también los retirados (contrato de #39). */
+export interface ProyectoCatalogo extends Project {
+  fechaRetirada: string | null;
+}
+
 export interface Mentee {
   id: string;
   name: string;
@@ -93,15 +98,6 @@ export interface IncidenciaConMentee extends Incidencia {
   menteeName: string;
 }
 
-export interface CambioProyecto {
-  id: string;
-  menteeId: string;
-  fecha: string;
-  origenId: string | null;
-  destinoId: string | null;
-  motivo: string;
-}
-
 export interface MiembroDeProyecto {
   id: string;
   name: string;
@@ -113,16 +109,21 @@ export interface MiembrosPorProyecto {
   mentees: MiembroDeProyecto[];
 }
 
-export interface SituacionProyecto {
-  project: Project | null;
-  cambios: CambioProyecto[];
-}
-
 /** Proyecto vigente de una mentee con la fecha de entrada (Resumen · «Proyectos actuales»). */
 export interface ProyectoActual {
   id: string;
   name: string;
   desde: string;
+}
+
+/** Respuesta de los POST de entrada y salida de proyecto (#39). */
+export interface Asignacion {
+  mentee: string;
+  proyecto: string;
+  desde: string;
+  motivoEntrada: string;
+  hasta: string | null;
+  motivoSalida: string | null;
 }
 
 export interface Traspaso {
@@ -254,7 +255,7 @@ export const api = {
       body: JSON.stringify({ nota }),
     });
   },
-  proyectos(): Promise<{ proyectos: Project[] }> {
+  proyectos(): Promise<{ proyectos: ProyectoCatalogo[] }> {
     return request('/api/proyectos');
   },
   addProyecto(name: string): Promise<Project> {
@@ -263,26 +264,30 @@ export const api = {
   miembrosPorProyecto(): Promise<{ proyectos: MiembrosPorProyecto[] }> {
     return request('/api/proyectos/miembros');
   },
-  situacionProyecto(menteeId: string): Promise<SituacionProyecto> {
-    return request(`/api/mentees/${menteeId}/cambios-proyecto`);
-  },
   proyectosActuales(menteeId: string): Promise<{ proyectos: ProyectoActual[] }> {
     return request(`/api/mentees/${menteeId}/proyectos`);
   },
-  registrarCambioProyecto(
+  entrarEnProyecto(
     menteeId: string,
-    body: { fecha: string; destinoId: string | null; motivo: string },
-  ): Promise<CambioProyecto> {
-    return request(`/api/mentees/${menteeId}/cambios-proyecto`, {
+    body: { proyecto: string; desde: string; motivoEntrada: string },
+  ): Promise<Asignacion> {
+    return request(`/api/mentees/${menteeId}/proyectos`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+  salirDeProyecto(
+    menteeId: string,
+    proyectoId: string,
+    body: { hasta: string; motivoSalida: string },
+  ): Promise<Asignacion> {
+    return request(`/api/mentees/${menteeId}/proyectos/${proyectoId}/salir`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
   },
   managers(): Promise<{ managers: Manager[] }> {
     return request('/api/managers');
-  },
-  traspasosDe(menteeId: string): Promise<{ traspasos: Traspaso[] }> {
-    return request(`/api/mentees/${menteeId}/traspasos`);
   },
   traspasar(menteeId: string, body: { fecha: string; destinoId: string; motivo: string }): Promise<Traspaso> {
     return request(`/api/mentees/${menteeId}/traspasos`, {

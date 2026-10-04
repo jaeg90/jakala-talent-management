@@ -14,7 +14,8 @@ import { Login } from './Login';
 import { Historial } from './Historial';
 import { Incidencias } from './Incidencias';
 import { Objetivos } from './Objetivos';
-import { PuenteAjustes, PuenteLista1to1 } from './puentes';
+import { AjustesMentee } from './AjustesMentee';
+import { PuenteLista1to1 } from './puentes';
 import { RegistrarUnoAUno } from './RegistrarUnoAUno';
 import { Resumen } from './Resumen';
 import { ShellFicha } from './ShellFicha';
@@ -39,7 +40,7 @@ const router = createBrowserRouter(
           <Route path="objetivos" element={<Objetivos />} />
           <Route path="incidencias" element={<Incidencias />} />
           <Route path="historial" element={<Historial />} />
-          <Route path="ajustes" element={<PuenteAjustes />} />
+          <Route path="ajustes" element={<AjustesMentee />} />
         </Route>
         <Route path="/mentees/:id/1-to-1s/nuevo" element={<RegistrarUnoAUno />} />
         <Route path="/ajustes" element={<AjustesLayout />}>

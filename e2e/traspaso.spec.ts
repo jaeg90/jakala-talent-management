@@ -35,16 +35,22 @@ test('traspaso una mentee entre dos managers y el destino hereda su historial', 
     .click();
 
   const traspaso = page.getByRole('region', { name: 'Traspaso' });
-  await expect(traspaso.getByText('Sin traspasos registrados.')).toBeVisible();
+  await expect(traspaso.getByText('El nuevo manager hereda el historial completo.')).toBeVisible();
 
-  await traspaso.getByLabel('Fecha del traspaso').fill('2026-09-27');
-  await traspaso.getByLabel('Manager de destino').selectOption({ label: 'Lucía López' });
+  await traspaso.getByLabel('Fecha', { exact: true }).fill('2026-09-27');
+  await traspaso.getByLabel('Nuevo manager').selectOption({ label: 'Lucía López' });
   await traspaso.getByLabel('Motivo').fill('Reorganización del equipo');
-  await traspaso.getByRole('button', { name: 'Traspasar' }).click();
+  await traspaso.getByRole('button', { name: 'Traspasar…', exact: true }).click();
+  const confirmacion = page.getByRole('alertdialog', { name: '¿Traspasar a Elena Estévez a Lucía López?' });
+  await expect(confirmacion).toBeVisible();
+  await expect(confirmacion.getByRole('button', { name: 'Cancelar' })).toBeFocused();
+  await expect(confirmacion).toHaveAccessibleDescription('Lucía López heredará su historial completo y Elena Estévez dejará de aparecer en tu equipo. No se puede deshacer.');
+  await confirmacion.getByRole('button', { name: 'Traspasar a Lucía López' }).click();
 
   // Vuelve a "Mi equipo": Elena ya no está en el equipo de Diego.
   await expect(page.getByRole('heading', { name: 'Mi equipo' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Elena Estévez' })).toHaveCount(0);
+  await expect(page.getByRole('status')).toHaveText('Elena Estévez se ha traspasado a Lucía López.');
 
   // Lucía inicia sesión y ve a Elena en su equipo.
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
@@ -59,9 +65,7 @@ test('traspaso una mentee entre dos managers y el destino hereda su historial', 
 
   await page
     .getByRole('navigation', { name: 'Secciones de Elena Estévez' })
-    .getByRole('link', { name: 'Ajustes de la mentee' })
+    .getByRole('link', { name: 'Historial' })
     .click();
-  const traspasoLucia = page.getByRole('region', { name: 'Traspaso' });
-  await expect(traspasoLucia.getByText('Diego Domínguez → Lucía López')).toBeVisible();
-  await expect(traspasoLucia.getByText('Reorganización del equipo')).toBeVisible();
+  await expect(page.getByText('Traspaso · Diego Domínguez → Lucía López')).toBeVisible();
 });

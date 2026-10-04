@@ -69,7 +69,8 @@ body {
 }
 
 /* Input del campo: borde 1.5px, radio --radio-m, padding 10px 12px (componentes.md §Campo). */
-.campo input {
+.campo input,
+.campo select {
   margin: 0;
   border: 1.5px solid var(--color-borde-campo);
   border-radius: var(--radio-m);
@@ -80,11 +81,13 @@ body {
   color: var(--color-texto);
 }
 
-.campo input[aria-invalid='true'] {
+.campo input[aria-invalid='true'],
+.campo select[aria-invalid='true'] {
   border-color: var(--color-error);
 }
 
-.campo input:focus-visible {
+.campo input:focus-visible,
+.campo select:focus-visible {
   border-color: var(--foco-borde);
   box-shadow: var(--foco-anillo);
   outline: none;
@@ -2531,6 +2534,143 @@ body {
   color: var(--color-texto);
   min-height: 72px;
   resize: vertical;
+}
+
+/* Ajustes de la mentee #23, spec §08: columna y grid de dos, gap 18px.
+   El apilado responsive de esta pantalla pertenece a #33. */
+.ajustes-mentee,
+.ajustes-mentee__grid {
+  display: grid;
+  gap: var(--esp-tarjeta-compacta);
+}
+
+/* Componentes §Botón irreversible: solo confirmación del traspaso (#23). */
+.boton--atencion,
+.boton--atencion:hover {
+  background: var(--color-atencion-texto);
+  color: var(--color-texto-sobre-primario);
+}
+
+.ajustes-mentee__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+/* Spec §15: tarjetas con padding 22px y gap 12px. */
+.ajustes-mentee__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-boton-cabecera-x);
+  min-width: 0;
+}
+
+/* Spec §08/§15: títulos de tarjeta de 18px/800. */
+.ajustes-mentee__tarjeta h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--peso-titulo);
+}
+
+.ajustes-mentee__descripcion {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+/* Spec §15: actuales en orden de lectura con gap 6px. */
+.ajustes-mentee__actuales {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Componentes §Fila gestionable: padding 10px 14px, acción a la derecha. */
+.fila--gestion {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-margen) var(--esp-columna);
+  background: var(--color-superficie-hundida);
+  border-radius: var(--radio-m);
+}
+
+.fila--gestion__nombre {
+  font-size: var(--texto-m);
+  font-weight: var(--peso-semi);
+}
+
+.fila--gestion__meta {
+  white-space: nowrap;
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+.fila--gestion .accion {
+  /* Neutraliza el botón legacy sin alterar los enlaces de otras pantallas. */
+  background: none;
+  padding: 0;
+  border: 0;
+  margin-left: auto;
+  font-size: var(--texto-s);
+  flex-shrink: 0;
+}
+
+.ajustes-mentee__alta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  border-top: var(--borde-fino) solid var(--color-borde);
+  padding-top: var(--esp-3);
+}
+
+.ajustes-mentee__alta h3 {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+.ajustes-mentee__formulario,
+.ajustes-mentee__campos-salida {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.ajustes-mentee__formulario > .boton {
+  align-self: flex-start;
+}
+
+/* Accesibilidad §Selector de fecha: etiqueta visible y chip de componentes. */
+.ajustes-mentee__fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-negrita);
+}
+
+/* Spec §15: alta con textarea de 56px, gana a `.campo textarea` (72px). */
+.campo textarea.ajustes-mentee__motivo {
+  box-sizing: border-box;
+  min-height: 56px;
+  height: 56px;
+}
+
+/* Spec §15: motivo de salida con textarea de 72px. */
+.campo textarea.ajustes-mentee__motivo-salida {
+  box-sizing: border-box;
+  min-height: 72px;
+  height: 72px;
 }
 
 .campo textarea[aria-invalid='true'] {
