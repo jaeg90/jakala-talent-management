@@ -57,6 +57,8 @@ body {
   gap: var(--esp-5);
 }
 
+/* Campo (componentes.md §Campo): etiqueta 14px/700 con gap 6px;
+   input borde 1.5px --color-borde-campo, padding 10px 12px. */
 .campo {
   display: flex;
   flex-direction: column;
@@ -66,6 +68,7 @@ body {
   font-weight: var(--peso-negrita);
 }
 
+/* Input del campo: borde 1.5px, radio --radio-m, padding 10px 12px (componentes.md §Campo). */
 .campo input {
   margin: 0;
   border: 1.5px solid var(--color-borde-campo);
@@ -94,6 +97,8 @@ body {
   font: inherit;
 }
 
+/* Botón primario (componentes.md §Botón primario): padding 12px 20px
+   (13px 22px en cabecera de sección). */
 .boton--primario {
   background: var(--color-primario);
   color: var(--color-texto-sobre-primario);
@@ -117,6 +122,7 @@ body {
   cursor: default;
 }
 
+/* Aviso (componentes.md §Aviso): padding 10px 12px, 14px/600. */
 .aviso {
   border-radius: var(--radio-m);
   padding: 10px 12px;
@@ -237,11 +243,13 @@ body {
   gap: var(--esp-2);
 }
 
+/* Wordmark «JTM» 18px/800 (componentes.md §Logo). */
 .cabecera-global__wordmark {
   font-size: 18px;
   font-weight: var(--peso-titulo);
 }
 
+/* Opciones de la cabecera: 14px secundario (espec §Esqueletos). */
 .cabecera-global__opciones {
   display: flex;
   align-items: center;
@@ -314,6 +322,8 @@ body {
 .avatar--3 { background: var(--avatar-3-fondo); color: var(--avatar-3-texto); }
 .avatar--4 { background: var(--avatar-4-fondo); color: var(--avatar-4-texto); }
 
+/* Avatar de perfil: 48px con iniciales 16px (componentes.md §Avatar
+   «48–52px (ficha/perfil, 16–17px)»; espec §Ajustes 3a «avatar 48px»). */
 .avatar--perfil {
   width: 48px;
   height: 48px;
@@ -616,7 +626,8 @@ body {
   50% { opacity: 0.6; }
 }
 
-/* Texto solo para lectores de pantalla (caption oculto, «Cargando…» del skeleton). */
+/* Texto solo para lectores de pantalla (caption oculto, «Cargando…» del
+   skeleton): receta estándar de ocultamiento visual (ticket #17). */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -660,6 +671,7 @@ body {
   letter-spacing: var(--tracking-titulo);
 }
 
+/* «← Mi equipo» 14px secundario (espec §Esqueletos). */
 .ajustes__volver {
   font-size: 14px;
   color: var(--color-texto-secundario);
@@ -673,6 +685,7 @@ body {
   align-items: flex-start;
 }
 
+/* Columna de contenido de Ajustes: max-width 640px (espec §Esqueletos). */
 .ajustes__contenido {
   flex: 1;
   max-width: 640px;
@@ -690,6 +703,7 @@ body {
   font-weight: var(--peso-medio);
 }
 
+/* Nav de ajustes: ancho 220px (espec §Esqueletos). */
 .nav-lateral--ajustes {
   width: 220px;
   flex-shrink: 0;
@@ -701,6 +715,8 @@ body {
   gap: var(--esp-1);
 }
 
+/* Título de grupo del nav: 12px/700 secundario (componentes.md §Nav lateral);
+   padding lateral 12px alineado con los ítems (literal de pantalla, ticket #24). */
 .nav-lateral__titulo {
   font-size: var(--texto-xs);
   font-weight: var(--peso-negrita);
@@ -708,6 +724,7 @@ body {
   padding: 0 12px var(--esp-1);
 }
 
+/* Ítems: 15px/500, padding 10px 12px (componentes.md §Nav lateral). */
 .nav-lateral a {
   padding: 10px 12px;
   border-radius: var(--radio-l);
@@ -761,12 +778,14 @@ body {
   gap: var(--esp-1);
 }
 
+/* Título de tarjeta 18px/800 (componentes.md §Tipografía). */
 .contrasena__cabecera h2 {
   margin: 0;
   font-size: 18px;
   font-weight: var(--peso-titulo);
 }
 
+/* Subtítulo de la tarjeta 14px (literal de pantalla, ticket #24). */
 .contrasena__cabecera p {
   margin: 0;
   font-size: 14px;
@@ -1515,7 +1534,7 @@ body {
   flex-direction: column;
 }
 
-/* Barra superior: 72px, fondo superficie, --sombra-1, padding 0 40px, gap 20px. */
+/* Barra superior: 72px, fondo superficie, --sombra-1, padding 0 40px, gap 20px (espec §04). */
 .registro-1to1__barra {
   height: 72px;
   flex-shrink: 0;
@@ -1588,6 +1607,8 @@ body {
   cursor: pointer;
 }
 
+/* Texto del chip: borde 1.5px, radio --radio-m, padding 9px 12px, 15px/600
+   (componentes.md §Selector de fecha). */
 .campo-fecha__texto {
   border: 1.5px solid var(--color-borde-campo);
   border-radius: var(--radio-m);
@@ -1605,14 +1626,14 @@ body {
   box-shadow: var(--foco-anillo);
 }
 
-/* Cuerpo: grid `1fr 320px`. */
+/* Cuerpo: grid `1fr 320px` (espec §04). */
 .registro-1to1__cuerpo {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 320px;
 }
 
-/* Columna principal: padding 20px 56px, gap 14px. */
+/* Columna principal: padding 20px 56px, gap 14px (espec §04). */
 .registro-1to1__principal {
   padding: var(--esp-5) 56px;
   display: flex;
@@ -1621,7 +1642,7 @@ body {
   min-width: 0;
 }
 
-/* Tarjeta numerada: padding 20px 22px. */
+/* Tarjeta numerada: padding 20px 22px (espec §04). */
 .registro-1to1__tarjeta {
   display: flex;
   flex-direction: column;
@@ -1692,6 +1713,9 @@ body {
   white-space: nowrap;
 }
 
+/* Textarea de tema: input como `.campo` (componentes.md §Campo: borde 1.5px,
+   padding 10px 12px); min-height 88px de escritura — §04 no fija la altura
+   del textarea de tema (literal de pantalla, ticket #19). */
 .registro-1to1__textarea {
   width: 100%;
   box-sizing: border-box;
@@ -1742,6 +1766,8 @@ body {
   align-items: center;
 }
 
+/* Input del alta en línea: input como `.campo` (componentes.md §Campo); ancho
+   mínimo 200px al envolver (flex-wrap; §14 no lo fija — ticket #19). */
 .registro-1to1__alta-tema input {
   flex: 1;
   min-width: 200px;
@@ -1795,6 +1821,7 @@ body {
   align-items: center;
 }
 
+/* Input del acuerdo nuevo: input como `.campo` (componentes.md §Campo). */
 .registro-1to1__nuevo-acuerdo input {
   flex: 1;
   margin: 0;
@@ -1814,6 +1841,8 @@ body {
 }
 
 /* — Columna de contexto — */
+/* Columna de contexto: padding 28px 24px, borde izquierdo 1px --color-borde,
+   gap 16px (espec §04). */
 .registro-1to1__contexto {
   padding: 28px 24px;
   box-sizing: border-box;
@@ -1918,17 +1947,20 @@ body {
   animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
 }
 
+/* Barra del skeleton: 72px como la barra real (espec §04). */
 .registro-1to1__skeleton-barra {
   height: 72px;
   flex-shrink: 0;
 }
 
+/* Cuerpo del skeleton: grid `1fr 320px` como el real (espec §04). */
 .registro-1to1__skeleton-cuerpo {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 320px;
 }
 
+/* Principal del skeleton: padding 20px 56px como el real (espec §04). */
 .registro-1to1__skeleton-principal {
   padding: var(--esp-5) 56px;
   display: flex;
@@ -1941,6 +1973,7 @@ body {
   height: var(--alto-esqueleto-tarjeta);
 }
 
+/* Contexto del skeleton: margen 28px 24px, el padding de la columna real (espec §04). */
 .registro-1to1__skeleton-contexto {
   margin: 28px 24px;
   border-radius: var(--radio-l);
@@ -2053,6 +2086,8 @@ body {
   gap: var(--esp-2);
 }
 
+/* Filtro (componentes.md §Filtro): píldora padding 7px 14px;
+   inactivo con borde interior 1.5px. */
 .filtro {
   border: 1.5px solid var(--color-borde-campo);
   border-radius: var(--radio-pildora);
@@ -2122,6 +2157,8 @@ body {
   gap: var(--esp-4);
 }
 
+/* Evento: grid `28px 1fr` (marcador + contenido; componentes.md §Timeline —
+   la fecha vive en la etiqueta de grupo, canon de #20). */
 .timeline__evento {
   display: grid;
   grid-template-columns: 28px 1fr;
@@ -2129,6 +2166,7 @@ body {
   gap: var(--esp-2);
 }
 
+/* Cuerpo del evento: título y detalle con gap 2px (literal de pantalla, ticket #20). */
 .timeline__evento-cuerpo {
   display: flex;
   flex-direction: column;
@@ -2184,7 +2222,7 @@ body {
   background: var(--color-atencion);
 }
 
-/* Incidencia resuelta: círculo hueco borde 2px decorativo. */
+/* Incidencia resuelta: círculo hueco borde 2px decorativo (componentes.md §Timeline). */
 .timeline__marca--incidencia-resuelta {
   background: transparent;
   border: 2px solid var(--color-texto-decorativo);
@@ -2211,7 +2249,9 @@ body {
   transform: rotate(45deg);
 }
 
-/* Sale de proyecto: rombo 11px hueco borde 2px --color-exito. */
+/* Sale de proyecto: rombo 11px hueco borde 2px --color-exito (componentes.md
+   §Marcadores de timeline nuevos); margen superior 4px para centrarlo en la
+   línea (ticket #20). */
 .timeline__marca--sale {
   width: 11px;
   height: 11px;
@@ -2248,14 +2288,15 @@ body {
   color: var(--color-neutro-texto);
 }
 
-/* En el timeline el badge es 12px (componentes.md §Badge) con el padding
-   compacto 2px 9px (2–3px vertical, 9–10px horizontal; el vertical ya es 2px). */
+/* En el timeline el badge es 12px con el padding compacto 2px 9px
+   (componentes.md §Badge «12px en timeline», «2–3px 9–10px compacto»). */
 .timeline .badge {
   font-size: 12px;
   padding: 2px 9px;
 }
 
-/* Foco visible y objetivo táctil para filtros y enlace del timeline. */
+/* Foco visible y objetivo táctil ≥ 44px en móvil (< 640px) para filtros y
+   enlace del timeline (accesibilidad.md §Globales). */
 @media (max-width: 639px) {
   .filtro,
   .timeline__evento-enlace {
