@@ -795,6 +795,181 @@ body {
   color: var(--color-texto-secundario);
 }
 
+/* — Ajustes · 3e Apariencia (#27, captura 09b): tarjeta y opciones en fila — */
+.apariencia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-tarjeta-compacta);
+  padding: var(--esp-6);
+}
+
+.apariencia__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.apariencia__cabecera h2 {
+  margin: 0;
+  font-size: var(--texto-titulo-tarjeta);
+  font-weight: var(--peso-titulo);
+}
+
+.apariencia__cabecera p {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+.apariencia__temas {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.apariencia__opciones {
+  display: flex;
+  gap: var(--esp-3);
+}
+
+/* componentes.md §Opción de apariencia: radio 14px; captura 09b: padding 12px, gap 10px. */
+.opcion-tema {
+  --opcion-tema-borde: var(--color-borde-campo);
+  --opcion-tema-grosor: var(--borde-chip-casilla);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-margen);
+  padding: var(--esp-3);
+  border-radius: var(--radio-opcion-tema);
+  box-shadow: inset 0 0 0 var(--opcion-tema-grosor) var(--opcion-tema-borde);
+  cursor: pointer;
+}
+
+/* componentes.md §Opción de apariencia: borde interior 2px y primario-suave al 40%. */
+.opcion-tema:has(input:checked) {
+  --opcion-tema-borde: var(--color-primario);
+  --opcion-tema-grosor: var(--borde-checkbox);
+  background: color-mix(in oklch, var(--color-primario-suave) var(--opacidad-opcion-tema-seleccionada), transparent);
+}
+
+/* accesibilidad.md §Globales: foco visible también sobre la tarjeta seleccionable. */
+.opcion-tema:has(input:focus-visible) {
+  outline: var(--borde-checkbox) solid var(--foco-borde);
+  box-shadow: inset 0 0 0 var(--opcion-tema-grosor) var(--opcion-tema-borde), var(--foco-anillo);
+}
+
+/* componentes.md §Opción de apariencia y captura 09b: miniatura de 96px de alto. */
+.opcion-tema__miniatura {
+  height: var(--alto-miniatura-tema);
+  border-radius: var(--radio-m);
+  overflow: hidden;
+  display: flex;
+}
+
+/* #27, captura 09b: las paletas de las miniaturas son fijas, independientes del tema activo. */
+.opcion-tema__muestra--claro {
+  --muestra-fondo: var(--color-miniatura-claro-fondo);
+  --muestra-texto: var(--color-miniatura-claro-texto);
+  --muestra-superficie: var(--color-miniatura-claro-superficie);
+  --muestra-acento: var(--color-miniatura-claro-acento);
+}
+
+/* #27, captura 09b: paleta Tueste de la miniatura oscura y de la mitad del sistema. */
+.opcion-tema__muestra--oscuro {
+  --muestra-fondo: var(--color-miniatura-oscuro-fondo);
+  --muestra-texto: var(--color-miniatura-oscuro-texto);
+  --muestra-superficie: var(--color-miniatura-oscuro-superficie);
+  --muestra-acento: var(--color-miniatura-oscuro-acento);
+}
+
+.opcion-tema__muestra {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--radio-s);
+  padding: var(--esp-margen);
+  background: var(--muestra-fondo);
+}
+
+.opcion-tema__barra,
+.opcion-tema__acento {
+  height: var(--esp-margen);
+  border-radius: var(--esp-1);
+}
+
+.opcion-tema__barra {
+  width: var(--ancho-barra-miniatura-tema);
+  background: var(--muestra-texto);
+}
+
+.opcion-tema__acento {
+  width: var(--ancho-acento-miniatura-tema);
+  background: var(--muestra-acento);
+}
+
+/* #27, captura 09b: tarjeta miniatura 28px; barras de la miniatura partida al 60%/40%. */
+.opcion-tema__tarjeta {
+  height: var(--alto-tarjeta-miniatura-tema);
+  border-radius: var(--radio-s);
+  background: var(--muestra-superficie);
+}
+
+.opcion-tema__miniatura--sistema .opcion-tema__barra {
+  width: var(--ancho-barra-miniatura-sistema);
+}
+
+.opcion-tema__miniatura--sistema .opcion-tema__acento {
+  width: var(--ancho-acento-miniatura-sistema);
+}
+
+.opcion-tema__etiqueta {
+  display: flex;
+  gap: var(--esp-margen);
+  align-items: center;
+}
+
+/* #27, captura 09b: radio real 18px, borde 2px (5px marcado). */
+.opcion-tema input {
+  appearance: none;
+  width: var(--esp-tarjeta-compacta);
+  height: var(--esp-tarjeta-compacta);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  margin: 0;
+  border: var(--borde-checkbox) solid var(--color-borde-checkbox);
+  border-radius: var(--radio-pildora);
+  cursor: pointer;
+}
+
+/* #27, captura 09b: círculo marcado con borde 5px primario. */
+.opcion-tema input:checked {
+  border: var(--borde-radio-marcado) solid var(--color-primario);
+}
+
+.opcion-tema input:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+.opcion-tema__textos {
+  display: flex;
+  flex-direction: column;
+}
+
+.opcion-tema__nombre {
+  font-size: var(--texto-m);
+  font-weight: var(--peso-negrita);
+}
+
+.opcion-tema__detalle {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
 .contrasena__fila {
   display: grid;
   grid-template-columns: 1fr 1fr;

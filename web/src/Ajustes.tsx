@@ -25,6 +25,7 @@ export function AjustesLayout() {
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Mi cuenta</span>
               <NavLink to="/ajustes/perfil">Perfil y contraseña</NavLink>
+              <NavLink to="/ajustes/apariencia">Apariencia</NavLink>
             </div>
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Personas</span>

@@ -8,6 +8,7 @@ import {
   useLocation,
 } from 'react-router';
 import { AjustesLayout, Perfil } from './Ajustes';
+import { AjustesApariencia } from './AjustesApariencia';
 import { AjustesMentees } from './AjustesMentees';
 import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
@@ -47,9 +48,9 @@ const router = createBrowserRouter(
         <Route path="/ajustes" element={<AjustesLayout />}>
           <Route index element={<Navigate to="/ajustes/perfil" replace />} />
           <Route path="perfil" element={<Perfil />} />
+          <Route path="apariencia" element={<AjustesApariencia />} />
           <Route path="mentees" element={<AjustesMentees />} />
         </Route>
-        <Route path="/ajustes/apariencia" element={<PantallaEnConstruccion titulo="Apariencia" />} />
         <Route path="/ajustes/plantilla" element={<PantallaEnConstruccion titulo="Plantilla de 1-to-1" />} />
         <Route path="/ajustes/managers" element={<PantallaEnConstruccion titulo="Managers + crear cuenta" />} />
         <Route path="/ajustes/proyectos" element={<PantallaEnConstruccion titulo="Catálogo de proyectos" />} />

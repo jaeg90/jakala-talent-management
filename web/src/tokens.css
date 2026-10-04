@@ -133,6 +133,26 @@
   --borde-chip-casilla: 1.5px;         /* borde interior, normal y seleccionado */
   --ancho-esqueleto-chip: 120px;       /* skeleton del catálogo de proyectos */
   --alto-esqueleto-chip: 34px;
+
+  /* — Añadidos #27 (Ajustes · Apariencia, componentes.md §Opción de apariencia
+     y captura 09b): paletas fijas de las miniaturas, ajenas al tema activo. — */
+  --color-miniatura-claro-fondo: oklch(0.97 0.012 70);
+  --color-miniatura-claro-texto: oklch(0.26 0.02 50);
+  --color-miniatura-claro-superficie: #fffdf9;
+  --color-miniatura-claro-acento: oklch(0.45 0.13 310);
+  --color-miniatura-oscuro-fondo: oklch(0.22 0.015 50);
+  --color-miniatura-oscuro-texto: oklch(0.94 0.01 70);
+  --color-miniatura-oscuro-superficie: oklch(0.26 0.015 50);
+  --color-miniatura-oscuro-acento: oklch(0.75 0.1 310);
+  --radio-opcion-tema: 14px;
+  --alto-miniatura-tema: 96px;
+  --alto-tarjeta-miniatura-tema: 28px;
+  --borde-radio-marcado: 5px;
+  --opacidad-opcion-tema-seleccionada: 40%;
+  --ancho-barra-miniatura-tema: 50%;
+  --ancho-acento-miniatura-tema: 30%;
+  --ancho-barra-miniatura-sistema: 60%;
+  --ancho-acento-miniatura-sistema: 40%;
 }
 
 @media (prefers-reduced-motion: reduce) {
