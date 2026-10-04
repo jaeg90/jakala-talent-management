@@ -36,7 +36,7 @@ Las sesiones del ciclo (implementadora, reparadora, revisora) leen este archivo.
 - **CTAs en estados de carga/error**: un botón que no puede completar su acción durante skeleton o error va deshabilitado (o no se renderiza); nunca habilitado e inerte.
 - **La cascada no degrada lo pintado**: los valores que la spec pinta (min-heights, paddings) deben ganar la cascada; cuando el componente compite con una regla genérica (`.campo textarea` vs la clase propia), verifica el computed style en E2E.
 
-**Revisora** (además del contrato de veredicto por criterio): audita en CADA diff de pantalla las clases transversales desde la primera ronda, no cuando el diff ya esté limpio — foco tras desmontar el disparador, CTAs en estados de carga/error, cascada CSS contra los valores pintados, carreras de peticiones al cambiar de mentee, duplicación de helpers, y que cada E2E nuevo verifique lo que dice verificar. Las clases conocidas no se descubren una por ronda.
+**Revisora**: la tabla «CRITERIO n: OK / HALLAZGO — …» del prompt es innegociable — una línea por CADA criterio del ticket, con la numeración del cuerpo (sin reagrupar, sin bloques resumen tipo «Criterios auditados»). Además de esa tabla, audita en CADA diff de pantalla las clases transversales desde la primera ronda, no cuando el diff ya esté limpio — foco tras desmontar el disparador, CTAs en estados de carga/error, cascada CSS contra los valores pintados, carreras de peticiones al cambiar de mentee, duplicación de helpers, y que cada E2E nuevo verifique lo que dice verificar. Las clases conocidas no se descubren una por ronda.
 
 ## Arnés de calidad
 
