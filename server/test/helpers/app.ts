@@ -19,6 +19,8 @@ import { TraspasoService } from '../../src/application/traspaso_service.js';
 import { PlantillaService } from '../../src/application/plantilla_service.js';
 import { CuentaService } from '../../src/application/cuenta_service.js';
 import { HistorialService } from '../../src/application/historial_service.js';
+import { MenteeService } from '../../src/application/mentee_service.js';
+import { SqliteMenteeRepository } from '../../src/infrastructure/db/sqlite-mentee-repository.js';
 import { SqliteCuentaRepository } from '../../src/infrastructure/db/sqlite-cuenta-repository.js';
 import { SqlitePlantillaRepository } from '../../src/infrastructure/db/sqlite-plantilla-repository.js';
 import { SqliteHistorialRepository } from '../../src/infrastructure/db/sqlite-historial-repository.js';
@@ -33,6 +35,7 @@ export function buildApp() {
   const app = createApp({
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
+    mentees: new MenteeService(new SqliteMenteeRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
     temasPropios: new TemaPropioService(
       new SqliteTemaPropioRepository(db),

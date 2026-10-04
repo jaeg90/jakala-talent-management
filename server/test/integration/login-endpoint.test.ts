@@ -11,6 +11,8 @@ import { SqliteIncidenciaRepository } from '../../src/infrastructure/db/sqlite-i
 import { SqliteProyectoRepository } from '../../src/infrastructure/db/sqlite-proyecto-repository.js';
 import { MemorySessionStore } from '../../src/infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from '../../src/application/services.js';
+import { MenteeService } from '../../src/application/mentee_service.js';
+import { SqliteMenteeRepository } from '../../src/infrastructure/db/sqlite-mentee-repository.js';
 import { OneToOneService } from '../../src/application/onetoone_service.js';
 import { TemaPropioService } from '../../src/application/tema_propio_service.js';
 import { ObjetivoService } from '../../src/application/objetivo_service.js';
@@ -26,6 +28,7 @@ import { SqliteCuentaRepository } from '../../src/infrastructure/db/sqlite-cuent
 import { SqliteHistorialRepository } from '../../src/infrastructure/db/sqlite-historial-repository.js';
 import { createApp, SESSION_COOKIE } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
+import { fechaHaceDias } from '../../src/domain/fechas.js';
 
 let server: Server;
 let baseUrl: string;
@@ -38,6 +41,7 @@ beforeAll(async () => {
   const app = createApp({
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
+    mentees: new MenteeService(new SqliteMenteeRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
     temasPropios: new TemaPropioService(
       new SqliteTemaPropioRepository(db),
@@ -169,6 +173,7 @@ describe('con sesión', () => {
       {
         id: 'me-ana',
         name: 'Ana Alonso',
+        enEquipoDesde: fechaHaceDias(90),
         proyectos: ['Atlas Bank'],
         acuerdosPendientes: 0,
         incidenciasAbiertas: 0,
@@ -180,6 +185,7 @@ describe('con sesión', () => {
       {
         id: 'me-bea',
         name: 'Beatriz Blanco',
+        enEquipoDesde: fechaHaceDias(90),
         proyectos: ['Retail Nova'],
         acuerdosPendientes: 0,
         incidenciasAbiertas: 0,
@@ -191,6 +197,7 @@ describe('con sesión', () => {
       {
         id: 'me-carla',
         name: 'Carla Cano',
+        enEquipoDesde: fechaHaceDias(90),
         proyectos: ['Aurora Health'],
         acuerdosPendientes: 0,
         incidenciasAbiertas: 0,

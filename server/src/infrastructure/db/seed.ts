@@ -4,6 +4,8 @@ import { hashPassword } from '../auth/passwords.js';
 import { validarUnManagerPorMentee } from '../../domain/rules.js';
 import { TEMAS_INICIALES } from '../../domain/plantilla.js';
 import type { Mentee } from '../../domain/model.js';
+import { fechaHaceDias } from '../../domain/fechas.js';
+import { MOTIVO_ALTA_EN_EL_EQUIPO } from '../../domain/mentees.js';
 
 /** Contraseña ficticia común a todos los managers semilla (datos de TFM). */
 export const SEED_PASSWORD = 'secreta123';
@@ -80,9 +82,10 @@ export function seed(db: Database): void {
     insertProject.run(p.id, p.name);
   }
 
-  const insertMentee = db.prepare('INSERT INTO mentees (id, manager_id, name) VALUES (?, ?, ?)');
+  const desde = fechaHaceDias(90);
+  const insertMentee = db.prepare('INSERT INTO mentees (id, manager_id, name, en_equipo_desde) VALUES (?, ?, ?, ?)');
   for (const m of SEED_MENTEES) {
-    insertMentee.run(m.id, m.managerId, m.name);
+    insertMentee.run(m.id, m.managerId, m.name, desde);
   }
 
   // Fuente única de verdad de los proyectos actuales: las asignaciones vigentes.
@@ -91,20 +94,9 @@ export function seed(db: Database): void {
   const insertAsignacion = db.prepare(
     'INSERT INTO asignaciones (mentee_id, proyecto_id, desde, motivo_entrada, hasta, motivo_salida) VALUES (?, ?, ?, ?, NULL, NULL)',
   );
-  const desde = fechaHaceDias(90);
   for (const m of SEED_MENTEES) {
     if (m.projectId !== null) {
       insertAsignacion.run(m.id, m.projectId, desde, MOTIVO_ALTA_EN_EL_EQUIPO);
     }
   }
-}
-
-/** Motivo canon del alta en el equipo (especificacion-pantallas.md §Ajustes · 3b). */
-const MOTIVO_ALTA_EN_EL_EQUIPO = 'Alta en el equipo';
-
-/** Fecha ISO (YYYY-MM-DD) de hace `dias` días, en UTC (coherente con toISOString). */
-function fechaHaceDias(dias: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - dias);
-  return d.toISOString().slice(0, 10);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { api } from './api';
 import { useAuth } from './auth';
 import { CabeceraGlobal } from './CabeceraGlobal';
@@ -8,7 +8,7 @@ import { iniciales, tonoAvatar } from './lib/avatar';
 /**
  * Área Ajustes (spec §Esqueletos): cabecera global + «← Mi equipo» + h1 + nav de
  * ajustes con los grupos Mi cuenta · Personas · Catálogo. Los ítems aparecen
- * conforme llegan sus tickets; el único que existe hoy es «Perfil y contraseña».
+ * conforme llegan sus tickets.
  */
 export function AjustesLayout() {
   return (
@@ -24,11 +24,12 @@ export function AjustesLayout() {
           <nav className="nav-lateral nav-lateral--ajustes" aria-label="Secciones de ajustes">
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Mi cuenta</span>
-              <Link to="/ajustes/perfil" aria-current="page">Perfil y contraseña</Link>
+              <NavLink to="/ajustes/perfil">Perfil y contraseña</NavLink>
             </div>
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Personas</span>
-              {/* Mentees (#26) y Managers (#25) llegan con sus tickets. */}
+              <NavLink to="/ajustes/mentees">Mentees</NavLink>
+              {/* Managers (#25) llega con su ticket. */}
             </div>
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Catálogo</span>

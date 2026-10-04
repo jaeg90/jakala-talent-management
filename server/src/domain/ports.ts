@@ -3,6 +3,7 @@ import type {
   Manager,
   ManagerCatalogo,
   ManagerId,
+  Mentee,
   MenteeDeEquipo,
   NotaPorTema,
   Objetivo,
@@ -31,6 +32,18 @@ export interface Authenticator {
 /** Puerto de equipo: los mentees de un manager, con sus señales agregadas. */
 export interface TeamRepository {
   teamOf(managerId: ManagerId): Promise<MenteeDeEquipo[]>;
+}
+
+/** Alta con historial vacío y entradas en los proyectos seleccionados. */
+export interface NuevaMentee {
+  name: string;
+  proyectos: string[];
+  enEquipoDesde: string;
+}
+
+export interface MenteeRepository {
+  /** Guarda la mentee y todas sus asignaciones de forma atómica. */
+  addMentee(managerId: ManagerId, nueva: NuevaMentee): Promise<Mentee & { enEquipoDesde: string }>;
 }
 
 /** Datos para registrar un 1-to-1. */

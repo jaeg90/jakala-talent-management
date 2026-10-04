@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { fechaHaceDias } from '../../domain/fechas.js';
 
 /** Abre la base de datos SQLite y crea el esquema si no existe. */
 export function openDatabase(path: string): Database.Database {
@@ -105,7 +106,22 @@ export function openDatabase(path: string): Database.Database {
   `);
   migrarOnetoones(db);
   migrarTemasPropios(db);
+  migrarEnEquipoDesde(db);
   return db;
+}
+
+/** Migración única (#26): fecha más antigua de asignación o el alta ficticia de
+ * la semilla (hoy − 90). La columna nullable permite el caso defensivo, pero no
+ * se vuelve a rellenar en arranques posteriores. */
+function migrarEnEquipoDesde(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(mentees)').all() as { name: string }[];
+  if (columnas.some((c) => c.name === 'en_equipo_desde')) return;
+  db.transaction(() => {
+    db.exec('ALTER TABLE mentees ADD COLUMN en_equipo_desde TEXT');
+    db.prepare(`UPDATE mentees SET en_equipo_desde = COALESCE(
+      (SELECT MIN(desde) FROM asignaciones WHERE mentee_id = mentees.id), ?
+    )`).run(fechaHaceDias(90));
+  })();
 }
 
 /**

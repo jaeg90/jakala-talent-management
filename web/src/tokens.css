@@ -126,6 +126,13 @@
   --alto-objetivo-tactil: 44px;        /* alto mínimo táctil (P5) */
   --alto-ficha: 100vh;                 /* alto mínimo del shell de ficha y su skeleton */
   --radio-atencion: 14px;              /* radio de la tarjeta de atención (spec §04 contexto) */
+
+  /* — Añadidos #26 (Ajustes · Mentees y chip-casilla) — */
+  --texto-titulo-tarjeta: 1.125rem;     /* 18 · título de la tarjeta de alta */
+  --esp-chip-casilla: 6px;             /* padding vertical del chip-casilla */
+  --borde-chip-casilla: 1.5px;         /* borde interior, normal y seleccionado */
+  --ancho-esqueleto-chip: 120px;       /* skeleton del catálogo de proyectos */
+  --alto-esqueleto-chip: 34px;
 }
 
 @media (prefers-reduced-motion: reduce) {

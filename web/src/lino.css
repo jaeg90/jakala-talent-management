@@ -922,6 +922,152 @@ body {
   margin-top: var(--esp-margen);
 }
 
+/* #26: fecha de entrada bajo el nombre, 13px secundario. */
+.ficha__desde {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* §Ajustes · 3b: tarjeta de alta con padding 24px y gap 14px de la captura 09d. */
+.alta-mentee {
+  display: flex;
+  flex-direction: column;
+  padding: var(--esp-6);
+  gap: var(--esp-columna);
+}
+
+.alta-mentee__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+/* §Tipografía de componentes: título de tarjeta 18px/800. */
+.alta-mentee__cabecera h2 {
+  margin: 0;
+  font-size: var(--texto-titulo-tarjeta);
+  font-weight: var(--peso-titulo);
+}
+
+/* §Ajustes · 3b: copy 14px secundario de la captura. */
+.alta-mentee__cabecera p {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+.alta-mentee__proyectos {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+/* §Ajustes · 3b: etiqueta 14px/700, separación 8px. */
+.alta-mentee__proyectos legend {
+  padding: 0;
+  margin-bottom: var(--esp-2);
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-negrita);
+}
+
+.alta-mentee__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.alta-mentee__ayuda {
+  margin: var(--esp-2) 0 0;
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* §Ajustes · 3b: fecha en media fila, proyectos a ancho completo. */
+.alta-mentee__fecha {
+  width: calc((100% - var(--esp-3)) / 2);
+}
+
+.alta-mentee__boton {
+  align-self: flex-start;
+}
+
+.alta-mentee__exito {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.alta-mentee__exito a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* §Globales de accesibilidad: anillo contratado también en «Abrir su ficha». */
+.alta-mentee__exito a:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+/* §Chip-casilla: checkbox real transparente encima de la píldora. */
+.chip-casilla {
+  position: relative;
+  display: inline-flex;
+  margin: 0;
+}
+
+.chip-casilla input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* §Chip-casilla: padding 6px 12px, 14px/600, borde interior 1.5px. */
+.chip-casilla__texto {
+  --chip-casilla-borde: var(--color-borde-campo);
+  padding: var(--esp-chip-casilla) var(--esp-3);
+  border-radius: var(--radio-pildora);
+  font-size: var(--texto-detalle);
+  font-weight: var(--peso-semi);
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--chip-casilla-borde);
+}
+
+/* §Chip-casilla: seleccionado con borde primario interior. */
+.chip-casilla input:checked + .chip-casilla__texto {
+  --chip-casilla-borde: var(--color-primario);
+  background: var(--color-primario-suave);
+  color: var(--color-primario-texto);
+}
+
+.chip-casilla input:focus-visible + .chip-casilla__texto {
+  outline: var(--borde-checkbox) solid var(--foco-borde);
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--chip-casilla-borde), var(--foco-anillo);
+}
+
+/* §Globales de accesibilidad: el checkbox ocupa toda la píldora, ≥ 44px en < 640px. */
+@media (max-width: 639px) {
+  .chip-casilla__texto {
+    min-height: var(--alto-objetivo-tactil);
+    box-sizing: border-box;
+    align-content: center;
+  }
+}
+
+/* #26: skeleton con la forma de los chips de proyectos. */
+.alta-mentee__skeleton {
+  width: var(--ancho-esqueleto-chip);
+  height: var(--alto-esqueleto-chip);
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie-hundida);
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
 .ficha__nav {
   display: flex;
   flex-direction: column;

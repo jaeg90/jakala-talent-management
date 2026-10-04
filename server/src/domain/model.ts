@@ -112,6 +112,8 @@ export interface ProyectoCatalogo extends Project {
 export interface MenteeDeEquipo {
   id: string;
   name: string;
+  /** Fecha ISO de entrada en el equipo; null solo como respaldo defensivo. */
+  enEquipoDesde: string | null;
   /** Nombres de los proyectos vigentes, en orden alfabético. */
   proyectos: string[];
   acuerdosPendientes: number;

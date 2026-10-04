@@ -11,6 +11,7 @@ function fila(partial: Partial<Omit<FilaDeEquipo, 'name'>> & { name: string }): 
   return {
     id: name,
     name,
+    enEquipoDesde: null,
     proyectos: [],
     acuerdosPendientes: 0,
     incidenciasAbiertas: 0,

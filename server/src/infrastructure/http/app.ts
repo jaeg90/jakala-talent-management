@@ -10,6 +10,7 @@ import { TraspasoService } from '../../application/traspaso_service.js';
 import { PlantillaService } from '../../application/plantilla_service.js';
 import { CuentaService } from '../../application/cuenta_service.js';
 import { HistorialService } from '../../application/historial_service.js';
+import { MenteeService } from '../../application/mentee_service.js';
 import { esFiltroHistorial, type FiltroHistorial } from '../../domain/historial.js';
 import type { SessionStore } from '../../domain/ports.js';
 import type { NuevoOneToOne } from '../../domain/ports.js';
@@ -20,6 +21,7 @@ export const SESSION_COOKIE = 'jtm_session';
 export interface AppDeps {
   login: LoginService;
   team: TeamService;
+  mentees: MenteeService;
   onetoones: OneToOneService;
   temasPropios: TemaPropioService;
   objetivos: ObjetivoService;
@@ -150,6 +152,22 @@ export function createApp(deps: AppDeps): express.Express {
 
   app.get('/api/team', requireSession(deps.sessions, async (_req, res, manager) => {
     res.json({ mentees: await deps.team.teamOf(manager) });
+  }));
+
+  app.post('/api/mentees', requireSession(deps.sessions, async (req, res, manager) => {
+    const { name, proyectos, enEquipoDesde } = (req.body ?? {}) as {
+      name?: unknown; proyectos?: unknown; enEquipoDesde?: unknown;
+    };
+    if (typeof name !== 'string' || typeof enEquipoDesde !== 'string' ||
+        !Array.isArray(proyectos) || !proyectos.every((p: unknown) => typeof p === 'string')) {
+      res.status(400).json({ error: 'Nombre, proyectos y fecha de entrada requeridos.' });
+      return;
+    }
+    try {
+      res.status(201).json(await deps.mentees.addMentee(manager, { name, proyectos: proyectos as string[], enEquipoDesde }));
+    } catch (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Error al añadir la mentee' });
+    }
   }));
 
   // Ficha de una mentee: historial de 1-to-1s y acuerdos pendientes.

@@ -6,6 +6,13 @@ export function hoyISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Fecha ISO UTC de hace `dias` días; compartida por semilla y migraciones. */
+export function fechaHaceDias(dias: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - dias);
+  return d.toISOString().slice(0, 10);
+}
+
 /** ¿Es una fecha ISO real (`YYYY-MM-DD`, mes 1–12 y día válido para ese mes)?
  *  Única copia: las reglas de dominio que validan fechas ISO (objetivos,
  *  incidencias) importan esta función en vez de repetir la expresión regular

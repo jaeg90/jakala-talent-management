@@ -5,6 +5,7 @@ import type { TeamRepository } from '../../domain/ports.js';
 interface TeamRow {
   id: string;
   name: string;
+  en_equipo_desde: string | null;
   acuerdos_pendientes: number;
   incidencias_abiertas: number;
   objetivos_en_curso: number;
@@ -38,6 +39,7 @@ export class SqliteTeamRepository implements TeamRepository {
         `SELECT
            m.id,
            m.name,
+           m.en_equipo_desde,
            (SELECT COUNT(*)
               FROM acuerdos ac
               JOIN onetoones o ON o.id = ac.onetoone_id
@@ -74,6 +76,7 @@ export class SqliteTeamRepository implements TeamRepository {
     return rows.map((row) => ({
       id: row.id,
       name: row.name,
+      enEquipoDesde: row.en_equipo_desde,
       // Orden alfabético con la colación del runtime (no la binaria de SQLite):
       // mayúsculas/minúsculas y diacríticos siguen el orden esperado.
       proyectos: (porMentee.get(row.id) ?? []).sort((a, b) => a.localeCompare(b, 'es')),

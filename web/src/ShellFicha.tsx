@@ -4,6 +4,7 @@ import type { Mentee } from './api';
 import { api } from './api';
 import { useAuth } from './auth';
 import { iniciales, tonoAvatar } from './lib/avatar';
+import { fechaMesAnio } from './lib/fechas';
 
 /**
  * Shell de la ficha de mentee (spec §Esqueletos «Ficha de mentee [v2]»): sidebar
@@ -97,6 +98,11 @@ export function ShellFicha() {
             {iniciales(mentee.name)}
           </span>
           <span className="ficha__nombre">{mentee.name}</span>
+          {mentee.enEquipoDesde != null && (
+            <span className="ficha__desde">
+              En tu equipo desde <time dateTime={mentee.enEquipoDesde}>{fechaMesAnio(mentee.enEquipoDesde)}</time>
+            </span>
+          )}
         </div>
 
         <nav className="ficha__nav" aria-label={`Secciones de ${mentee.name}`}>

@@ -15,6 +15,8 @@ import { TraspasoService } from './application/traspaso_service.js';
 import { PlantillaService } from './application/plantilla_service.js';
 import { CuentaService } from './application/cuenta_service.js';
 import { HistorialService } from './application/historial_service.js';
+import { MenteeService } from './application/mentee_service.js';
+import { SqliteMenteeRepository } from './infrastructure/db/sqlite-mentee-repository.js';
 import { SqliteCuentaRepository } from './infrastructure/db/sqlite-cuenta-repository.js';
 import { SqliteOneToOneRepository } from './infrastructure/db/sqlite-onetoone-repository.js';
 import { SqliteTemaPropioRepository } from './infrastructure/db/sqlite-tema-propio-repository.js';
@@ -48,6 +50,7 @@ const sessions = new MemorySessionStore();
 const app = createApp({
   login: new LoginService(new SeedAuthenticator(db), sessions),
   team: new TeamService(new SqliteTeamRepository(db)),
+  mentees: new MenteeService(new SqliteMenteeRepository(db)),
   onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
   temasPropios: new TemaPropioService(
     new SqliteTemaPropioRepository(db),

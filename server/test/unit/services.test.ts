@@ -54,9 +54,9 @@ describe('LoginService', () => {
 describe('TeamService', () => {
   it('devuelve el equipo con la señal «Necesita atención» y el orden atención-primero', async () => {
     const equipo: MenteeDeEquipo[] = [
-      { id: 'me-1', name: 'Ana Alonso', proyectos: ['Atlas Bank'], acuerdosPendientes: 0, incidenciasAbiertas: 0, objetivosEnCurso: 0, ultimoUnoAUno: null },
-      { id: 'me-2', name: 'Beatriz Blanco', proyectos: [], acuerdosPendientes: 2, incidenciasAbiertas: 0, objetivosEnCurso: 1, ultimoUnoAUno: '2026-09-29' },
-      { id: 'me-3', name: 'Carla Cano', proyectos: ['Nexo Seguros'], acuerdosPendientes: 1, incidenciasAbiertas: 1, objetivosEnCurso: 0, ultimoUnoAUno: '2026-09-29' },
+      { id: 'me-1', name: 'Ana Alonso', enEquipoDesde: null, proyectos: ['Atlas Bank'], acuerdosPendientes: 0, incidenciasAbiertas: 0, objetivosEnCurso: 0, ultimoUnoAUno: null },
+      { id: 'me-2', name: 'Beatriz Blanco', enEquipoDesde: null, proyectos: [], acuerdosPendientes: 2, incidenciasAbiertas: 0, objetivosEnCurso: 1, ultimoUnoAUno: '2026-09-29' },
+      { id: 'me-3', name: 'Carla Cano', enEquipoDesde: null, proyectos: ['Nexo Seguros'], acuerdosPendientes: 1, incidenciasAbiertas: 1, objetivosEnCurso: 0, ultimoUnoAUno: '2026-09-29' },
     ];
     const repo: TeamRepository = {
       async teamOf(managerId) {

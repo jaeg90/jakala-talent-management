@@ -40,6 +40,7 @@ export interface ProyectoCatalogo extends Project {
 export interface Mentee {
   id: string;
   name: string;
+  enEquipoDesde: string | null;
   /** Nombres de los proyectos vigentes de la mentee, en orden alfabético. */
   proyectos: string[];
   acuerdosPendientes: number;
@@ -188,6 +189,9 @@ export const api = {
   },
   team(): Promise<{ mentees: Mentee[] }> {
     return request('/api/team');
+  },
+  addMentee(body: { name: string; proyectos: string[]; enEquipoDesde: string }): Promise<{ id: string; name: string; enEquipoDesde: string }> {
+    return request('/api/mentees', { method: 'POST', body: JSON.stringify(body) });
   },
   ficha(menteeId: string): Promise<{ history: OneToOne[]; pending: AcuerdoView[] }> {
     return request(`/api/mentees/${menteeId}/onetoones`);

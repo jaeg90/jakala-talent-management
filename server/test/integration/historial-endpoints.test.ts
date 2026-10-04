@@ -11,6 +11,8 @@ import { SqliteIncidenciaRepository } from '../../src/infrastructure/db/sqlite-i
 import { SqliteProyectoRepository } from '../../src/infrastructure/db/sqlite-proyecto-repository.js';
 import { MemorySessionStore } from '../../src/infrastructure/sessions/memory-session-store.js';
 import { LoginService, TeamService } from '../../src/application/services.js';
+import { MenteeService } from '../../src/application/mentee_service.js';
+import { SqliteMenteeRepository } from '../../src/infrastructure/db/sqlite-mentee-repository.js';
 import { OneToOneService } from '../../src/application/onetoone_service.js';
 import { TemaPropioService } from '../../src/application/tema_propio_service.js';
 import { ObjetivoService } from '../../src/application/objetivo_service.js';
@@ -38,6 +40,7 @@ beforeAll(async () => {
   const app = createApp({
     login: new LoginService(new SeedAuthenticator(db), sessions),
     team: new TeamService(new SqliteTeamRepository(db)),
+    mentees: new MenteeService(new SqliteMenteeRepository(db)),
     onetoones: new OneToOneService(new SqliteOneToOneRepository(db)),
     temasPropios: new TemaPropioService(
       new SqliteTemaPropioRepository(db),
