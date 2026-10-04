@@ -10,7 +10,7 @@ Referencias visuales: `referencias/JTM Lino.dc.html` (§01–§09, id entre corc
 
 **Ficha de mentee** (Resumen, 1-to-1s, Detalle de 1-to-1, Objetivos, Incidencias, Historial, Ajustes de la mentee): sin cabecera global. Sidebar `--ancho-sidebar` (236px), padding 24px 16px, gap 24px, sobre `--color-fondo`:
 1. «← Mi equipo» (14px secundario).
-2. Avatar 52px + nombre 19px/800 (margen superior 10px). **[v2] Sin proyectos bajo el nombre** (antes: proyecto actual). Los proyectos viven en Resumen → «Proyectos actuales».
+2. Avatar 52px + nombre 19px/800 (margen superior 10px). Debajo del nombre, 13px secundario: «En tu equipo desde {mes año}» (fecha de alta de la mentee con su manager actual; si no hay dato, se omite la línea). **[v2] Sin proyectos bajo el nombre** (antes: proyecto actual). Los proyectos viven en Resumen → «Proyectos actuales».
 3. Nav: Resumen · 1-to-1s · Objetivos · Incidencias (punto 8px `--color-atencion` a la derecha si hay abiertas) · Historial · [margen 8px] Ajustes de la mentee (texto secundario). El Detalle de 1-to-1 marca activo «1-to-1s».
 4. Al pie (margin-top auto, 13px secundario): «Ajustes» · «Marta Manager · Cerrar sesión».
 

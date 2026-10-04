@@ -17,6 +17,8 @@ Every ticket here is built by a fresh-context session that receives ONLY the tic
 
    **Gate check, per ticket (and per antidote):** every gate stays green with this ticket's diff ALONE. If the diff substitutes a contract consumed outside «Alcance» (a route, a response shape, a schema under live views, a function another ticket shares), the body names how those consumers keep passing — thin adapters keeping the old routes and shapes, or the ticket that reconnects them. The opposite is a deferred DUDA (ADR-0012): a gate that goes red with this diff alone will be found mid-pass, when it costs a devolución. The check applies also to every antidote that lands in a body after a grill: an antidote without its own gate check is a devolución with a date.
 
+   **Migration check, per ticket:** a ticket that adds a field to a model (or any persisted shape) declares the migration of the existing data — where the value comes from for rows that already exist, or «no existing data» if the store is new. An added field without a declared migration is a deferred DUDA (evidence: #26, 5-oct — two devoluciones on `en_equipo_desde` before the body said where old rows' dates came from).
+
 ## Template
 
 ```markdown
