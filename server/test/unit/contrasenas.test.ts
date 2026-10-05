@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { LONGITUD_MINIMA, validarNuevaContrasena } from '../../src/domain/contrasenas.js';
+import { generarContrasenaTemporal, LONGITUD_MINIMA, validarNuevaContrasena } from '../../src/domain/contrasenas.js';
+
+describe('generarContrasenaTemporal', () => {
+  it('genera 16 caracteres hexadecimales aleatorios, suficientes para la regla de cambio', () => {
+    const primera = generarContrasenaTemporal();
+    const segunda = generarContrasenaTemporal();
+    expect(primera).toMatch(/^[0-9a-f]{16}$/);
+    expect(segunda).toMatch(/^[0-9a-f]{16}$/);
+    expect(primera).not.toBe(segunda);
+    expect(primera.length).toBeGreaterThanOrEqual(LONGITUD_MINIMA);
+  });
+});
 
 describe('validarNuevaContrasena (regla de dominio)', () => {
   it('acepta una contraseña de 10 caracteres distinta de la actual', () => {

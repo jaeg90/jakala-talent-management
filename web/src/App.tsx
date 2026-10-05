@@ -11,6 +11,8 @@ import { AjustesLayout, Perfil } from './Ajustes';
 import { AjustesApariencia } from './AjustesApariencia';
 import { AjustesMentees } from './AjustesMentees';
 import { AjustesProyectos } from './AjustesProyectos';
+import { AjustesManagers } from './AjustesManagers';
+import { AjustesManagersEstado } from './AjustesManagersEstado';
 import { AuthProvider, useAuth } from './auth';
 import { Equipo } from './Equipo';
 import { Login } from './Login';
@@ -52,9 +54,9 @@ const router = createBrowserRouter(
           <Route path="apariencia" element={<AjustesApariencia />} />
           <Route path="mentees" element={<AjustesMentees />} />
           <Route path="proyectos" element={<AjustesProyectos />} />
+          <Route path="managers" element={<AjustesManagers />} />
         </Route>
         <Route path="/ajustes/plantilla" element={<PantallaEnConstruccion titulo="Plantilla de 1-to-1" />} />
-        <Route path="/ajustes/managers" element={<PantallaEnConstruccion titulo="Managers + crear cuenta" />} />
         <Route path="*" element={<Navigate to="/equipo" replace />} />
       </Route>
     </Route>,
@@ -80,7 +82,7 @@ function RutaPrivada() {
   if (manager?.debeCambiarContraseña && location.pathname !== '/ajustes/perfil') {
     return <Navigate to="/ajustes/perfil" replace />;
   }
-  return <Outlet />;
+  return <AjustesManagersEstado key={manager?.id}><Outlet /></AjustesManagersEstado>;
 }
 
 /** Ficha de mentee: el `ShellFicha` resuelve la mentee por `:id` y monta las pantallas. */

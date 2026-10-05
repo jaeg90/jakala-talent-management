@@ -1,3 +1,10 @@
+import { randomBytes } from 'node:crypto';
+
+/** Contraseña temporal criptográfica, visible solo en la respuesta del alta. */
+export function generarContrasenaTemporal(): string {
+  return randomBytes(8).toString('hex');
+}
+
 /** Longitud mínima de una contraseña de manager (spec §Ajustes · 3a). */
 export const LONGITUD_MINIMA = 10;
 

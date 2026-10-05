@@ -214,11 +214,15 @@ export interface SessionStore {
 }
 
 /**
- * Puerto de cuentas de manager: cambio de contraseña. La verificación de la
+ * Puerto de cuentas de manager: alta, censo y cambio de contraseña. La verificación de la
  * contraseña vigente y el guardado de la nueva despejan el flag de contraseña
  * temporal. Ver "Cambiar contraseña" en decisiones.md.
  */
 export interface CuentaRepository {
+  /** Censo sin credenciales ni flag, con el tamaño actual de cada equipo. */
+  managers(): Promise<(ManagerCatalogo & { numMentees: number })[]>;
+  /** Alta atómica con contraseña temporal, flag activo y plantilla inicial. */
+  crearManager(name: string, email: string, temporal: string): Promise<ManagerCatalogo & { numMentees: number }>;
   /** Devuelve true si `actual` es la contraseña vigente del manager. */
   verificarContrasena(managerId: ManagerId, actual: string): Promise<boolean>;
   /** Guarda la nueva contraseña y despeja el flag; devuelve el manager actualizado. */

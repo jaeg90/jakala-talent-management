@@ -18,6 +18,10 @@ export interface Manager {
   name: string;
 }
 
+export interface ManagerCenso extends Manager {
+  numMentees: number;
+}
+
 /**
  * Manager autenticado: el que devuelven `POST /api/login` y `GET /api/session`.
  * Añade el flag de contraseña temporal (ver "Contraseña temporal" en CONTEXT.md),
@@ -162,6 +166,9 @@ export type EventoHistorial =
   | { tipo: 'traspaso'; id: string; fecha: string; origen: string; destino: string };
 
 export const api = {
+  crearManager(name: string, email: string): Promise<{ manager: ManagerCenso; contrasenaTemporal: string }> {
+    return request('/api/managers', { method: 'POST', body: JSON.stringify({ name, email }) });
+  },
   login(email: string, password: string): Promise<{ manager: ManagerAutenticado }> {
     return request('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
   },
@@ -283,7 +290,7 @@ export const api = {
       body: JSON.stringify(body),
     });
   },
-  managers(): Promise<{ managers: Manager[] }> {
+  managers(): Promise<{ managers: ManagerCenso[] }> {
     return request('/api/managers');
   },
   traspasar(menteeId: string, body: { fecha: string; destinoId: string; motivo: string }): Promise<Traspaso> {

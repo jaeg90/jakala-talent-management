@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useMatch } from 'react-router';
+import { CuentaCreada } from './AjustesManagers';
+import { useAjustesManagers } from './AjustesManagersEstado';
 import { api } from './api';
 import { useAuth } from './auth';
 import { CabeceraGlobal } from './CabeceraGlobal';
@@ -11,6 +13,8 @@ import { iniciales, tonoAvatar } from './lib/avatar';
  * conforme llegan sus tickets.
  */
 export function AjustesLayout() {
+  const { creada, cerrar } = useAjustesManagers();
+  const enManagers = useMatch('/ajustes/managers');
   return (
     <>
       <CabeceraGlobal enAjustes />
@@ -30,7 +34,7 @@ export function AjustesLayout() {
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Personas</span>
               <NavLink to="/ajustes/mentees">Mentees</NavLink>
-              {/* Managers (#25) llega con su ticket. */}
+              <NavLink to="/ajustes/managers">Managers</NavLink>
             </div>
             <div className="nav-lateral__grupo">
               <span className="nav-lateral__titulo">Catálogo</span>
@@ -42,6 +46,8 @@ export function AjustesLayout() {
           </div>
         </div>
       </main>
+      {creada && enManagers && <CuentaCreada
+        nombre={creada.manager.name} temporal={creada.contrasenaTemporal} onCerrar={cerrar} />}
     </>
   );
 }

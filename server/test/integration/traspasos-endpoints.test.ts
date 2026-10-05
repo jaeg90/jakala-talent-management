@@ -125,7 +125,7 @@ describe('GET /api/managers', () => {
       managers: Array<Record<string, unknown>>;
     };
     for (const manager of body.managers) {
-      expect(Object.keys(manager).sort()).toEqual(['email', 'id', 'name']);
+      expect(Object.keys(manager).sort()).toEqual(['email', 'id', 'name', 'numMentees']);
       expect(manager).not.toHaveProperty('debeCambiarContraseña');
     }
   });

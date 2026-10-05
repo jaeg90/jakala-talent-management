@@ -1,6 +1,6 @@
 import type { Manager } from '../domain/model.js';
 import type { CuentaRepository, SessionStore } from '../domain/ports.js';
-import { validarNuevaContrasena } from '../domain/contrasenas.js';
+import { generarContrasenaTemporal, validarNuevaContrasena } from '../domain/contrasenas.js';
 
 /**
  * Caso de uso: cambio de contraseña de un manager (ADR-0001). Abarca el flujo
@@ -13,6 +13,25 @@ export class CuentaService {
     private readonly cuentas: CuentaRepository,
     private readonly sessions: SessionStore,
   ) {}
+
+  async managers() {
+    return this.cuentas.managers();
+  }
+
+  async crearManager(name: string, email: string) {
+    const nombre = name.trim();
+    if (nombre === '') throw new Error('Escribe el nombre y apellidos.');
+    // Solo plegamos mayúsculas ASCII: Unicode como K no puede convertirse en un email válido.
+    const correo = email.trim().replace(/[A-Z]/g, (letra) => letra.toLowerCase());
+    // Parte local sin puntos vacíos y dominio con etiquetas no vacías,
+    // alfanuméricas en los extremos (sin guiones iniciales/finales).
+    if (!/^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(correo)) {
+      throw new Error('Escribe un email válido.');
+    }
+    const contrasenaTemporal = generarContrasenaTemporal();
+    const manager = await this.cuentas.crearManager(nombre, correo, contrasenaTemporal);
+    return { manager, contrasenaTemporal };
+  }
 
   /** Devuelve el manager actualizado; lanza si la actual no es correcta o la nueva es inválida. */
   async cambiarContrasena(

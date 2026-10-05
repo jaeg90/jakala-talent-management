@@ -28,6 +28,7 @@ import { CuentaService } from '../../src/application/cuenta_service.js';
 import { HistorialService } from '../../src/application/historial_service.js';
 import { createApp } from '../../src/infrastructure/http/app.js';
 import { cleanupTempDirs, tempDbPath } from '../helpers/tempdb.js';
+import { TEMAS_INICIALES } from '../../src/domain/plantilla.js';
 
 let server: Server;
 let baseUrl: string;
@@ -86,6 +87,110 @@ function cambiarContrasena(cookie: string, body: Record<string, string>): Promis
 
 const MARTA = 'manager@jakala.example';
 const JULIA = 'julia@jakala.example';
+
+describe('alta y censo de managers', () => {
+  async function crear(cookie: string, body: Record<string, unknown>) {
+    return fetch(`${baseUrl}/api/managers`, {
+      method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify(body),
+    });
+  }
+
+  it('requiere sesión y rechaza a quien tiene contraseña temporal', async () => {
+    expect((await crear('', { name: 'Nueva', email: 'nueva@example.com' })).status).toBe(401);
+    expect((await crear(await login(JULIA), { name: 'Nueva', email: 'nueva@example.com' })).status).toBe(403);
+  });
+
+  it('valida estructura, nombre y email sin crear cuentas', async () => {
+    const cookie = await login('diego@jakala.example');
+    const antes = db.prepare('SELECT COUNT(*) AS n FROM managers').get();
+    for (const body of [{ name: 1, email: 'x' }, { name: ' ', email: 'valido@example.com' }, { name: 'Nueva', email: 'invalido' }]) {
+      const res = await crear(cookie, body);
+      expect(res.status).toBe(400);
+      if (body.email === 'invalido') expect(await res.json()).toEqual({ error: 'Escribe un email válido.' });
+    }
+    expect(db.prepare('SELECT COUNT(*) AS n FROM managers').get()).toEqual(antes);
+  });
+
+  it.each([
+    'ana@ejemplo..com',
+    'ana@.ejemplo.com',
+    'ana@ejemplo.com.',
+    'ana@-ejemplo.com',
+    'ana@ejemplo-.com',
+    'ana@ejem_plo.com',
+    'ana@ejemplo',
+    'ana..lopez@ejemplo.com',
+    '.ana@ejemplo.com',
+    'ana.@ejemplo.com',
+    'ana lopez@ejemplo.com',
+    'ana@@ejemplo.com',
+    'Kana@example.com',
+    'ana@Kejemplo.com',
+  ])('rechaza el email malformado %s sin crear la cuenta', async (email) => {
+    const cookie = await login('diego@jakala.example');
+    const antes = db.prepare('SELECT COUNT(*) AS n FROM managers').get();
+    const res = await crear(cookie, { name: 'Ana', email });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'Escribe un email válido.' });
+    expect(db.prepare('SELECT COUNT(*) AS n FROM managers').get()).toEqual(antes);
+  });
+
+  it.each([
+    'ana.lopez@ejemplo.com',
+    'ana+equipo@sub.ejemplo.com',
+    'ana_lopez@mi-ejemplo.com',
+  ])('acepta el email válido %s', async (email) => {
+    const res = await crear(await login('diego@jakala.example'), { name: 'Ana', email });
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({ manager: { email } });
+  });
+
+  it('email único sin distinguir mayúsculas, incluso en altas concurrentes', async () => {
+    const cookie = await login('diego@jakala.example');
+    const duplicado = await crear(cookie, { name: 'Otra Marta', email: ' MANAGER@jakala.example ' });
+    expect(duplicado.status).toBe(400);
+    expect(await duplicado.json()).toEqual({ error: 'Ya existe una cuenta con este email.' });
+    const respuestas = await Promise.all([crear(cookie, { name: 'Nueva', email: 'carrera@example.com' }), crear(cookie, { name: 'Nueva', email: 'CARRERA@example.com' })]);
+    expect(respuestas.map((r) => r.status).sort()).toEqual([201, 400]);
+  });
+
+  it('alta atómica: un fallo de plantilla tampoco deja una cuenta a medias', async () => {
+    db.exec(`CREATE TRIGGER fallo_plantilla BEFORE INSERT ON plantilla BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`);
+    try {
+      const res = await crear(await login('diego@jakala.example'), { name: 'Fallo', email: 'fallo@example.com' });
+      expect(res.status).toBe(400);
+      expect(db.prepare('SELECT id FROM managers WHERE email = ?').get('fallo@example.com')).toBeUndefined();
+    } finally { db.exec('DROP TRIGGER fallo_plantilla'); }
+  });
+
+  it('alta con hash, flag, equipo vacío, plantilla inicial y temporal solo en la respuesta de creación', async () => {
+    const cookie = await login('diego@jakala.example');
+    const res = await crear(cookie, { name: ' Nueva Manager ', email: 'NUEVA@example.com' });
+    expect(res.status).toBe(201);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    const { manager, contrasenaTemporal } = await res.json() as { manager: { id: string; name: string; email: string; numMentees: number }; contrasenaTemporal: string };
+    expect(contrasenaTemporal).toMatch(/^[0-9a-f]{16}$/);
+    expect(manager).toMatchObject({ name: 'Nueva Manager', email: 'nueva@example.com', numMentees: 0 });
+    const almacenada = db.prepare('SELECT password_hash, debe_cambiar_contrasena FROM managers WHERE id = ?').get(manager.id) as { password_hash: string; debe_cambiar_contrasena: number };
+    expect(almacenada.password_hash).not.toContain(contrasenaTemporal);
+    expect(almacenada.debe_cambiar_contrasena).toBe(1);
+    const nuevaCookie = await login(manager.email, contrasenaTemporal);
+    for (const path of ['/api/team', '/api/managers', '/api/plantilla']) {
+      expect((await fetch(`${baseUrl}${path}`, { headers: { cookie: nuevaCookie } })).status).toBe(403);
+    }
+    expect((await cambiarContrasena(nuevaCookie, { actual: contrasenaTemporal, nueva: 'nueva-segura-123' })).status).toBe(200);
+    expect(await (await fetch(`${baseUrl}/api/team`, { headers: { cookie: nuevaCookie } })).json()).toEqual({ mentees: [] });
+    const plantilla = await (await fetch(`${baseUrl}/api/plantilla`, { headers: { cookie: nuevaCookie } })).json() as { temas: { tema: string; orden: number; estado: string }[] };
+    expect(plantilla.temas.map((t) => t.tema)).toEqual([...TEMAS_INICIALES]);
+    expect(plantilla.temas.map((t) => [t.orden, t.estado])).toEqual([[0, 'vigente'], [1, 'vigente'], [2, 'vigente']]);
+    const listado = await (await fetch(`${baseUrl}/api/managers`, { headers: { cookie } })).json() as { managers: Record<string, unknown>[] };
+    for (const m of listado.managers) expect(Object.keys(m).sort()).toEqual(['email', 'id', 'name', 'numMentees']);
+    expect(listado.managers.find((m) => m.email === MARTA)?.numMentees).toBe(3);
+    expect(JSON.stringify(listado)).not.toContain(contrasenaTemporal);
+    const sesion = await (await fetch(`${baseUrl}/api/session`, { headers: { cookie: nuevaCookie } })).json();
+    expect(JSON.stringify(sesion)).not.toContain(contrasenaTemporal);
+  });
+});
 
 describe('bloqueo duro por contraseña temporal', () => {
   it('con el flag activo, /api/team devuelve 403', async () => {

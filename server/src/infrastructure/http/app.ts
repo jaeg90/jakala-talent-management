@@ -559,7 +559,22 @@ export function createApp(deps: AppDeps): express.Express {
 
   // Catálogo de managers (para elegir el destino de un traspaso).
   app.get('/api/managers', requireSession(deps.sessions, async (_req, res) => {
-    res.json({ managers: await deps.traspasos.managers() });
+    res.json({ managers: await deps.cuentas.managers() });
+  }));
+
+  app.post('/api/managers', requireSession(deps.sessions, async (req, res) => {
+    const { name, email } = (req.body ?? {}) as { name?: unknown; email?: unknown };
+    if (typeof name !== 'string' || typeof email !== 'string') {
+      res.status(400).json({ error: 'Nombre y email requeridos.' });
+      return;
+    }
+    try {
+      const creada = await deps.cuentas.crearManager(name, email);
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(201).json(creada);
+    } catch (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Error al crear la cuenta' });
+    }
   }));
 
   // Historial de traspasos de una mentee.

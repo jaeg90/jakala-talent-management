@@ -1054,6 +1054,32 @@ body {
   }
 }
 
+/* §Ajustes · 3c (#25): censo y alta de managers, captura 09e. */
+.censo-managers { padding: var(--esp-2); }
+.censo-managers__tabla { width: 100%; border-collapse: collapse; }
+.censo-managers__tabla th,
+.censo-managers__tabla td { padding: var(--esp-3) var(--esp-4); text-align: left; }
+.censo-managers__tabla th { font-size: var(--texto-s); font-weight: var(--peso-semi); color: var(--color-texto-secundario); }
+.censo-managers__tabla th:last-child,
+.censo-managers__tabla td:last-child { text-align: right; }
+.censo-managers__nombre { font-weight: var(--peso-negrita); }
+.censo-managers__email { display: block; font-size: var(--texto-s); color: var(--color-texto-secundario); }
+.censo-managers__skeleton {
+  height: var(--alto-esqueleto-cabecera);
+  margin: var(--esp-2);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie-hundida);
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+.alta-manager { padding: var(--esp-6); display: flex; flex-direction: column; gap: var(--esp-4); align-items: stretch; }
+.alta-manager__cabecera h2 { margin: 0; font-size: var(--texto-titulo-tarjeta); font-weight: var(--peso-titulo); }
+.alta-manager__cabecera p { margin: var(--esp-1) 0 0; font-size: var(--texto-detalle); color: var(--color-texto-secundario); }
+.alta-manager__temporal { padding: var(--esp-columna); border-radius: var(--radio-m); background: var(--color-superficie-hundida); }
+.alta-manager__temporal h3 { margin: 0; font-size: var(--texto-detalle); font-weight: var(--peso-negrita); }
+.alta-manager__temporal p { margin: var(--esp-1) 0 0; font-size: var(--texto-detalle); color: var(--color-texto-secundario); }
+.alta-manager > .boton { align-self: flex-start; }
+.alta-manager__clave { padding: var(--esp-4); border-radius: var(--radio-m); background: var(--color-superficie-hundida); font-size: var(--texto-xl); user-select: text; }
+
 /* §Ajustes · 3f (#29): catálogo y alta en línea, captura 09f. */
 .catalogo-proyectos {
   padding: var(--esp-6);
