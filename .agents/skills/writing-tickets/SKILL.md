@@ -19,6 +19,8 @@ Every ticket here is built by a fresh-context session that receives ONLY the tic
 
    **Migration check, per ticket:** a ticket that adds a field to a model (or any persisted shape) declares the migration of the existing data — where the value comes from for rows that already exist, or «no existing data» if the store is new. An added field without a declared migration is a deferred DUDA (evidence: #26, 5-oct — two devoluciones on `en_equipo_desde` before the body said where old rows' dates came from).
 
+   **Byte-a-byte check, per antidote that carries escapable characters:** an antidote quoting a regex, a backslash, or nested quotes is verified against its SOURCE after landing — read the body back from the tracker and compare with the code/doc it cites, byte a byte, never through escape layers typed by hand (evidence: #25, 5-oct — a hand-typed regex lost its `\.` escapes in transit, the body contradicted itself, and the implementadora rightly devolvió). The preferred method: extract the string from the source file with a script and insert it, then verify the landed body contains it verbatim. A grep that counts the antidote's MARKERS («Contrato de email válido…») but not its LETTERS is not a verification.
+
 ## Template
 
 ```markdown
