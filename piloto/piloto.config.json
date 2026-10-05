@@ -5,11 +5,11 @@
   "modelos": {
     "implementadora": {
       "defecto": "openrouter/~deepseek/deepseek-pro-latest",
-      "porTipo": { "pantalla": "openrouter/openai/gpt-6.1-sol-pro" }
+      "porTipo": { "pantalla": "openrouter/~z-ai/glm-flash-latest" }
     },
     "reparadora": {
       "defecto": "openrouter/~deepseek/deepseek-pro-latest",
-      "porTipo": { "pantalla": "openrouter/openai/gpt-6.1-sol-pro" }
+      "porTipo": { "pantalla": "openrouter/~z-ai/glm-flash-latest" }
     },
     "revisora": "openrouter/openai/gpt-6-luna-pro"
   },
