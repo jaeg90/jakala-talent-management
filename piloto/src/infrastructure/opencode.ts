@@ -137,7 +137,8 @@ export const promptRevisora = (ticket: Ticket): string =>
     '   del ticket.',
     'No modifiques nada.',
     '',
-    'Si todos los criterios están OK y no hay dudas, responde exactamente «SIN HALLAZGOS».',
+    'Si todos los criterios están OK y no hay dudas, además de la tabla emite una',
+    'última línea exacta: «SIN HALLAZGOS» — nunca la omitas dando por obvio el OK.',
   ].join('\n');
 
 export const promptReparadora = (ticket: Ticket, error: ErrorEnMano, puertas: PuertaConfig[]): string =>
@@ -210,6 +211,17 @@ const RE_DUDA = new RegExp(
 );
 
 /**
+ * Línea de criterio cumplido — «CRITERIO n: OK …» (regresión de #28, 5-oct: la
+ * revisora emitió los cuatro criterios OK sin la línea «SIN HALLAZGOS» y el
+ * extractor leyó el veredicto limpio como rojo). Solo cuenta con ancla: es la
+ * señal de que la revisora SÍ emitió veredicto por criterio y ninguno falló.
+ */
+const RE_CRITERIO_OK = new RegExp(
+  String.raw`^${APERTURA}[*_ \t]*CRITERIO[ \t]*\d+(?:[ \t]*\([^)]*\))?[ \t]*:[ \t]*[*_ \t]*OK`,
+  'gm',
+);
+
+/**
  * Recuperación de párrafo corrido (regresión de #22, 4-oct): la revisora puede
  * emitir el veredicto entero en un solo párrafo sin saltos de línea — los
  * regexes ^-anclados no ven nada y la máquina degradaría al fallback de 500.
@@ -251,6 +263,17 @@ export function extraerVeredicto(salida: string): Veredicto {
   const hallazgos = extraer(salida, RE_HALLAZGO, RE_HALLAZGO_SIN_ANCLA);
   const dudas = extraerDudas(salida);
   if (hallazgos.length === 0 && dudas.length === 0 && /SIN HALLAZGOS/.test(salida)) {
+    return { hallazgos: null, dudas: [] };
+  }
+  // Quinta regresión de formato (#28, 5-oct, dirección inversa): la revisora
+  // emitió los criterios OK SIN la línea canónica «SIN HALLAZGOS» — con cero
+  // HALLAZGO y cero DUDA, el extractor cayó al fallback de 500, la máquina la
+  // leyó como roja y quemó una reparadora contra un diff limpio. Un veredicto
+  // limpio es «SIN HALLAZGOS» O criterios legibles con cero hallazgos y cero
+  // dudas: la ausencia de defectos nunca es un defecto. (Sigue sin ser verde
+  // si la salida no tiene ningún veredicto legible: la ambigüedad no es verde.)
+  const oks = [...salida.matchAll(RE_CRITERIO_OK)];
+  if (hallazgos.length === 0 && dudas.length === 0 && oks.length > 0) {
     return { hallazgos: null, dudas: [] };
   }
   if (hallazgos.length > 0 || dudas.length > 0) {

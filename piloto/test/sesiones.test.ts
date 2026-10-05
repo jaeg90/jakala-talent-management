@@ -119,6 +119,39 @@ describe('Sesiones: veredicto de la revisora', () => {
     expect(veredicto.dudas).toEqual(['¿El aviso es modal o en línea?']);
   });
 
+  it('criterios OK sin la línea «SIN HALLAZGOS» es verde (regresión de #28, 5-oct)', () => {
+    // La revisora emitió los cuatro criterios OK sin la línea canónica: el
+    // extractor cayó al fallback de 500, la máquina la leyó como roja y quemó
+    // una reparadora contra un diff limpio. Formato verbatim de esa ronda.
+    const salida = [
+      'CRITERIO 1: OK — La pantalla permite añadir, editar, reordenar, retirar y volver a usar temas.',
+      'CRITERIO 2: OK — Impide retirar el último tema vigente y muestra el copy exacto.',
+      'CRITERIO 3: OK — El E2E verifica que los temas y notas de un 1-to-1 registrado conservan sus valores.',
+      'CRITERIO 4: OK — Cubre nombres accesibles, límites de reordenación, anuncio y foco.',
+    ].join('\n');
+
+    expect(extraerVeredicto(salida)).toEqual({ hallazgos: null, dudas: [] });
+  });
+
+  it('criterios OK sin «SIN HALLAZGOS» pero con un hallazgo no es verde: el hallazgo gana', () => {
+    const salida = [
+      'CRITERIO 1: OK — Añadir, editar y reordenar están implementados.',
+      'CRITERIO 2: HALLAZGO — El botón «Cancelar» sigue habilitado durante el envío.',
+    ].join('\n');
+
+    expect(extraerVeredicto(salida)).toEqual({
+      hallazgos: 'El botón «Cancelar» sigue habilitado durante el envío.',
+      dudas: [],
+    });
+  });
+
+  it('prosa que cita «CRITERIO n: OK» a mitad de línea no es verde: solo las líneas de veredicto cuentan', () => {
+    expect(extraerVeredicto('Revisé según «CRITERIO 1: OK» del contrato y creo que va bien.')).toEqual({
+      hallazgos: 'Revisé según «CRITERIO 1: OK» del contrato y creo que va bien.',
+      dudas: [],
+    });
+  });
+
   it('sin formato claro no hay verde: la cola de la salida como hallazgo', () => {
     expect(extraerVeredicto('Pues viniendo, viniendo, esto no cumple la spec.')).toEqual({
       hallazgos: 'Pues viniendo, viniendo, esto no cumple la spec.',
