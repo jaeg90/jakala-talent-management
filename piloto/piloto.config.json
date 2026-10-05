@@ -1,15 +1,15 @@
 {
   "$comentario": "Configuración del Piloto (ADR-0004): lo que varía por proyecto. Modelos por papel (openrouter), N reintentos, puertas del arnés, etiquetas del tracker, modo de entrega y canal de aviso.",
-  "reintentos": 3,
+  "reintentos": 4,
   "modoEntrega": "main",
   "modelos": {
     "implementadora": {
       "defecto": "openrouter/~deepseek/deepseek-pro-latest",
-      "porTipo": { "pantalla": "openrouter/~z-ai/glm-flash-latest" }
+      "porTipo": { "pantalla": "openrouter/~deepseek/deepseek-pro-latest" }
     },
     "reparadora": {
       "defecto": "openrouter/~deepseek/deepseek-pro-latest",
-      "porTipo": { "pantalla": "openrouter/~z-ai/glm-flash-latest" }
+      "porTipo": { "pantalla": "openrouter/~deepseek/deepseek-pro-latest" }
     },
     "revisora": "openrouter/openai/gpt-6-luna-pro"
   },
