@@ -114,7 +114,15 @@ describe('POST /api/mentees/:id/onetoones', () => {
     };
     expect(saved.date).toBe('2026-09-20');
     expect(saved.notas).toHaveLength(3);
-    expect(saved.acuerdos).toEqual([{ id: expect.any(String), text: 'Preparar dossier de Atlas Bank', date: '2026-09-20', done: false }]);
+    expect(saved.acuerdos).toEqual([
+      {
+        id: expect.any(String),
+        text: 'Preparar dossier de Atlas Bank',
+        date: '2026-09-20',
+        done: false,
+        cumplidoEl: null,
+      },
+    ]);
     // Persistencia [v2]: guarda quién lo registró y cuándo (base del plazo de #35).
     expect(saved.registradoPor).toBe('seed-manager-1');
     expect(saved.registradoEn).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -324,5 +332,119 @@ describe('POST /api/acuerdos/:id/complete', () => {
     });
 
     expect(intento.status).toBe(404);
+  });
+
+  it('cumplir dos veces es idempotente: conserva la fecha de cumplimiento original', async () => {
+    const cookie = await login(MARTA);
+    const crear = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({
+        date: '2026-09-24',
+        notas: [{ tema: '¿Cómo estás?', nota: 'Bien' }],
+        acuerdos: [{ text: 'Acuerdo idempotente de prueba' }],
+      }),
+    });
+    const creado = (await crear.json()) as { id: string; acuerdos: { id: string }[] };
+    const acuerdoId = creado.acuerdos[0]!.id;
+
+    const primera = await fetch(`${baseUrl}/api/acuerdos/${acuerdoId}/complete`, {
+      method: 'POST',
+      headers: { cookie },
+    });
+    expect(primera.status).toBe(204);
+
+    // Fuerza una fecha histórica distinta a la de hoy: el segundo cumplido no debe
+    // sobrescribirla (regla de dominio `marcarCumplido`, idempotente).
+    db.prepare('UPDATE acuerdos SET cumplido_el = ? WHERE id = ?').run('2020-01-01', acuerdoId);
+
+    const segunda = await fetch(`${baseUrl}/api/acuerdos/${acuerdoId}/complete`, {
+      method: 'POST',
+      headers: { cookie },
+    });
+    expect(segunda.status).toBe(204);
+
+    const detalle = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones/${creado.id}`, {
+      headers: { cookie },
+    });
+    const body = (await detalle.json()) as { acuerdos: { cumplidoEl: string | null }[] };
+    expect(body.acuerdos[0]!.cumplidoEl).toBe('2020-01-01');
+  });
+});
+
+describe('GET /api/mentees/:id/onetoones/:unoAUnoId', () => {
+  it('devuelve el 1-to-1 por id con notas y acuerdos tal como se registraron', async () => {
+    const cookie = await login(MARTA);
+    const crear = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({
+        date: '2026-09-22',
+        notas: [{ tema: 'Formación en curso', nota: 'Empieza AZ-900' }],
+        acuerdos: [{ text: 'Pedir acceso a la plataforma' }],
+      }),
+    });
+    const creado = (await crear.json()) as { id: string };
+
+    const res = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones/${creado.id}`, {
+      headers: { cookie },
+    });
+    expect(res.status).toBe(200);
+    const detalle = (await res.json()) as {
+      id: string;
+      notas: { tema: string; nota: string; propio: boolean }[];
+      acuerdos: { text: string; done: boolean; cumplidoEl: string | null }[];
+    };
+    expect(detalle.id).toBe(creado.id);
+    expect(detalle.notas).toEqual([{ tema: 'Formación en curso', nota: 'Empieza AZ-900', propio: false }]);
+    expect(detalle.acuerdos).toEqual([
+      { id: expect.any(String), text: 'Pedir acceso a la plataforma', date: '2026-09-22', done: false, cumplidoEl: null },
+    ]);
+  });
+
+  it('marca el cumplimiento también en el detalle (fecha de cumplimiento)', async () => {
+    const cookie = await login(MARTA);
+    const crear = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie },
+      body: JSON.stringify({
+        date: '2026-09-23',
+        notas: [{ tema: '¿Cómo estás?', nota: 'Bien' }],
+        acuerdos: [{ text: 'Revisar la carga' }],
+      }),
+    });
+    const creado = (await crear.json()) as { id: string; acuerdos: { id: string }[] };
+    const acuerdoId = creado.acuerdos[0]!.id;
+
+    await fetch(`${baseUrl}/api/acuerdos/${acuerdoId}/complete`, {
+      method: 'POST',
+      headers: { cookie },
+    });
+
+    const res = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones/${creado.id}`, {
+      headers: { cookie },
+    });
+    const detalle = (await res.json()) as { acuerdos: { done: boolean; cumplidoEl: string | null }[] };
+    expect(detalle.acuerdos[0]!.done).toBe(true);
+    expect(detalle.acuerdos[0]!.cumplidoEl).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('404 con un id inexistente y con un 1-to-1 de otra mentee', async () => {
+    const cookie = await login(MARTA);
+    const inexistente = await fetch(`${baseUrl}/api/mentees/${BEA_MARTA}/onetoones/no-existe`, {
+      headers: { cookie },
+    });
+    expect(inexistente.status).toBe(404);
+
+    // Ana es de Marta; Diego no puede leer sus 1-to-1s por id (aislamiento).
+    const ajenos = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones`, {
+      headers: { cookie },
+    });
+    const { history } = (await ajenos.json()) as { history: { id: string }[] };
+    const deAna = history[0]!.id;
+    const conDiego = await fetch(`${baseUrl}/api/mentees/${ANA_MARTA}/onetoones/${deAna}`, {
+      headers: { cookie: await login(DIEGO) },
+    });
+    expect(conDiego.status).toBe(404);
   });
 });

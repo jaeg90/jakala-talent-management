@@ -316,14 +316,20 @@ export function RegistrarUnoAUno() {
       setErrorValidacion(mensaje);
       return;
     }
-    // La validación mira el contenido guardable (notas o acuerdos añadidos), no el
-    // flag `dirty`: cambiar solo la fecha o escribir en el campo de acuerdo sin
-    // pulsar «Añadir acuerdo» no debe permitir guardar un 1-to-1 vacío.
-    const notasAGuardar = temas
-      .map((t) => ({ tema: t.pregunta, nota: notas[t.clave] ?? '' }))
-      .filter((n) => n.nota.trim() !== '');
+    // La validación mira el contenido guardable (al menos una nota no vacía o un
+    // acuerdo), no el flag `dirty`: cambiar solo la fecha o escribir en el campo
+    // de acuerdo sin pulsar «Añadir acuerdo» no debe permitir guardar un 1-to-1
+    // vacío. Los temas se guardan TODOS (con nota o sin ella): «Sin nota.» es
+    // alcanzable desde el flujo normal (spec §11a); el dominio `validarContenidoOneToOne`
+    // exige al menos una nota no vacía o un acuerdo, no notas todas llenas.
+    const notasAGuardar = temas.map((t) => ({
+      tema: t.pregunta,
+      nota: notas[t.clave] ?? '',
+      propio: t.tipo === 'propio',
+    }));
     const acuerdosAGuardar = acuerdosNuevos.map((text) => ({ text }));
-    if (notasAGuardar.length === 0 && acuerdosAGuardar.length === 0) {
+    const hayNota = notasAGuardar.some((n) => n.nota.trim() !== '');
+    if (!hayNota && acuerdosAGuardar.length === 0) {
       setErrorValidacion('Escribe al menos una nota o un acuerdo antes de guardar.');
       return;
     }

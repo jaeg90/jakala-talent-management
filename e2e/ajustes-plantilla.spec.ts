@@ -356,10 +356,10 @@ test('los 1-to-1s ya registrados no cambian al editar la plantilla; el siguiente
 
   // El 1-to-1 ya registrado conserva sus notas tal como estaban.
   const ficha = (await (await request.get(`/api/mentees/${menteeId}/onetoones`)).json()) as {
-    history: { id: string; notas: { tema: string; nota: string }[] }[];
+    history: { id: string; notas: { tema: string; nota: string; propio: boolean }[] }[];
   };
   expect(ficha.history.find((o) => o.id === unoAUnoId)?.notas).toEqual([
-    { tema: '¿Cómo estás?', nota: 'Nota original E2E' },
+    { tema: '¿Cómo estás?', nota: 'Nota original E2E', propio: false },
   ]);
 
   // En la lista de 1-to-1s se sigue leyendo la nota original (la cita de la fila;

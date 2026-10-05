@@ -41,6 +41,21 @@ export function fechaConAnio(fecha: string): string {
   return CON_ANIO.format(parseFecha(fecha));
 }
 
+const DIA_SEMANA = new Intl.DateTimeFormat('es-ES', {
+  weekday: 'long',
+  timeZone: 'UTC',
+});
+
+/**
+ * «Sábado 20 sept 2026» — día de la semana (en mayúscula inicial) + fecha completa
+ * (día, mes abreviado y año). Fila meta del detalle de 1-to-1 (spec §11a).
+ */
+export function fechaConDiaSemana(fecha: string): string {
+  const dia = DIA_SEMANA.format(parseFecha(fecha));
+  const nombre = dia.charAt(0).toUpperCase() + dia.slice(1);
+  return `${nombre} ${fechaConAnio(fecha)}`;
+}
+
 const MES_ANIO = new Intl.DateTimeFormat('es-ES', {
   month: 'short',
   year: 'numeric',

@@ -8,24 +8,30 @@ import {
 } from '../../src/domain/onetoonetopics.js';
 
 describe('ciclo del acuerdo: pendiente → cumplido', () => {
-  it('nace pendiente con texto y fecha', () => {
+  it('nace pendiente con texto, fecha y sin fecha de cumplimiento', () => {
     const acuerdo = crearAcuerdoPendiente('Revisar CV con RRHH', '2026-09-27');
 
-    expect(acuerdo).toEqual({ text: 'Revisar CV con RRHH', date: '2026-09-27', done: false });
+    expect(acuerdo).toEqual({
+      text: 'Revisar CV con RRHH',
+      date: '2026-09-27',
+      done: false,
+      cumplidoEl: null,
+    });
   });
 
-  it('marcar cumplido lo deja done', () => {
-    const acuerdo = marcarCumplido(crearAcuerdoPendiente('Revisar CV', '2026-09-27'));
+  it('marcar cumplido lo deja done con su fecha de cumplimiento', () => {
+    const acuerdo = marcarCumplido(crearAcuerdoPendiente('Revisar CV', '2026-09-27'), '2026-10-06');
 
     expect(acuerdo.done).toBe(true);
-    // el texto y la fecha no cambian
+    expect(acuerdo.cumplidoEl).toBe('2026-10-06');
+    // el texto y la fecha de nacimiento no cambian
     expect(acuerdo.text).toBe('Revisar CV');
     expect(acuerdo.date).toBe('2026-09-27');
   });
 
   it('cumplir dos veces es idempotente', () => {
-    const una = marcarCumplido(crearAcuerdoPendiente('A', '2026-09-27'));
-    const dos = marcarCumplido(una);
+    const una = marcarCumplido(crearAcuerdoPendiente('A', '2026-09-27'), '2026-10-06');
+    const dos = marcarCumplido(una, '2026-11-01');
 
     expect(dos).toEqual(una);
   });

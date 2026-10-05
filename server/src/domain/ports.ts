@@ -61,6 +61,8 @@ export interface NuevoOneToOne {
 export interface OneToOneRepository {
   /** Historial cronológico (ascendente por fecha) de 1-to-1s de una mentee. */
   historyOf(managerId: ManagerId, menteeId: string): Promise<OneToOne[]>;
+  /** Un 1-to-1 concreto de una mentee; null si no existe o no es de la mentee/manager. */
+  oneToOneOf(managerId: ManagerId, menteeId: string, unoAUnoId: string): Promise<OneToOne | null>;
   /** Registra un 1-to-1; sus acuerdos nacen pendientes. */
   save(managerId: ManagerId, oneToOne: NuevoOneToOne): Promise<OneToOne>;
   /** Los acuerdos pendientes de una mentee. */

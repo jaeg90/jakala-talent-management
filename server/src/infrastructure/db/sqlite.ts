@@ -44,6 +44,7 @@ export function openDatabase(path: string): Database.Database {
       onetoone_id TEXT NOT NULL REFERENCES onetoones(id),
       tema TEXT NOT NULL,
       nota TEXT NOT NULL,
+      propio INTEGER NOT NULL DEFAULT 0,
       UNIQUE (onetoone_id, tema)
     );
     CREATE TABLE IF NOT EXISTS acuerdos (
@@ -107,6 +108,8 @@ export function openDatabase(path: string): Database.Database {
   migrarOnetoones(db);
   migrarTemasPropios(db);
   migrarEnEquipoDesde(db);
+  migrarAcuerdos(db);
+  migrarNotasPropio(db);
   return db;
 }
 
@@ -180,6 +183,31 @@ function migrarOnetoones(db: Database.Database): void {
  * vigentes, con `desde` rellenado con la fecha del día de la migración (valor
  * canónico de respaldo; no hay temas propios en la semilla).
  */
+/**
+ * Migración de la tabla `acuerdos` a la fecha de cumplimiento (spec §11a «Cumplido
+ * · {fecha}»): una base creada antes del cambio no tiene `cumplido_el`. Los
+ * acuerdos ya cumplidos se quedan sin fecha (no hay referencia histórica: usar su
+ * fecha de nacimiento presentaría una fecha de cumplimiento que no lo es); el
+ * detalle los pinta como «Cumplido» sin fecha.
+ */
+function migrarAcuerdos(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(acuerdos)').all() as { name: string }[];
+  if (columnas.some((c) => c.name === 'cumplido_el')) return;
+  db.exec('ALTER TABLE acuerdos ADD COLUMN cumplido_el TEXT');
+}
+
+/**
+ * Migración de la tabla `notas_por_tema` al chip «propio» persistido (spec §11a):
+ * una base creada antes del cambio no tiene `propio`. Los 1-to-1s ya registrados
+ * se quedan sin chip (no hay forma de saber si el tema era propio entonces), lo
+ * cual es lo correcto: el chip refleja cómo era el tema al registrarse.
+ */
+function migrarNotasPropio(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(notas_por_tema)').all() as { name: string }[];
+  if (columnas.some((c) => c.name === 'propio')) return;
+  db.exec('ALTER TABLE notas_por_tema ADD COLUMN propio INTEGER NOT NULL DEFAULT 0');
+}
+
 function migrarTemasPropios(db: Database.Database): void {
   const columnas = db.prepare('PRAGMA table_info(temas_propios)').all() as { name: string }[];
   if (columnas.some((c) => c.name === 'desde')) return;

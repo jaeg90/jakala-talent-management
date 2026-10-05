@@ -193,9 +193,22 @@ export const api = {
   ficha(menteeId: string): Promise<{ history: OneToOne[]; pending: AcuerdoView[] }> {
     return request(`/api/mentees/${menteeId}/onetoones`);
   },
+  /**
+   * Un 1-to-1 concreto por id (spec §11). Devuelve null si no existe o no es de
+   * la mentee (404); cualquier otro fallo es un error de carga.
+   */
+  oneToOne(menteeId: string, unoAUnoId: string): Promise<OneToOne | null> {
+    return fetch(`/api/mentees/${menteeId}/onetoones/${unoAUnoId}`, {
+      headers: { 'content-type': 'application/json' },
+    }).then((res) => {
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error('Error de red');
+      return res.json() as Promise<OneToOne>;
+    });
+  },
   saveOneToOne(
     menteeId: string,
-    body: { date: string; notas: { tema: string; nota: string }[]; acuerdos: { text: string }[] },
+    body: { date: string; notas: { tema: string; nota: string; propio: boolean }[]; acuerdos: { text: string }[] },
   ): Promise<OneToOne> {
     return request(`/api/mentees/${menteeId}/onetoones`, {
       method: 'POST',
@@ -341,6 +354,9 @@ export const api = {
 export interface NotaPorTema {
   tema: string;
   nota: string;
+  /** Si el tema era propio al registrar el 1-to-1 (spec §11a: el chip se
+   *  persiste, no se deduce de los temas propios actuales). */
+  propio: boolean;
 }
 
 export interface AcuerdoView {
@@ -349,11 +365,19 @@ export interface AcuerdoView {
   date: string;
 }
 
+/** Acuerdo tal y como vive en un 1-to-1 registrado: pendiente o cumplido, con la
+ *  fecha de cumplimiento (spec §11a «Cumplido · {fecha}»). */
+export interface AcuerdoDetalle extends AcuerdoView {
+  done: boolean;
+  /** Fecha ISO (YYYY-MM-DD) del cumplimiento; null mientras esté pendiente. */
+  cumplidoEl: string | null;
+}
+
 export interface OneToOne {
   id: string;
   date: string;
   notas: NotaPorTema[];
-  acuerdos: (AcuerdoView & { done: boolean })[];
+  acuerdos: AcuerdoDetalle[];
   /** Manager que lo registró; base del plazo de edición de 7 días (ADR-0009). */
   registradoPor: string;
   /** Timestamp (ISO 8601) del registro; base del plazo de edición de 7 días (ADR-0009). */

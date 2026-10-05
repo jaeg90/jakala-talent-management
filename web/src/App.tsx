@@ -21,8 +21,8 @@ import { Historial } from './Historial';
 import { Incidencias } from './Incidencias';
 import { Objetivos } from './Objetivos';
 import { AjustesMentee } from './AjustesMentee';
-import { PuenteDetalle1to1 } from './puentes';
 import { Lista1to1s } from './Lista1to1s';
+import { Detalle1to1 } from './Detalle1to1';
 import { RegistrarUnoAUno } from './RegistrarUnoAUno';
 import { Resumen } from './Resumen';
 import { ShellFicha } from './ShellFicha';
@@ -42,8 +42,7 @@ const router = createBrowserRouter(
         <Route path="/mentees/:id" element={<FichaMenteeRoute />}>
           <Route index element={<Resumen />} />
           <Route path="1-to-1s" element={<Lista1to1s />} />
-          {/* Detalle de 1-to-1 (#31): stub temporal hasta que llegue §11. */}
-          <Route path="1-to-1s/:unoAUnoId" element={<PuenteDetalle1to1 />} />
+          <Route path="1-to-1s/:unoAUnoId" element={<Detalle1to1 />} />
           <Route path="objetivos" element={<Objetivos />} />
           <Route path="incidencias" element={<Incidencias />} />
           <Route path="historial" element={<Historial />} />

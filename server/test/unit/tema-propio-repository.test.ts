@@ -103,7 +103,7 @@ describe('persistencia de temas tratados en 1-to-1s ya registrados', () => {
     const registrado = await onetoones.save(MARTA, {
       menteeId: ANA,
       date: '2026-09-27',
-      notas: [{ tema: 'formación en curso', nota: 'Termina el 15 de octubre' }],
+      notas: [{ tema: 'formación en curso', nota: 'Termina el 15 de octubre', propio: false }],
       acuerdos: [],
     });
 
@@ -113,7 +113,7 @@ describe('persistencia de temas tratados en 1-to-1s ya registrados', () => {
     expect(historial).toHaveLength(1);
     expect(historial[0]?.id).toBe(registrado.id);
     expect(historial[0]?.notas).toEqual([
-      { tema: 'formación en curso', nota: 'Termina el 15 de octubre' },
+      { tema: 'formación en curso', nota: 'Termina el 15 de octubre', propio: false },
     ]);
   });
 });

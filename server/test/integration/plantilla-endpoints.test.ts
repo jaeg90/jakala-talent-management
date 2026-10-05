@@ -237,7 +237,7 @@ describe('plantilla de 1-to-1 por manager', () => {
     const res = await fetch(`${baseUrl}/api/mentees/${ANA}/onetoones`, {
       headers: { cookie: await login(MARTA) },
     });
-    const body = (await res.json()) as { history: { notas: { tema: string; nota: string }[] }[] };
-    expect(body.history[0]!.notas).toEqual([{ tema: '¿Cómo estás?', nota: 'Animada' }]);
+    const body = (await res.json()) as { history: { notas: { tema: string; nota: string; propio: boolean }[] }[] };
+    expect(body.history[0]!.notas).toEqual([{ tema: '¿Cómo estás?', nota: 'Animada', propio: false }]);
   });
 });

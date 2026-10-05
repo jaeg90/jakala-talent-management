@@ -176,6 +176,12 @@
   --esp-lista-grupo-inferior: 6px;       /* padding inferior del separador de año (spec §10) */
   --esp-fila-1to1-acuerdos: 6px;         /* gap entre los badges de acuerdos (spec §10) */
   --esp-coincidencia-x: 3px;             /* padding lateral del <mark> de coincidencia (componentes.md §Coincidencia) */
+
+  /* — Añadidos #31 (Detalle de 1-to-1, espec §11a / captura 11) — */
+  --ancho-detalle-1to1: 820px;           /* max-width del contenido (espec §11 «max-width 820px») */
+  --esp-detalle-cabecera: 6px;           /* gap entre el h1 y la fila meta de la cabecera (captura 11) */
+  --esp-detalle-superior: 28px;          /* padding superior del contenido (espec §11 «28px 40px 32px 16px») */
+  --esp-0: 0;                            /* reset de padding (regla «valores solo de tokens») */
 }
 
 @media (prefers-reduced-motion: reduce) {

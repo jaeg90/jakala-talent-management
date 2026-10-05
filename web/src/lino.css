@@ -2113,14 +2113,6 @@ body {
   gap: var(--esp-5);
 }
 
-/* — Puentes temporales (ADR-0011) — */
-
-.puente {
-  display: flex;
-  flex-direction: column;
-  gap: var(--esp-4);
-}
-
 /* — Avatar de 52px (ficha) — */
 
 .avatar--ficha {
@@ -3888,4 +3880,222 @@ mark.coincidencia {
   .fila-1to1__acuerdos {
     justify-content: flex-start;
   }
+}
+
+/* — Detalle de 1-to-1 (spec §11a, captura 11; #31) — */
+
+/* Contenedor de lectura: max-width 820px (spec §11), columna con gap 14px (§11a). */
+.detalle-1to1 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+  max-width: var(--ancho-detalle-1to1);
+}
+
+/* El detalle cambia solo el padding superior del contenido del shell (spec §11
+   «28px 40px 32px 16px»): el resto (40/32/16) ya lo aporta `.ficha__contenido`. */
+.ficha__contenido:has(.detalle-1to1) {
+  padding-top: var(--esp-detalle-superior);
+}
+
+/* Cabecera de lectura: h1 30px/800 + fila meta 14px secundario (spec §11a). */
+.detalle-1to1__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-detalle-cabecera);
+}
+
+.detalle-1to1__titulos h1 {
+  margin: 0;
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-titulo);
+  letter-spacing: var(--tracking-titulo);
+}
+
+/* Fila meta «Sábado 20 sept 2026 · Registrado por …»: ítems en una línea cada uno,
+   con separador «·» (spec §11a). */
+.detalle-1to1__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-margen);
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+.detalle-1to1__meta-item {
+  white-space: nowrap;
+}
+
+.detalle-1to1__meta-sep {
+  color: var(--color-texto-decorativo);
+}
+
+/* Tarjeta de lectura: padding 20px 22px (spec §11a), sobre el `.tarjeta` base. */
+.detalle-1to1__tarjeta {
+  display: flex;
+  flex-direction: column;
+  padding: var(--esp-5) var(--esp-boton-cabecera-x);
+}
+
+/* Tarjeta Temas: gap 14px (spec §11a). */
+.detalle-1to1__tarjeta--temas {
+  gap: var(--esp-columna);
+}
+
+/* Tarjeta Acuerdos: gap 10px (captura 11). */
+.detalle-1to1__tarjeta--acuerdos {
+  gap: var(--esp-margen);
+}
+
+/* Etiqueta de tarjeta: 13px/700 primario-texto (spec §11a). */
+.detalle-1to1__etiqueta {
+  margin: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-primario-texto);
+}
+
+/* Tema: pregunta + nota apiladas con gap 4px (captura 11). */
+.detalle-1to1__tema {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+/* Pregunta 15px/700, con el chip «propio» a su lado (spec §11a). */
+.detalle-1to1__pregunta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0;
+  font-size: var(--texto-m);
+  font-weight: var(--peso-negrita);
+}
+
+/* Chip «propio» del detalle: 12px (spec §11a), frente al `.chip` base de 14px. */
+.detalle-1to1__chip {
+  font-size: var(--texto-xs);
+}
+
+/* Nota 15px, interlineado 1.55, color de cita, saltos de línea respetados (§11a). */
+.detalle-1to1__nota {
+  margin: 0;
+  font-size: var(--texto-m);
+  line-height: var(--interlineado-cita);
+  color: var(--color-cita);
+  white-space: pre-wrap;
+}
+
+/* Tema sin nota: «Sin nota.» 14px secundario (spec §11a). */
+.detalle-1to1__sin-nota {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+/* Sin acuerdos: copy 14px secundario (spec §11a). */
+.detalle-1to1__vacio {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+/* Lista de acuerdos: filas hundidas como en Resumen (spec §11a), gap 10px. */
+.detalle-1to1__acuerdos {
+  list-style: none;
+  margin: 0;
+  padding: var(--esp-0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-margen);
+}
+
+/* Fila de acuerdo: fondo hundido, radio 10px, padding 10px 12px (captura 11). */
+.detalle-1to1__acuerdo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  background: var(--color-superficie-hundida);
+  border-radius: var(--radio-m);
+  padding: var(--esp-margen) var(--esp-3);
+}
+
+/* La fila crece completa, contenedor `.check` incluido (no solo el texto): el
+   `.check` absorbe el hueco libre y ancla «Marcar cumplido» al extremo derecho. */
+.detalle-1to1__acuerdo .check {
+  flex: 1;
+  min-width: 0;
+}
+
+.detalle-1to1__acuerdo-texto {
+  min-width: 0;
+  font-size: var(--texto-m);
+}
+
+/* Cumplido: texto tachado secundario (spec §11a). */
+.detalle-1to1__tachado {
+  text-decoration: line-through;
+  color: var(--color-texto-secundario);
+}
+
+/* «Marcar cumplido»: enlace de acción a la derecha. Neutraliza el `button` legacy
+   de styles.css (fondo #4338ca) y su hover. */
+.detalle-1to1__marcar {
+  background: none;
+  border: none;
+  padding: var(--esp-0);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.detalle-1to1__marcar:hover {
+  background: none;
+}
+
+/* Estado «Este 1-to-1 no existe o no es de …»: frase + enlace (spec §11a). */
+.detalle-1to1__estado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+}
+
+.detalle-1to1__estado-mensaje {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+/* Foco visible en los enlaces y botones de la pantalla (accesibilidad.md §Globales). */
+.detalle-1to1__marcar:focus-visible,
+.detalle-1to1__estado .accion:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+/* Skeleton (P4 §Estados «Cargando»): cabecera + 2 tarjetas (spec §11a). */
+.detalle-1to1__skeleton-volver,
+.detalle-1to1__skeleton-cabecera,
+.detalle-1to1__skeleton-tarjeta {
+  border-radius: var(--radio-l);
+  background: var(--color-superficie-hundida);
+  opacity: 1;
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
+.detalle-1to1__skeleton-volver {
+  width: var(--ancho-esqueleto-volver);
+  height: var(--texto-detalle);
+}
+
+.detalle-1to1__skeleton-cabecera {
+  height: var(--alto-esqueleto-cabecera);
+}
+
+.detalle-1to1__skeleton-tarjeta {
+  height: var(--alto-esqueleto-tarjeta);
+  border-radius: var(--radio-xl);
 }

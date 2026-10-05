@@ -129,6 +129,10 @@ export interface MenteeDeEquipo {
 export interface NotaPorTema {
   tema: string;
   nota: string;
+  /** Si el tema era propio al registrar el 1-to-1 (spec §11a «tal como se
+   *  registró»): el chip «propio» se persiste con la nota, no se deduce de los
+   *  temas propios actuales. */
+  propio: boolean;
 }
 
 /** 1-to-1 registrado: fecha, notas por tema y acuerdos. Ver CONTEXT.md. */

@@ -179,6 +179,21 @@ export function createApp(deps: AppDeps): express.Express {
     res.json({ history, pending });
   }));
 
+  // Detalle de un 1-to-1 (spec §11): uno concreto por id; 404 si no existe o no
+  // es de la mentee (la URL direcciona por id, puede haber varios el mismo día).
+  app.get('/api/mentees/:menteeId/onetoones/:unoAUnoId', requireSession(deps.sessions, async (req, res, manager) => {
+    const oneToOne = await deps.onetoones.oneToOneOf(
+      manager,
+      param(req, 'menteeId'),
+      param(req, 'unoAUnoId'),
+    );
+    if (oneToOne === null) {
+      res.status(404).json({ error: '1-to-1 no encontrado' });
+      return;
+    }
+    res.json(oneToOne);
+  }));
+
   // Temas propios de una mentee: vigentes y retirados, con su estado y fechas.
   app.get('/api/mentees/:menteeId/temas', requireSession(deps.sessions, async (req, res, manager) => {
     const temas = await deps.temasPropios.temasPropiosOf(manager, param(req, 'menteeId'));
@@ -364,7 +379,10 @@ export function createApp(deps: AppDeps): express.Express {
       const saved = await deps.onetoones.save(manager, {
         menteeId: param(req, 'menteeId'),
         date: body.date,
-        notas: body.notas,
+        // `propio` es opcional en el cuerpo (clientes antiguos lo omiten); se
+        // normaliza a booleano para el modelo. El chip «propio» se persiste con la
+        // nota (spec §11a), no se deduce al leer los temas actuales.
+        notas: body.notas.map((n) => ({ tema: n.tema, nota: n.nota, propio: n.propio === true })),
         acuerdos: body.acuerdos,
       });
       res.status(201).json(saved);

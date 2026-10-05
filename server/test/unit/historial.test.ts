@@ -8,6 +8,12 @@ import {
   tipoDesdeFiltro,
 } from '../../src/domain/historial.js';
 import type { EventoHistorial, TipoEventoHistorial } from '../../src/domain/historial.js';
+import type { NotaPorTema } from '../../src/domain/model.js';
+
+/** Nota mínima para probar el conteo/corte: `propio: false` (es genérico). */
+function nota(tema: string, texto: string): NotaPorTema {
+  return { tema, nota: texto, propio: false };
+}
 
 /** Evento mínimo para probar el orden: fecha, tipo e id (los campos extra se ignoran al ordenar). */
 function evento(tipo: TipoEventoHistorial, fecha: string, id: string): EventoHistorial {
@@ -106,10 +112,10 @@ describe('contarTemasConNota', () => {
   it('cuenta solo las notas no vacías', () => {
     expect(
       contarTemasConNota([
-        { tema: 'A', nota: 'nota' },
-        { tema: 'B', nota: '   ' },
-        { tema: 'C', nota: '' },
-        { tema: 'D', nota: 'otra' },
+        nota('A', 'nota'),
+        nota('B', '   '),
+        nota('C', ''),
+        nota('D', 'otra'),
       ]),
     ).toBe(2);
   });
@@ -123,15 +129,15 @@ describe('primeraNotaNoVacia', () => {
   it('devuelve la primera nota no vacía', () => {
     expect(
       primeraNotaNoVacia([
-        { tema: 'A', nota: '   ' },
-        { tema: 'B', nota: 'primera real' },
-        { tema: 'C', nota: 'segunda' },
+        nota('A', '   '),
+        nota('B', 'primera real'),
+        nota('C', 'segunda'),
       ]),
     ).toBe('primera real');
   });
 
   it('sin notas no vacías devuelve null', () => {
-    expect(primeraNotaNoVacia([{ tema: 'A', nota: '  ' }])).toBeNull();
+    expect(primeraNotaNoVacia([nota('A', '  ')])).toBeNull();
     expect(primeraNotaNoVacia([])).toBeNull();
   });
 });
@@ -140,34 +146,34 @@ describe('inicioDeNota', () => {
   it('devuelve la primera nota no vacía sin truncar si es corta', () => {
     expect(
       inicioDeNota([
-        { tema: 'A', nota: '   ' },
-        { tema: 'B', nota: 'Atlas va bien' },
+        nota('A', '   '),
+        nota('B', 'Atlas va bien'),
       ]),
     ).toBe('Atlas va bien');
   });
 
   it('trunca la primera nota no vacía a 80 caracteres', () => {
     const larga = 'x'.repeat(120);
-    expect(inicioDeNota([{ tema: 'A', nota: larga }])).toBe('x'.repeat(80));
+    expect(inicioDeNota([nota('A', larga)])).toBe('x'.repeat(80));
   });
 
   it('no trunca una nota de exactamente 80 caracteres', () => {
     const exacta = 'y'.repeat(80);
-    expect(inicioDeNota([{ tema: 'A', nota: exacta }])).toBe(exacta);
+    expect(inicioDeNota([nota('A', exacta)])).toBe(exacta);
   });
 
   it('trunca por puntos de código Unicode, no por unidades UTF-16 (regla de #24)', () => {
     // 41 emoji ocupan 82 unidades UTF-16 pero son 41 caracteres: no hay corte.
-    const nota = '😀'.repeat(41);
-    expect(inicioDeNota([{ tema: 'A', nota }])).toBe(nota);
+    const emoji = '😀'.repeat(41);
+    expect(inicioDeNota([nota('A', emoji)])).toBe(emoji);
     // 81 emoji (162 unidades UTF-16) se cortan a 80 puntos de código exactos,
     // sin partir ningún par sustituto.
     const larga = '😀'.repeat(81);
-    expect(inicioDeNota([{ tema: 'A', nota: larga }])).toBe('😀'.repeat(80));
+    expect(inicioDeNota([nota('A', larga)])).toBe('😀'.repeat(80));
   });
 
   it('sin notas no vacías devuelve null', () => {
-    expect(inicioDeNota([{ tema: 'A', nota: '  ' }])).toBeNull();
+    expect(inicioDeNota([nota('A', '  ')])).toBeNull();
     expect(inicioDeNota([])).toBeNull();
   });
 });

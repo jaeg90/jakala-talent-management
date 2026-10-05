@@ -16,6 +16,11 @@ export class OneToOneService {
     return this.repository.historyOf(manager.id, menteeId);
   }
 
+  /** Un 1-to-1 concreto de la mentee (null si no existe o no es de la mentee/manager). */
+  async oneToOneOf(manager: Manager, menteeId: string, unoAUnoId: string): Promise<OneToOne | null> {
+    return this.repository.oneToOneOf(manager.id, menteeId, unoAUnoId);
+  }
+
   /**
    * Registra un 1-to-1: valida la fecha (presente, ISO y no futura), que haya
    * al menos una nota o un acuerdo, una nota por tema y crea los acuerdos

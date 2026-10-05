@@ -12,6 +12,7 @@ interface OneToOneRow {
 interface NotaRow {
   tema: string;
   nota: string;
+  propio: number;
 }
 
 interface IncidenciaRow {
@@ -81,12 +82,16 @@ export class SqliteHistorialRepository implements HistorialRepository {
       .prepare('SELECT id, date FROM onetoones WHERE mentee_id = ?')
       .all(menteeId) as OneToOneRow[];
     const notasStmt = this.db.prepare(
-      'SELECT tema, nota FROM notas_por_tema WHERE onetoone_id = ? ORDER BY id',
+      'SELECT tema, nota, propio FROM notas_por_tema WHERE onetoone_id = ? ORDER BY id',
     );
     const acuerdosStmt = this.db.prepare('SELECT 1 FROM acuerdos WHERE onetoone_id = ?');
 
     return rows.map((row): EventoHistorial => {
-      const notas = notasStmt.all(row.id) as NotaRow[];
+      const notas = (notasStmt.all(row.id) as NotaRow[]).map((n) => ({
+        tema: n.tema,
+        nota: n.nota,
+        propio: n.propio === 1,
+      }));
       const acuerdos = acuerdosStmt.all(row.id).length;
       return {
         tipo: '1-to-1',

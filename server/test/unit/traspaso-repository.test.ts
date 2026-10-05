@@ -87,7 +87,7 @@ describe('traspaso de una mentee entre managers', () => {
     await onetoone.save(MARTA, {
       menteeId: ANA,
       date: '2026-09-20',
-      notas: [{ tema: '¿Cómo estás?', nota: 'Animada' }],
+      notas: [{ tema: '¿Cómo estás?', nota: 'Animada', propio: false }],
       acuerdos: [{ text: 'Preparar dossier' }],
     });
 

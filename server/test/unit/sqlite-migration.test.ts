@@ -136,3 +136,57 @@ describe('openDatabase migra la tabla onetoones existente', () => {
     db.close();
   });
 });
+
+/**
+ * Migraciones del detalle de 1-to-1 (spec §11a): `acuerdos.cumplido_el` (fecha de
+ * cumplimiento) y `notas_por_tema.propio` (chip «propio» persistido). Cada migración
+ * declara su política para el dato que no es recuperable: un acuerdo ya cumplido
+ * queda con `cumplido_el` NULL («Cumplido» sin fecha, no se inventa) y una nota
+ * registrada antes del chip queda con `propio` = 0 (sin chip, no se deduce).
+ */
+describe('openDatabase migra cumplido_el y propio (spec §11a)', () => {
+  afterEach(() => {
+    cleanupTempDirs();
+  });
+
+  /** Esquema previo al cambio: `acuerdos` sin `cumplido_el` y `notas_por_tema` sin `propio`. */
+  function crearBaseVieja(path: string): Database.Database {
+    const vieja = new Database(path);
+    vieja.exec(`
+      CREATE TABLE managers (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL, password_hash TEXT NOT NULL, debe_cambiar_contrasena INTEGER NOT NULL DEFAULT 0);
+      CREATE TABLE mentees (id TEXT PRIMARY KEY, manager_id TEXT NOT NULL REFERENCES managers(id), name TEXT NOT NULL);
+      CREATE TABLE onetoones (id TEXT PRIMARY KEY, mentee_id TEXT NOT NULL REFERENCES mentees(id), date TEXT NOT NULL);
+      CREATE TABLE notas_por_tema (id INTEGER PRIMARY KEY AUTOINCREMENT, onetoone_id TEXT NOT NULL REFERENCES onetoones(id), tema TEXT NOT NULL, nota TEXT NOT NULL, UNIQUE (onetoone_id, tema));
+      CREATE TABLE acuerdos (id TEXT PRIMARY KEY, onetoone_id TEXT NOT NULL REFERENCES onetoones(id), text TEXT NOT NULL, date TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0);
+    `);
+    return vieja;
+  }
+
+  it('un acuerdo ya cumplido queda sin fecha (NULL) y una nota previa sin chip (propio = 0)', () => {
+    const path = tempDbPath();
+    const vieja = crearBaseVieja(path);
+    vieja
+      .prepare('INSERT INTO managers (id, email, name, password_hash) VALUES (?, ?, ?, ?)')
+      .run('m1', 'm@example.com', 'Marta', 'x');
+    vieja.prepare('INSERT INTO mentees (id, manager_id, name) VALUES (?, ?, ?)').run('me-ana', 'm1', 'Ana Alonso');
+    vieja.prepare('INSERT INTO onetoones (id, mentee_id, date) VALUES (?, ?, ?)').run('o1', 'me-ana', '2026-09-20');
+    vieja.prepare('INSERT INTO notas_por_tema (onetoone_id, tema, nota) VALUES (?, ?, ?)').run('o1', '¿Cómo estás?', 'Animada');
+    // Ya cumplido antes de la migración: no hay fecha de cumplimiento recuperable.
+    vieja.prepare('INSERT INTO acuerdos (id, onetoone_id, text, date, done) VALUES (?, ?, ?, ?, ?)')
+      .run('a1', 'o1', 'Acuerdo histórico', '2026-09-20', 1);
+    vieja.close();
+
+    const db = openDatabase(path);
+    const acuerdo = db.prepare('SELECT done, cumplido_el FROM acuerdos WHERE id = ?').get('a1') as {
+      done: number;
+      cumplido_el: string | null;
+    };
+    expect(acuerdo.done).toBe(1);
+    expect(acuerdo.cumplido_el).toBeNull();
+    const nota = db.prepare('SELECT propio FROM notas_por_tema WHERE onetoone_id = ?').get('o1') as {
+      propio: number;
+    };
+    expect(nota.propio).toBe(0);
+    db.close();
+  });
+});

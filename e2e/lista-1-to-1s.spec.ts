@@ -151,10 +151,10 @@ test('Lista de 1-to-1s: agrupado, filas con su meta y estados, búsqueda y enlac
   await buscador.press('Escape');
   await expect(page.getByRole('link', { name: /1-to-1 del / })).toHaveCount(3);
 
-  // Desde la lista se llega al detalle (stub #31): la fila enlaza a su URL.
+  // Desde la lista se llega al detalle (#31): la fila enlaza a su URL exacta.
   await page.getByRole('link', { name: /2 temas con nota, 1 acuerdo pendiente/ }).click();
-  await expect(page).toHaveURL(new RegExp(`/mentees/${menteeId}/1-to-1s/`));
-  await expect(page.getByRole('heading', { name: '1-to-1s' })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/mentees/${menteeId}/1-to-1s/[0-9a-f-]+`));
+  await expect(page.getByRole('heading', { name: /1-to-1 del / })).toBeVisible();
 });
 
 test('Lista de 1-to-1s: estado vacío con su copy exacto', async ({ page }) => {
