@@ -302,6 +302,36 @@ export const api = {
   plantilla(): Promise<{ temas: TemaPlantilla[] }> {
     return request('/api/plantilla');
   },
+  /** Añade un tema genérico al final de la plantilla (201 con el tema creado). */
+  addTemaPlantilla(tema: string): Promise<TemaPlantilla> {
+    return request('/api/plantilla/temas', { method: 'POST', body: JSON.stringify({ tema }) });
+  },
+  /** Edita el texto de un tema de la plantilla. */
+  editarTemaPlantilla(temaId: string, tema: string): Promise<TemaPlantilla> {
+    return request(`/api/plantilla/temas/${temaId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ tema }),
+    });
+  },
+  /** Sube (delta -1) o baja (delta 1) un tema vigente una posición. */
+  moverTemaPlantilla(temaId: string, delta: -1 | 1): Promise<{ temas: TemaPlantilla[] }> {
+    return request(`/api/plantilla/temas/${temaId}/mover`, {
+      method: 'POST',
+      body: JSON.stringify({ delta }),
+    });
+  },
+  /** Retira un tema (no se puede retirar el último vigente: 409 del dominio). */
+  retirarTemaPlantilla(temaId: string): Promise<TemaPlantilla> {
+    return request(`/api/plantilla/temas/${temaId}/retirar`, { method: 'POST' });
+  },
+  /** Vuelve a activar un tema retirado, al final de los vigentes. */
+  reactivarTemaPlantilla(temaId: string): Promise<TemaPlantilla> {
+    return request(`/api/plantilla/temas/${temaId}/reactivar`, { method: 'POST' });
+  },
+  /** Restablece la plantilla a sus temas iniciales (los actuales pasan a retirados). */
+  restablecerPlantilla(): Promise<{ temas: TemaPlantilla[] }> {
+    return request('/api/plantilla/restablecer', { method: 'POST' });
+  },
   historial(menteeId: string, tipo?: FiltroHistorial): Promise<{ eventos: EventoHistorial[] }> {
     const query = tipo === undefined ? '' : `?tipo=${tipo}`;
     return request(`/api/mentees/${menteeId}/historial${query}`);

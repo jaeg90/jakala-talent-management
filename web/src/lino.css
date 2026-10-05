@@ -189,10 +189,9 @@ body {
   text-align: center;
 }
 
-/* — Pantalla de carga (sesión) y «en construcción» (rutas sin pantalla) — */
+/* — Pantalla de carga (sesión) — */
 
-.cargando,
-.pantalla-en-construccion {
+.cargando {
   min-height: 100vh;
   margin: 0;
   max-width: none;
@@ -208,17 +207,9 @@ body {
   text-align: center;
 }
 
-.cargando p,
-.pantalla-en-construccion p {
+.cargando p {
   margin: 0;
   color: var(--color-texto-secundario);
-}
-
-.pantalla-en-construccion h1 {
-  margin: 0;
-  font-size: var(--texto-3xl);
-  font-weight: var(--peso-titulo);
-  letter-spacing: var(--tracking-titulo);
 }
 
 /* — Cabecera global (spec §Esqueletos) — */
@@ -1213,6 +1204,289 @@ body {
 /* §Estados P4, #29: skeleton con la forma final de las filas del catálogo. */
 .catalogo-proyectos__skeleton {
   min-height: var(--esp-10);
+  border-radius: var(--radio-m);
+  background: var(--color-superficie-hundida);
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
+/* §Ajustes · 3d (#28): plantilla de 1-to-1 del manager, captura 09c. */
+.plantilla {
+  padding: var(--esp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+}
+
+.plantilla__cabecera h2 {
+  margin: 0;
+  font-size: var(--texto-titulo-tarjeta);
+  font-weight: var(--peso-titulo);
+}
+
+/* Descripción de la tarjeta: 14px secundaria, interlineado 1.5 (captura 09c). */
+.plantilla__cabecera p {
+  margin: var(--esp-1) 0 0;
+  font-size: var(--texto-detalle);
+  line-height: var(--interlineado);
+  color: var(--color-texto-secundario);
+}
+
+.plantilla__filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-entre-filas-plantilla);
+}
+
+/* Fila: número de orden · tema 15px/600 · acciones (captura 09c). */
+.plantilla__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-columna);
+  padding: var(--esp-fila-plantilla-y) var(--esp-3);
+  background: var(--color-superficie-hundida);
+  border-radius: var(--radio-m);
+  font-size: var(--texto-m);
+}
+
+.plantilla__numero {
+  width: var(--ancho-numero-plantilla);
+  flex-shrink: 0;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+.plantilla__tema {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--peso-semi);
+  overflow-wrap: anywhere;
+}
+
+/* Acciones de la fila: ↑ ↓ · Editar · Retirar; debajo, el motivo cuando la fila
+   es el último tema vigente (componentes.md §Botón deshabilitado con motivo). */
+.plantilla__acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--esp-1);
+  flex-shrink: 0;
+}
+
+.plantilla__botones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-columna);
+}
+
+.plantilla__iconos {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-1);
+}
+
+/* Botón de reordenar (componentes.md §Reordenar): 30×30, radio 8px, borde
+   interior 1.5px; los 44px táctiles en móvil llegan con la pasada P5 (#33). */
+.boton-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tam-boton-icono);
+  height: var(--tam-boton-icono);
+  padding: 0;
+  border: none;
+  border-radius: var(--radio-boton-icono);
+  background: none;
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--color-borde-campo);
+  font: inherit;
+  font-size: var(--texto-s);
+  color: var(--color-texto);
+  cursor: pointer;
+}
+
+/* Neutraliza el button:hover de styles.css (fondo #3730a3 hardcodeado). */
+.boton-icono:hover {
+  background: none;
+}
+
+.boton-icono:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--foco-borde), var(--foco-anillo);
+}
+
+/* Deshabilitado (componentes.md §Botón deshabilitado con motivo): texto
+   decorativo, borde --color-borde, sin hover; sigue enfocable para que el foco
+   pueda permanecer en el botón tras mover (accesibilidad.md §Reordenar temas). */
+.boton-icono[aria-disabled='true'] {
+  color: var(--color-texto-decorativo);
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--color-borde);
+  cursor: default;
+}
+
+/* Deshabilitado y enfocado: el control sigue siendo enfocable (ver arriba),
+   así que el foco visible no puede degradarse al quedar deshabilitado en el
+   borde (accesibilidad.md §Globales «Foco visible»). Mayor especificidad que
+   la regla de deshabilitado para conservar el anillo --foco-anillo. */
+.boton-icono[aria-disabled='true']:focus-visible {
+  box-shadow: inset 0 0 0 var(--borde-chip-casilla) var(--foco-borde), var(--foco-anillo);
+}
+
+/* Las acciones de fila no heredan el botón sólido de las vistas antiguas,
+   tampoco al pasar el puntero por encima. Conservan el foco visible. */
+.plantilla__fila .accion,
+.plantilla__retirado .accion {
+  background: none;
+  padding: 0;
+  border: none;
+  border-radius: var(--radio-s);
+  box-shadow: none;
+}
+
+.plantilla__fila .accion:hover,
+.plantilla__retirado .accion:hover {
+  background: none;
+}
+
+.plantilla__fila .accion[aria-disabled='true'],
+.plantilla__retirado .accion[aria-disabled='true'] {
+  color: var(--color-texto-decorativo);
+  cursor: default;
+}
+
+/* Motivo de la restricción del último vigente: 13px secundario debajo,
+   alineado con el botón (componentes.md §Botón deshabilitado con motivo). */
+.plantilla__motivo {
+  max-width: var(--ancho-motivo);
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* Edición en línea (spec §3d): input + «Guardar» / «Cancelar» en la fila. */
+.plantilla__edicion {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.plantilla__edicion .campo {
+  flex: 1;
+  min-width: 0;
+}
+
+.plantilla__alta {
+  padding: var(--esp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-columna);
+}
+
+.plantilla__alta__cabecera h2 {
+  margin: 0;
+  font-size: var(--texto-titulo-tarjeta);
+  font-weight: var(--peso-titulo);
+}
+
+.plantilla__alta__cabecera p {
+  margin: var(--esp-1) 0 0;
+  font-size: var(--texto-detalle);
+  line-height: var(--interlineado);
+  color: var(--color-texto-secundario);
+}
+
+/* Alta en línea: campo «Tema» + botón alineado con el input (misma técnica de
+   .catalogo-proyectos__alta de #29; gap 10px, captura 09c). */
+.plantilla__alta__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--esp-margen);
+  align-items: start;
+}
+
+.plantilla__alta__form > .boton {
+  margin-top: calc(var(--texto-detalle) * var(--interlineado) + var(--esp-chip-casilla));
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.plantilla__alta__error {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  margin: 0;
+}
+
+.plantilla__alta__form:has(.plantilla__alta__error) > .campo {
+  grid-row: 2;
+}
+
+.plantilla__alta__form:has(.plantilla__alta__error) > .boton {
+  grid-row: 2;
+}
+
+.plantilla__retirados h2 {
+  margin: 0 0 var(--esp-2);
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-texto-secundario);
+}
+
+.plantilla__retirados ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+/* Tarjeta plana del tema retirado (captura 09c): tema 15px secundario +
+   «Volver a usar» a la derecha. */
+.plantilla__retirado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-margen);
+  padding: var(--esp-3) var(--esp-4);
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+/* Pie (captura 09c): 13px secundario + enlace de restablecimiento subrayado. */
+.plantilla__pie {
+  margin: 0;
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+.plantilla__restablecer {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+  color: var(--color-primario-texto);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.plantilla__restablecer:hover {
+  background: none;
+}
+
+.plantilla__restablecer:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+  border-radius: var(--radio-s);
+}
+
+/* §Estados P4, #28: skeleton con la forma final de las filas de la plantilla. */
+.plantilla__skeleton {
+  min-height: var(--alto-esqueleto-fila-plantilla);
   border-radius: var(--radio-m);
   background: var(--color-superficie-hundida);
   animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;

@@ -158,6 +158,16 @@
   --ancho-acento-miniatura-tema: 30%;
   --ancho-barra-miniatura-sistema: 60%;
   --ancho-acento-miniatura-sistema: 40%;
+
+  /* — Añadidos #28 (Ajustes · Plantilla de 1-to-1, captura 09c y
+     componentes.md §Reordenar) — */
+  --ancho-numero-plantilla: 24px;        /* ancho del número de orden (captura 09c) */
+  --esp-fila-plantilla-y: 10px;          /* padding vertical de la fila (captura 09c) */
+  --esp-entre-filas-plantilla: 6px;      /* hueco entre filas (captura 09c) */
+  --tam-boton-icono: 30px;               /* lado del botón de reordenar (componentes.md §Reordenar; ≥ 44px en móvil es la pasada P5, #33) */
+  --radio-boton-icono: 8px;              /* radio del botón de reordenar (componentes.md §Reordenar) */
+  --ancho-motivo: 220px;                 /* motivo del botón deshabilitado (componentes.md §Botón deshabilitado con motivo) */
+  --alto-esqueleto-fila-plantilla: 50px; /* skeleton con la forma de la fila: control 30px + 2×10px de padding (captura 09c) */
 }
 
 @media (prefers-reduced-motion: reduce) {

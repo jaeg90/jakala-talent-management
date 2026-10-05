@@ -10,6 +10,7 @@ import {
 import { AjustesLayout, Perfil } from './Ajustes';
 import { AjustesApariencia } from './AjustesApariencia';
 import { AjustesMentees } from './AjustesMentees';
+import { AjustesPlantilla } from './AjustesPlantilla';
 import { AjustesProyectos } from './AjustesProyectos';
 import { AjustesManagers } from './AjustesManagers';
 import { AjustesManagersEstado } from './AjustesManagersEstado';
@@ -52,11 +53,11 @@ const router = createBrowserRouter(
           <Route index element={<Navigate to="/ajustes/perfil" replace />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="apariencia" element={<AjustesApariencia />} />
+          <Route path="plantilla" element={<AjustesPlantilla />} />
           <Route path="mentees" element={<AjustesMentees />} />
           <Route path="proyectos" element={<AjustesProyectos />} />
           <Route path="managers" element={<AjustesManagers />} />
         </Route>
-        <Route path="/ajustes/plantilla" element={<PantallaEnConstruccion titulo="Plantilla de 1-to-1" />} />
         <Route path="*" element={<Navigate to="/equipo" replace />} />
       </Route>
     </Route>,
@@ -88,16 +89,6 @@ function RutaPrivada() {
 /** Ficha de mentee: el `ShellFicha` resuelve la mentee por `:id` y monta las pantallas. */
 function FichaMenteeRoute() {
   return <ShellFicha />;
-}
-
-/** Pantalla mínima compartida para URLs sin pantalla propia todavía. */
-function PantallaEnConstruccion({ titulo }: { titulo: string }) {
-  return (
-    <main className="pantalla-en-construccion">
-      <h1>{titulo}</h1>
-      <p>Pantalla en construcción.</p>
-    </main>
-  );
 }
 
 /** Carga mínima durante la comprobación de sesión. */

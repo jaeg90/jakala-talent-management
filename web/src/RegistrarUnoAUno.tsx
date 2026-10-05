@@ -775,6 +775,8 @@ export interface DialogoConfirmacionProps {
   enviando?: string;
   /** Deshabilita el botón de confirmación (P4 §Estados «Enviando»). */
   confirmarDeshabilitado?: boolean;
+  /** Deshabilita el botón de cancelación durante el envío (P4 §Estados «Enviando»). */
+  cancelarDeshabilitado?: boolean;
   onCancelar: () => void;
   onConfirmar: () => void;
   children: React.ReactNode;
@@ -789,6 +791,7 @@ export function DialogoConfirmacion({
   confirmar,
   enviando,
   confirmarDeshabilitado,
+  cancelarDeshabilitado,
   onCancelar,
   onConfirmar,
   children,
@@ -812,15 +815,16 @@ export function DialogoConfirmacion({
       aria-labelledby={idTitulo}
       aria-describedby={idCuerpo}
       onCancel={(e) => {
-        // Esc equivale a «Cancelar» (cierra sin confirmar).
+        // Esc equivale a «Cancelar» (cierra sin confirmar); durante el envío,
+        // el cierre queda deshabilitado igual que el botón (P4 §Estados).
         e.preventDefault();
-        onCancelar();
+        if (!cancelarDeshabilitado) onCancelar();
       }}
     >
       <h2 id={idTitulo} className="dialogo__titulo">{titulo}</h2>
       <div id={idCuerpo} className="dialogo__cuerpo">{children}</div>
       <div className="dialogo__acciones">
-        <button className="boton boton--secundario" type="button" onClick={onCancelar}>
+        <button className="boton boton--secundario" type="button" disabled={cancelarDeshabilitado} onClick={onCancelar}>
           {cancelar}
         </button>
         <button
