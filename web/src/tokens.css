@@ -168,6 +168,14 @@
   --radio-boton-icono: 8px;              /* radio del botón de reordenar (componentes.md §Reordenar) */
   --ancho-motivo: 220px;                 /* motivo del botón deshabilitado (componentes.md §Botón deshabilitado con motivo) */
   --alto-esqueleto-fila-plantilla: 50px; /* skeleton con la forma de la fila: control 30px + 2×10px de padding (captura 09c) */
+
+  /* — Añadidos #30 (Lista de 1-to-1s, captura 10/10b) — */
+  --ancho-buscador: 480px;               /* max-width del buscador (spec §10) */
+  --ancho-fecha-fila-1to1: 132px;        /* columna 1 de la fila (spec §10 grid «132px») */
+  --ancho-acuerdos-fila-1to1: 200px;     /* columna 3 de la fila (spec §10 grid «200px») */
+  --esp-lista-grupo-inferior: 6px;       /* padding inferior del separador de año (spec §10) */
+  --esp-fila-1to1-acuerdos: 6px;         /* gap entre los badges de acuerdos (spec §10) */
+  --esp-coincidencia-x: 3px;             /* padding lateral del <mark> de coincidencia (componentes.md §Coincidencia) */
 }
 
 @media (prefers-reduced-motion: reduce) {

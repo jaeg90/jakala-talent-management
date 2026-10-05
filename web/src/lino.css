@@ -3635,3 +3635,257 @@ body {
     min-height: var(--alto-objetivo-tactil);
   }
 }
+
+/* — Lista de 1-to-1s (spec §10, capturas 10 y 10b; #30) — */
+
+.lista1to1 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-tarjeta-compacta); /* §10: columna gap 18px */
+}
+
+/* Buscador (componentes.md §Buscador): campo a 480px; «Borrar búsqueda» a su derecha. */
+.buscador {
+  max-width: var(--ancho-buscador);
+  display: flex;
+  align-items: center;
+  gap: var(--esp-columna); /* §10 gap 14px */
+}
+
+/* Campo del buscador: fondo superficie, borde 1.5px, radio --radio-m, padding 10px 14px. */
+.buscador__campo {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--color-superficie);
+  border: var(--borde-chip-casilla) solid var(--color-borde-campo);
+  border-radius: var(--radio-m);
+  padding: var(--esp-margen) var(--esp-columna); /* §10 10px 14px */
+  font-family: inherit;
+  font-size: var(--texto-m);
+  color: var(--color-texto);
+}
+
+.buscador__campo:focus-visible {
+  border-color: var(--foco-borde);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+.buscador__campo:disabled {
+  opacity: 1;
+}
+
+/* «Borrar búsqueda»: enlace de acción (neutraliza el `button` legacy de styles.css). */
+.buscador .accion {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Contador de resultados: 14px secundario en región aria-live (spec §10). */
+.lista__contador {
+  margin: 0;
+  font-size: var(--texto-detalle);
+  color: var(--color-texto-secundario);
+}
+
+/* Tarjeta de la lista: padding 8px (spec §10 «.tarjeta padding 8px»). */
+.lista__tarjeta {
+  padding: var(--esp-2);
+}
+
+/* Separador de año (componentes.md §Separador de año): 13px/700 primario-texto. */
+.lista__grupo {
+  margin: 0;
+  padding: var(--esp-3) var(--esp-4) var(--esp-lista-grupo-inferior); /* §10 12px 16px 6px */
+  font-size: var(--texto-s);
+  font-weight: var(--peso-negrita);
+  color: var(--color-primario-texto);
+}
+
+/* Filas de un grupo: lista sin viñetas con hueco de 2px entre filas. */
+.lista__filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-hueco);
+}
+
+/* Fila de 1-to-1 (componentes.md §Fila de 1-to-1): enlace-bloque en grid. */
+.fila-1to1 {
+  display: grid;
+  grid-template-columns: var(--ancho-fecha-fila-1to1) minmax(0, 1fr) var(--ancho-acuerdos-fila-1to1);
+  gap: var(--esp-6); /* §10 gap 24px */
+  align-items: center;
+  padding: var(--esp-3) var(--esp-4); /* §10 12px 16px */
+  border-radius: var(--radio-l);
+  color: var(--color-texto);
+  text-decoration: none;
+}
+
+/* Hover como la fila de Mi equipo: fondo hundido + borde interior 1px (§10). */
+.fila-1to1:hover {
+  background: var(--color-superficie-hundida);
+  box-shadow: inset 0 0 0 var(--borde-fino) var(--color-borde);
+}
+
+.fila-1to1:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anillo);
+}
+
+/* Búsqueda activa: align-items:start y padding 14px 16px (§10). */
+.fila-1to1--busqueda {
+  align-items: start;
+  padding: var(--esp-columna) var(--esp-4); /* §10 14px 16px */
+}
+
+.fila-1to1__fecha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-hueco);
+}
+
+/* Fecha exacta 15px/700 (spec §10). */
+.fila-1to1__fecha time {
+  font-size: var(--texto-m);
+  font-weight: var(--peso-negrita);
+}
+
+.fila-1to1__relativa {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+.fila-1to1__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-hueco);
+  min-width: 0;
+}
+
+/* Inicio de la primera nota («…»): 15px, una línea con elipsis, color de cita (§10). */
+.fila-1to1__cita {
+  font-size: var(--texto-m);
+  color: var(--color-cita);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fila-1to1__meta {
+  font-size: var(--texto-s);
+  color: var(--color-texto-secundario);
+}
+
+/* Dónde coincide (búsqueda): 13px/600 secundario (§10). */
+.fila-1to1__donde {
+  font-size: var(--texto-s);
+  font-weight: var(--peso-semi);
+  color: var(--color-texto-secundario);
+}
+
+/* Fragmento de la coincidencia: 15px, interlineado 1.5 (§10). */
+.fila-1to1__fragmento {
+  margin: 0;
+  font-size: var(--texto-m);
+  line-height: var(--interlineado);
+  overflow-wrap: anywhere;
+}
+
+/* Coincidencia resaltada (componentes.md §Coincidencia). */
+mark.coincidencia {
+  background: var(--color-primario-suave);
+  color: var(--color-primario-texto);
+  font-weight: var(--peso-negrita);
+  border-radius: var(--esp-1); /* §Coincidencia radio 4px */
+  padding: 0 var(--esp-coincidencia-x); /* §Coincidencia padding 0 3px */
+}
+
+/* Acuerdos a la derecha: gap 6px, wrap (§10). */
+.fila-1to1__acuerdos {
+  display: flex;
+  gap: var(--esp-fila-1to1-acuerdos); /* §10 gap 6px */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Badge de pendientes (mapeo de tokens.css: primario-suave / primario-texto). */
+.badge--en-curso {
+  background: var(--color-primario-suave);
+  color: var(--color-primario-texto);
+}
+
+/* Búsqueda sin coincidencias (spec §10). */
+.lista1to1__sin-resultados {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+}
+
+.lista1to1__sin-resultados p {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+}
+
+/* El «Borrar búsqueda» de este estado vive fuera de `.buscador`, así que no
+   recibe su reset; neutraliza aquí el `button` legacy de styles.css (§10). */
+.lista1to1__sin-resultados .accion {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Vacío (spec §10): frase + acción. */
+.lista1to1__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-3);
+}
+
+.lista1to1__vacio-texto {
+  margin: 0;
+  font-size: var(--texto-m);
+  color: var(--color-texto-secundario);
+  line-height: var(--interlineado);
+}
+
+/* Skeleton de la lista: seis filas de 64px (spec §10). */
+.lista__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-hueco);
+}
+
+.lista__skeleton-fila {
+  height: var(--esp-16); /* §10 fila de 64px */
+  border-radius: var(--radio-l);
+  background: var(--color-superficie-hundida);
+  opacity: 1;
+  animation: pulso-esqueleto calc(var(--duracion-media) * 6) var(--curva) infinite;
+}
+
+/* Responsive < 640px (decisiones.md §Responsive P5): la fila apila fecha / nota /
+   badges en una columna y el buscador ocupa el ancho completo. */
+@media (max-width: 639px) {
+  .buscador {
+    max-width: none;
+  }
+  .fila-1to1 {
+    grid-template-columns: 1fr;
+    gap: var(--esp-2);
+  }
+  .fila-1to1__acuerdos {
+    justify-content: flex-start;
+  }
+}

@@ -362,12 +362,12 @@ test('los 1-to-1s ya registrados no cambian al editar la plantilla; el siguiente
     { tema: '¿Cómo estás?', nota: 'Nota original E2E' },
   ]);
 
-  // En la lista de 1-to-1s se sigue leyendo el tema original; el nuevo no aparece.
+  // En la lista de 1-to-1s se sigue leyendo la nota original (la cita de la fila;
+  // §10 no muestra el nombre del tema en la lista, así que el cambio no puede aparecer).
   await page.goto('/equipo');
   await page.getByRole('link', { name: 'Mentee Plantilla E2E' }).click();
   await page.getByRole('navigation').getByRole('link', { name: '1-to-1s' }).click();
   const lista = page.getByRole('region', { name: '1-to-1s' });
-  await expect(lista.getByText('¿Cómo estás?')).toBeVisible();
   await expect(lista.getByText('Nota original E2E')).toBeVisible();
   await expect(lista).not.toContainText('¿Cómo va tu semana?');
   await expect(lista).not.toContainText('¿Qué tal el proyecto?');

@@ -136,7 +136,7 @@ export function ShellFicha() {
       </aside>
 
       <main className="ficha__contenido">
-        <Outlet context={{ refrescarIncidencias, solicitud }} />
+        <Outlet context={{ refrescarIncidencias, solicitud, nombre: mentee.name }} />
       </main>
     </div>
   );
