@@ -58,7 +58,7 @@ Framing inicial (0:15): «El 100% del código de producto lo escribieron sesione
 ### 4.2 Las skills (1:00)
 
 - **Claim**: la sesión de IA no recuerda nada de una sesión a otra; las skills son la memoria externa donde vive el procedimiento. Lo aprendido una vez se aplica siempre.
-- **Datos**: 23 skills de terceros vendored (grilling, research, tdd…) + 3 propias: supervisión de pasadas, **cierre de jornada** (clasifica cada error del día y lo destila en reglas para mañana) y la de tickets, evolucionada con evidencia del propio repo.
+- **Datos**: 24 skills de terceros vendored (grilling, research, tdd…) + 2 de cosecha propia: supervisión de pasadas y **cierre de jornada** (clasifica cada error del día y lo destila en reglas para mañana); la de tickets, vendored de origen, fue rehecha con evidencia del propio repo.
 - **Pantalla**: lista de skills + un fragmento de una regla destilada con su issue y fecha de nacimiento.
 
 ### 4.3 El Piloto (2:30) — el corazón

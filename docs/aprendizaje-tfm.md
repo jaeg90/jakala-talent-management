@@ -16,7 +16,7 @@ JTM (Jakala Talent Management) es una herramienta web interna para que los manag
 | Tests | 418 unitarios/integración (Vitest) + 94 E2E (Playwright, 18 specs) |
 | Calidad | Stryker ≥85 en dominio · SonarQube · OpenTelemetry · Sentry (ADR-0005) |
 | Documentación | 13 ADRs · 34 términos en el glosario (18 de dominio + 16 del Piloto) |
-| Skills | 23 de terceros vendored + 3 propias (2 locales + 1 evolucionada) |
+| Skills | 24 de terceros vendored + 2 propias (y una vendored, writing-tickets, rehecha con evidencia del repo) |
 | MVP congelado | Tag `v1.0.0-mvp` (13-oct-2026); futuro en la etiqueta `post-mvp` |
 
 ---
@@ -38,7 +38,7 @@ JTM (Jakala Talent Management) es una herramienta web interna para que los manag
 
 ## 2. Skills: de terceros y propias
 
-**De terceros (vendored en `.agents/skills/`).** La colección de Matt Pocock, 23 skills traídas al repo y configuradas en español. Las que dejaron huella documentada:
+**De terceros (vendored en `.agents/skills/`).** La colección de Matt Pocock: 24 skills traídas al repo y configuradas en español. Las que dejaron huella documentada:
 
 | Skill | Para qué se usó | Evidencia |
 |---|---|---|
