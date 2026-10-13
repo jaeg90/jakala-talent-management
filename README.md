@@ -4,7 +4,7 @@ Herramienta web interna para que los managers de Jakala hagan el seguimiento de 
 
 TFM del Máster de Desarrollo con IA.
 
-> **Estado: en construcción. Todos los datos son ficticios.**
+> **Estado: MVP v1 terminado y congelado (13-oct-2026). Todos los datos son ficticios.** El trabajo futuro — tickets pendientes del rediseño Lino y las mejoras definidas en el grill de cierre — vive en el tracker con la etiqueta [`post-mvp`](https://github.com/jaeg90/jakala-talent-management/issues?q=is%3Aissue+label%3Apost-mvp).
 
 ## Puesta en marcha
 
@@ -34,7 +34,7 @@ npm run test:e2e    # Playwright: construye, arranca el servidor y recorre la UI
 npm run quality     # Arnés de calidad: Stryker + SonarQube + trazas + Sentry (resumen final)
 ```
 
-Los E2E recorren: login → vista de equipo → logout, el ciclo completo de un 1-to-1 (registro con notas y acuerdos, marcar cumplido), los temas propios de una mentee y el ciclo de un objetivo anual (alta y marcarlo cumplido).
+Los E2E recorren: login y logout, Mi equipo, la ficha con su Resumen, el ciclo completo de un 1-to-1 (registro con notas y acuerdos, lista, detalle, marcar cumplido), temas propios, objetivos, incidencias, historial, traspaso y todos los ajustes (perfil, managers, mentees, plantilla, proyectos, apariencia).
 
 ## Monorepo
 
