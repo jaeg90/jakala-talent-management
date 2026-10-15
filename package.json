@@ -19,7 +19,8 @@
     "sonar": "node scripts/sonar-scan.mjs",
     "test:otel": "npm run test:otel --workspace server",
     "test:sentry": "npm run test:sentry --workspace server",
-    "quality": "node scripts/quality.mjs"
+    "quality": "node scripts/quality.mjs",
+    "costes": "node scripts/costes-sesiones.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
