@@ -1,5 +1,5 @@
 {
-  "$comentario": "Configuración del Piloto (ADR-0004): lo que varía por proyecto. Modelos por papel (openrouter), N reintentos, puertas del arnés, etiquetas del tracker, modo de entrega y canal de aviso.",
+  "$comentario": "Configuración del Piloto (ADR-0004): lo que varía por proyecto. Modelos por papel (openrouter), N reintentos, puertas del arnés, etiquetas del tracker, modo de entrega y canal de aviso. El binario de OpenCode se puede sobrescribir con la variable de entorno PILOTO_OPENCODE (necesario en Windows: ruta completa al .exe).",
   "reintentos": 4,
   "modoEntrega": "main",
   "modelos": {
@@ -14,7 +14,7 @@
     "revisora": "openrouter/openai/gpt-6-luna-pro"
   },
   "sesiones": {
-    "comando": "C:/Users/josea/AppData/Roaming/npm/node_modules/@opencode/cli/bin/opencode.exe",
+    "comando": "opencode",
     "tiempoMaxMinutos": 45
   },
   "puertas": [
