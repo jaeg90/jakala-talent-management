@@ -9,7 +9,8 @@ build/
 .tmp/
 
 # Estado local de OpenCode
-.opencode/
+.opencode/*
+!.opencode/skills/
 
 # Cobertura y reportes de tests
 coverage/

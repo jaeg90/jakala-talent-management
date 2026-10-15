@@ -24,6 +24,15 @@ Single-context: `CONTEXT.md` en la raíz + `docs/adr/`. Ver `docs/agents/domain.
 
 Todo ticket lleva su sección «Alcance» (Aplica a / Fuera de alcance) y cita verbatim su porción de spec: las sesiones de contexto fresco del Piloto solo ven el cuerpo del issue (ADR-0011). Al crear, reescribir o partir tickets, ver `.agents/skills/writing-tickets`.
 
+`writing-tickets` es de terceros en origen, pero su forma actual está reescrita con evidencia del propio repo (contratos exactos, unidades fijadas, citas verificadas y política de migración por campo).
+
+### Skills propias del Piloto
+
+Además de las skills de terceros de `.agents/skills/`, el proyecto tiene dos skills propias en `.opencode/skills/`:
+
+- `piloto-supervision` — cómo supervisar una pasada del Piloto en vivo: chequeos previos, reglas de monitorización, firmas de fallo conocidas y protocolo de incidencias.
+- `piloto-cierre-jornada` — la retrospectiva de fin de jornada: recoger la evidencia de los tickets del día, clasificar cada error (clase conocida o clase nueva), destilar las clases nuevas en guardarraíles (puerta determinista primero; después regla, doc o skill) y proponer el conjunto al humano para su aprobación.
+
 ## Sesiones del Piloto
 
 Las sesiones del ciclo (implementadora, reparadora, revisora) leen este archivo. Reglas del paquete Lino, destiladas de los escalados por acumulación (#18 el 3-oct, #22 el 4-oct): el patrón fue hallazgos finos que aparecían en serie, uno por ronda. Estas reglas atajan las clases recurrentes.
