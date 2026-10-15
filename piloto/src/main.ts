@@ -1,10 +1,10 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { correrPasada } from './application/pasada.js';
-import type { Ticket } from './domain/model.js';
 import type { Puertos } from './domain/ports.js';
 import { crearAvisos } from './infrastructure/avisos.js';
 import { cargarConfig, type ConfigPiloto } from './infrastructure/config.js';
+import { ESCENARIOS, elegirModo } from './infrastructure/escenarios.js';
 import { crearEntrega } from './infrastructure/git.js';
 import { crearFrontera } from './infrastructure/gh.js';
 import { crearPuertas } from './infrastructure/npm.js';
@@ -13,8 +13,10 @@ import { crearPuertosSimulados } from './infrastructure/simulacion.js';
 
 /**
  * El Piloto (ticket #11): un comando arranca el loop y su salida narra cada paso.
- *   npm run piloto             — pasada real (gh + sesiones + arnés + git)
- *   npm run piloto -- --simular — mismo loop con puertos simulados, sin efectos
+ *   npm run piloto                       — pasada real (gh + sesiones + arnés + git)
+ *   npm run piloto -- --simular[=<escenario>] — mismo loop con puertos simulados.
+ * Escenarios: feliz, reparacion, puerta-roja, escalado,
+ * devolucion-revisora, devolucion-implementadora.
  */
 
 /** dist/main.js → la raíz del repo está dos niveles arriba. */
@@ -31,27 +33,23 @@ function puertosReales(config: ConfigPiloto): Puertos {
   };
 }
 
-/** La frontera de esta mañana (la del prototipo): para ensayar el loop sin tocar nada. */
-function ticketsDeSimulacion(): Ticket[] {
-  return [
-    { numero: 3, titulo: 'Ticket 2: Mi equipo', cuerpo: '', estado: 'cerrado', bloqueadoPor: [], tipo: null },
-    { numero: 4, titulo: 'Ticket 3: Ficha de mentee y 1-to-1s', cuerpo: 'Spec del ticket 3.', estado: 'lista', bloqueadoPor: [], tipo: 'pantalla' },
-    { numero: 5, titulo: 'Ticket 4: Temas propios', cuerpo: 'Spec del ticket 4.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
-    { numero: 6, titulo: 'Ticket 5: Objetivos anuales', cuerpo: 'Spec del ticket 5.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
-    { numero: 7, titulo: 'Ticket 6: Incidencias', cuerpo: 'Spec del ticket 6.', estado: 'lista', bloqueadoPor: [4], tipo: 'pantalla' },
-    { numero: 8, titulo: 'Ticket 7: Catálogo de proyectos', cuerpo: 'Spec del ticket 7.', estado: 'lista', bloqueadoPor: [3], tipo: 'pantalla' },
-  ];
-}
-
 async function main(): Promise<void> {
-  const simular = process.argv.includes('--simular');
+  const modo = elegirModo(process.argv.slice(2));
+  if (modo.tipo === 'error') {
+    console.error(modo.mensaje);
+    process.exitCode = 1;
+    return;
+  }
   const config = await cargarConfig(RUTA_CONFIG);
-  const puertos: Puertos = simular
-    ? crearPuertosSimulados({ tickets: ticketsDeSimulacion(), hallazgos: [null], rojos: [null] }).puertos
-    : puertosReales(config);
+  const puertos: Puertos =
+    modo.tipo === 'simulado'
+      ? crearPuertosSimulados(ESCENARIOS[modo.nombre].guion).puertos
+      : puertosReales(config);
 
-  if (simular) {
-    console.log('— MODO SIMULACIÓN: ni gh, ni sesiones, ni arnés; un ensayo del loop —\n');
+  if (modo.tipo === 'simulado') {
+    console.log(`— MODO SIMULACIÓN · escenario «${modo.nombre}»: ni gh, ni sesiones, ni arnés; un ensayo del loop —`);
+    console.log(ESCENARIOS[modo.nombre].descripcion);
+    console.log('');
   }
   await correrPasada(
     puertos,

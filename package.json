@@ -14,6 +14,7 @@
     "start": "npm run start --workspace server",
     "test:e2e": "playwright test",
     "piloto": "npm run build --workspace piloto && node piloto/dist/main.js",
+    "piloto:simular": "npm run piloto -- --simular",
     "test:mutation": "npm run test:mutation --workspace server",
     "sonar": "node scripts/sonar-scan.mjs",
     "test:otel": "npm run test:otel --workspace server",
