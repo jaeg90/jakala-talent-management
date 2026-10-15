@@ -77,7 +77,7 @@ export PILOTO_OPENCODE="$APPDATA/npm/node_modules/@opencode/cli/bin/opencode.exe
 
 El comando es `npm run piloto`. Compila el Piloto (`tsc`), carga `piloto.config.json`, consulta la frontera con `gh`, y por cada ticket: lanza la implementadora (sesión nueva con `--auto`), luego la revisora (sesión nueva, sin `--auto`), abre las puertas, y en verde entrega — commit de lo pendiente con mensaje `feat: … (#N)` y push (modo `main`), o rama `piloto/<N>` + PR con squash-merge y vuelta a `main` actualizada (modo `rama`) — y cierra el issue. En rojo, lanza reparadoras hasta agotar los reintentos.
 
-**Cuesta dinero**: cada sesión es una llamada a un modelo de pago. Los costes medidos de las sesiones de este proyecto van en `docs/costes/` (generados con `npm run costes` a partir de la base local de sesiones de OpenCode). [PENDIENTE: generar docs/costes — falta copiar opencode.db a .tmp/]
+**Cuesta dinero**: cada sesión es una llamada a un modelo de pago. Los costes medidos de las sesiones de este proyecto van en `docs/costes/` (generados con `npm run costes` a partir de la base local de sesiones de OpenCode).
 
 ## Configuración
 

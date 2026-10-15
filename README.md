@@ -36,7 +36,7 @@ Managers semilla (ficticios, misma contraseña `secreta123`):
 | Glosario del dominio y del Piloto | `CONTEXT.md` | Vocabulario único del proyecto |
 | Investigación | `docs/research/` | Sondas y fuentes (OpenCode V2, permisos, procesos) |
 | Diseño | `docs/design/` | Especificaciones de pantallas (hecho con Claude Design) |
-| Costes medidos de las sesiones de IA | `docs/costes/` | Generados desde la base local de sesiones de OpenCode. [PENDIENTE: generar docs/costes — falta copiar opencode.db a .tmp/] |
+| Costes medidos de las sesiones de IA | `docs/costes/` | Sesiones del Piloto (CSV), resumen de totales, el export de OpenRouter (229,52 USD en total) y la conciliación entre ambos; generados con `npm run costes` |
 | Trabajo futuro | issues con la etiqueta `post-mvp` | Las mejoras #46–#55 recogen propuestas del feedback de compañeros managers que probaron la herramienta |
 
 ## Puesta en marcha local
